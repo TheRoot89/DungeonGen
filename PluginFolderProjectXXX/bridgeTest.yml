@@ -1,0 +1,29 @@
+name: Bridge Test Room
+#0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
+type: 2
+entryLoc:
+  ==: Vector
+  x: 0.0
+  y: 1.0
+  z: 1.0
+entryWidth: 2
+entryHeight: 2
+#Direc: South=0, East=270, North=180, West=90
+initExitDirec: 270
+exitLoc:
+  ==: Vector
+  x: 42.0
+  y: 1.0
+  z: 1.0
+exitWidth: 2
+exitHeight: 2
+targetRegCorner1:
+  ==: Vector
+  x: 41.0
+  y: 1.0
+  z: 1.0
+targetRegCorner2:
+  ==: Vector
+  x: 42.0
+  y: 1.0
+  z: 2.0

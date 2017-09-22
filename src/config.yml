@@ -1,0 +1,7 @@
+#0: none, just follow this list, 1: full randomness
+randomness: 1
+
+entryModules:
+passageWayModules:
+# roomModules now contains all kinds of rooms, the type is listed within the room's .yml
+roomModules:

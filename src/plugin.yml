@@ -1,0 +1,15 @@
+name: ProjectXXX
+main: dungeonGen.DungeonGen
+version: 0.1
+author: theroot89
+
+commands:
+   test:
+      description: This is a test command. It tests stuff.
+      usage: /<command>
+   instructions:
+      description: Displays the WorldEdit workflow.
+      usage: /<command> <File name>
+   start:
+      description: Generates a new dungeon in front of the player.
+      usage: /<command>

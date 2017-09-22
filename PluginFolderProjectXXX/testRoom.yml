@@ -1,0 +1,55 @@
+name: Battle Test Room
+#0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
+type: 3
+entryLoc:
+  ==: Vector
+  x: 0.0
+  y: 1.0
+  z: 2.0
+entryWidth: 2
+entryHeight: 2
+#Direc: South=0, East=270, North=180, West=90
+initExitDirec: 270
+exitLoc:
+  ==: Vector
+  x: 13.0
+  y: 3.0
+  z: 2.0
+exitWidth: 2
+exitHeight: 2
+
+group1:
+  type: CREEPER
+  count: 1
+  isTarget: yes
+  spawnInterval: -1
+  # Spawn-Region dieser Gruppe, beide Punkte gleich wenn ein Punkt
+  spawnRegion:
+    corner1:
+      ==: Vector
+      x: 6.0
+      y: 1.0
+      z: 2.0
+    corner2:
+      ==: Vector
+      x: 6.0
+      y: 1.0
+      z: 2.0
+    
+group2:
+  type: ZOMBIE
+  count: 5
+  isTarget: yes
+  spawnInterval: -1
+  # Spawn-Region dieser Gruppe, beide Punkte gleich wenn ein Punkt
+  spawnRegion:
+    corner1:
+      ==: Vector
+      x: 2.0
+      y: 1.0  
+      z: 3.0
+    corner2:
+      ==: Vector
+      x: 7.0
+      y: 1.0
+      z: 4.0

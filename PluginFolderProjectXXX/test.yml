@@ -1,0 +1,26 @@
+testVector:
+  erster:
+    ==: Vector
+    x: 1.0
+    y: 2.0
+    z: 3.0
+  zweiter:
+    ==: Vector
+    x: 4.0
+    y: 5.0
+    z: 6.0
+testEntity: !!org.bukkit.entity.EntityType 'CREEPER'
+testEntityList:
+- !!org.bukkit.entity.EntityType 'CREEPER'
+- !!org.bukkit.entity.EntityType 'ZOMBIE'
+tstVecList:
+  '1':
+    ==: Vector
+    x: 1.0
+    y: 2.0
+    z: 3.0
+  '2':
+    ==: Vector
+    x: 4.0
+    y: 5.0
+    z: 6.0
