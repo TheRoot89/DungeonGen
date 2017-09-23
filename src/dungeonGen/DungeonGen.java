@@ -267,6 +267,12 @@ public final class DungeonGen extends JavaPlugin {
 		curPassWay2.toggleEntry(false);
 		curPassWay2.toggleExit(false);
 		
+		// move respawn:
+		for (Player p : activePlayers) {
+			com.sk89q.worldedit.Vector spawn = curPassWay1.toGlobal(curPassWay1.respawnLoc).add(0.5,0,0.5); // spawn at middle of block!
+			p.setBedSpawnLocation(BukkitUtil.toLocation(world, spawn), true); // sets respawn even without bed, needs Location :(
+		}
+		
 		// and go! (open the door to the room):
 		curRoom.register();
 		curPassWay1.toggleExit(true);
@@ -281,7 +287,7 @@ public final class DungeonGen extends JavaPlugin {
 	private void startup() {
 		//TODO move everything? set player modes? take their items? Give them starting gear?
 		for (Player p : activePlayers) {
-			p.setFoodLevel(10);
+			p.setFoodLevel(18);
 			p.setGameMode(GameMode.ADVENTURE);
 		}
 	}
