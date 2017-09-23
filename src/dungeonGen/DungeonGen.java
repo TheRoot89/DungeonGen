@@ -287,7 +287,7 @@ public final class DungeonGen extends JavaPlugin {
 	private void startup() {
 		//TODO move everything? set player modes? take their items? Give them starting gear?
 		for (Player p : activePlayers) {
-			p.setFoodLevel(10);
+			p.setFoodLevel(18);
 			p.setGameMode(GameMode.ADVENTURE);
 		}
 	}

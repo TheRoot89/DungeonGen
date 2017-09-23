@@ -1,10 +1,10 @@
 package dungeonGen;
 
 // TODO Use Gate-Class or adaptor modules to adapt different door sizes
-// TODO add spawnlocations
 
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
@@ -47,6 +47,12 @@ public class PassageWay extends Module {
 	        if (   clicked.getType() == Material.STONE_BUTTON 
 	        	&& modVolume.contains(BukkitUtil.toVector(clicked.getLocation())) ) {
 	        	unregister(); // button cannot be pushed twice
+	        	// TODO if double button push appears more often, then use flag here
+	        	for (Player p : parent.activePlayers) {
+	        		if (!modVolume.contains(BukkitUtil.toVector(p.getLocation()))) {
+	        			p.teleport(BukkitUtil.toLocation(parent.world, toGlobal(respawnLoc.add(0.5, 0, 0.5))));
+	        		}
+	        	}
 	        	parent.genNextRoom();
 	        }
 	    }
