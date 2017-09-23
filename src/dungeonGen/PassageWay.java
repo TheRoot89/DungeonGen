@@ -17,7 +17,7 @@ import com.sk89q.worldedit.regions.Region;
 
 public class PassageWay extends Module {
 	
-	private Vector respawnLoc;
+	public Vector respawnLoc;
 	
 	//automatically call Module-Contructor upon creation.
 	public PassageWay(DungeonGen parent, String name, Vector targetL, Direc towardsD) {
@@ -89,7 +89,10 @@ public class PassageWay extends Module {
 	@Override
 	public void loadConfig() {
 		super.loadConfig();
-		respawnLoc = BukkitUtil.toVector(conf.getVector("respawnLoc"));
+		if (conf.contains("respawnLoc"))
+			respawnLoc = BukkitUtil.toVector(conf.getVector("respawnLoc"));
+		else
+			respawnLoc = entryLoc.add(new Vector(1,0,0));
 	}
 
 	@Override

@@ -236,6 +236,12 @@ public final class DungeonGen extends JavaPlugin {
 		if (curPassWay1 != null && curPassWay2.type != ModuleType.ENTRY) //entry should not be deleted, should it?
 			curPassWay1.delete();
 		
+		// move respawn:
+		for (Player p : activePlayers) {
+			com.sk89q.worldedit.Vector spawn = curPassWay2.toGlobal(curPassWay2.respawnLoc.add(1.5,0,0.5)); // spawn at middle of block!
+			p.setBedSpawnLocation(BukkitUtil.toLocation(world, spawn), true); // sets respawn even without bed, needs Location :(
+		}
+		
 		//
 		curPassWay1 = curPassWay2;		// go one step further with our dungeon objects
 		if (curRoom != null) {			// delete the last room
