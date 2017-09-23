@@ -50,7 +50,7 @@ public class PassageWay extends Module {
 	        	// TODO if double button push appears more often, then use flag here
 	        	for (Player p : parent.activePlayers) {
 	        		if (!modVolume.contains(BukkitUtil.toVector(p.getLocation()))) {
-	        			p.teleport(BukkitUtil.toLocation(parent.world, toGlobal(respawnLoc.add(0.5, 0, 0.5))));
+	        			p.teleport(BukkitUtil.toLocation(parent.world, toGlobal(respawnLoc).add(0.5, 0, 0.5)));
 	        		}
 	        	}
 	        	parent.genNextRoom();
