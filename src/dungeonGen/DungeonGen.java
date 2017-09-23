@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.bukkit.Material;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -65,7 +66,7 @@ public final class DungeonGen extends JavaPlugin {
 		// Check dependencies:
         Plugin plugin = getServer().getPluginManager().getPlugin("WorldEdit");
         if (plugin == null || !(plugin instanceof WorldEditPlugin)) {
-        	getLogger().severe("WordEdit not found!");
+        	getLogger().severe("WorldEdit not found!");
         	return; // => initSuccessfull = false
         }
 
@@ -203,6 +204,7 @@ public final class DungeonGen extends JavaPlugin {
 	public void genEntry(Vector start, Direc towardsD) {
 		// players in the team:
 		activePlayers = getServer().getOnlinePlayers();
+		//TODO: move player listing to when the dungeon is actually started and not everyone on the server
 		// generate entry:
 		String name = getRandomModule(entryModules);
 		entry = new Entry(this,name,BukkitUtil.toVector(start),towardsD); //generate the named entry. 'This' is given for attribute access.
@@ -278,6 +280,10 @@ public final class DungeonGen extends JavaPlugin {
 	 */
 	private void startup() {
 		//TODO move everything? set player modes? take their items? Give them starting gear?
+		for (Player p : activePlayers) {
+			p.setFoodLevel(10);
+			p.setGameMode(GameMode.ADVENTURE);
+		}
 	}
 	
 	
