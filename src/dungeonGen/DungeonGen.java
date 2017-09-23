@@ -1,6 +1,6 @@
 package dungeonGen;
 
-//TODO: Set spawns and player modes
+//TODO: Set spawns and player modes: working on it
 
 import java.io.File;
 import java.io.IOException;
