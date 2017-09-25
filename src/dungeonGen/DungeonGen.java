@@ -1,6 +1,7 @@
 package dungeonGen;
 
-//TODO: Set spawns and player modes: working on it
+//TODO: Toni working on state of the program and an exit-Function that cleans up the dungeon.
+// This may be used when something goes wrong (bug) or if players want to end their suffering.
 
 import java.io.File;
 import java.io.IOException;
@@ -51,6 +52,8 @@ public final class DungeonGen extends JavaPlugin {
 	private List<String> roomModules;
 	
 	// working variables and pointers:
+	private int state = 0; 	// state variable as integer marks status of the plugin:
+							// 0: dun not started,  1: dun entry generated but not started,  2: dun running
 	private PassageWay curPassWay1 = null;
 	private PassageWay curPassWay2 = null;
 	private Room curRoom = null;
@@ -187,21 +190,58 @@ public final class DungeonGen extends JavaPlugin {
 				start.setY(world.getHighestBlockYAt(start.getBlockX(), start.getBlockZ())+solidOffset);
 				
 				genEntry(start, playerDirec);
+				
+			
+				
 			}else {
 				sender.sendMessage("Cannot be executed from console!");
 			}
 			return true;
+		}else if (cmd.getName().equalsIgnoreCase("stop")){
+			if (state == 0) {
+				if (sender instanceof Player) {
+					Player p = (Player) sender;
+					p.sendMessage("Dungeon was not started yet!");
+				}
+			}else {
+				for (Player p : activePlayers) {
+					p.sendMessage("Stopping dungeon.");
+				}
+				stopDungeon();
+			}
 		}
-		
 		return false;
 	}
 	
+	private void stopDungeon() {
+		//TODO test the stopping, what else needs to be done?
+		if (state == 1) {		// during startup
+			curPassWay2 = null;
+			entry.unregister();
+			entry.delete();
+			entry = null;
+			state = 0;
+		}else if (state == 2) {	// during running dungeon
+			curPassWay1.unregister();
+			curPassWay1.delete();
+			curPassWay1 = null;
+			curRoom.unregister();
+			curRoom.delete();
+			curRoom = null;
+			curPassWay2.unregister();
+			curPassWay2.delete();
+			curPassWay2 = null;
+			state = 0;
+		}
+	}
+
 	/**
 	 * Starts the dungeon, generating the entry area and setting up listeners(?) for player actions.
 	 * @param start		Vector where the dungeon entry is generated
 	 * @param towardsD	Dungeon Entry direction
 	 */
 	public void genEntry(Vector start, Direc towardsD) {
+		state = 1; // mark status
 		// players in the team:
 		activePlayers = getServer().getOnlinePlayers();
 		//TODO: move player listing to when the dungeon is actually started and not everyone on the server
@@ -218,7 +258,6 @@ public final class DungeonGen extends JavaPlugin {
 	
 	public String getRandomModule(List<String> type) {
 		return type.get(randGen.nextInt(type.size()));
-
 	}
 	
 	/**
@@ -228,7 +267,7 @@ public final class DungeonGen extends JavaPlugin {
 	 */
 	public void genNextRoom() {
 		//check for startup phase:
-		if (curPassWay2.type == ModuleType.ENTRY)
+		if (state == 1)
 			startup();
 		
 		// prep: close this passageWay and delete old:
@@ -285,6 +324,7 @@ public final class DungeonGen extends JavaPlugin {
 	 * Take appropriate actions.
 	 */
 	private void startup() {
+		state = 2;
 		//TODO move everything? set player modes? take their items? Give them starting gear?
 		for (Player p : activePlayers) {
 			p.setFoodLevel(18);
