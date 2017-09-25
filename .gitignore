@@ -1,5 +1,8 @@
 bin/
 
-.classpath
 
+.project
+.settings
+.classpath
+.metadata
 sync.ffs_db
