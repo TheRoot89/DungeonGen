@@ -1,13 +1,13 @@
 package dungeonGen;
 
-//TODO: Toni working on state of the program and an exit-Function that cleans up the dungeon.
-// This may be used when something goes wrong (bug) or if players want to end their suffering.
+//TODO Test resetting of gamemodes for multiple players
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -62,7 +62,8 @@ public final class DungeonGen extends JavaPlugin {
 	private Random randGen = new Random();
 	private long seed;
 	
-	public Collection<? extends Player> activePlayers;
+	public List<? extends Player> activePlayers;
+	public List<GameMode> playersSnapshotAtStart; //TODO does this work?
 	
 	@Override
     public void onEnable() {
@@ -102,8 +103,8 @@ public final class DungeonGen extends JavaPlugin {
         if (initSuccessful)
         	getLogger().info("Initialization successful.");
 
-        
-        // TODO DEBUG ONLY (remove if not needed any more): /////////
+        /*
+        // DEBUG ONLY (remove if not needed any more): /////////
         // generates dummy yaml file to see syntax for different saves
         FileConfiguration tstC = new YamlConfiguration();
         tstC.set("testVector.erster", new Vector(1,2,3));
@@ -126,7 +127,7 @@ public final class DungeonGen extends JavaPlugin {
 
 			e.printStackTrace();
 		}
-        //////////////////////////////////////////////////////////
+        */
     }
     
     @SuppressWarnings("unchecked")
@@ -226,7 +227,7 @@ public final class DungeonGen extends JavaPlugin {
 
 	
 	private void stopDungeon() {
-		//TODO test the stopping, what else needs to be done?
+		// state 0 is catched during the command call
 		if (state == 1) {		// during startup
 			curPassWay2 = null;
 			entry.unregister();
@@ -244,9 +245,16 @@ public final class DungeonGen extends JavaPlugin {
 			curPassWay2.delete();
 			curPassWay2 = null;
 			state = 0;
-		}	// state 0 is catched during the command call
+		}	
+
+		// resetting GameModes of players
+		for (int i=0; i< activePlayers.size(); i++) {
+			if (activePlayers.get(i).isValid())
+				activePlayers.get(i).setGameMode(playersSnapshotAtStart.get(i));
+		}
 		activePlayers.clear();
-		//TODO reset players to their previous gamemode? -> is collection ordered? :/
+		playersSnapshotAtStart.clear();
+
 	}
 
 	
@@ -256,9 +264,13 @@ public final class DungeonGen extends JavaPlugin {
 	 * @param towardsD	Dungeon Entry direction
 	 */
 	public void genEntry(Vector start, Direc towardsD) {
-		state = 1; // mark status
-		// players in the team:
-		activePlayers = getServer().getOnlinePlayers();
+		state = 1;
+		activePlayers = new LinkedList<>(getServer().getOnlinePlayers());
+		playersSnapshotAtStart = new ArrayList<GameMode>();// backup copy of gamemode
+		for (int i=0; i<activePlayers.size(); i++) {
+			playersSnapshotAtStart.add(activePlayers.get(i).getGameMode());
+		}
+
 		//TODO: move player listing to when the dungeon is actually started and not everyone on the server
 		// generate entry:
 		String name = getRandomModule(entryModules);
@@ -340,7 +352,7 @@ public final class DungeonGen extends JavaPlugin {
 	 */
 	private void startup() {
 		state = 2;
-		//TODO move everything? set player modes? take their items? Give them starting gear?
+		//TODO move everything? take their items? Give them starting gear?
 		for (Player p : activePlayers) {
 			p.setFoodLevel(18);
 			p.setGameMode(GameMode.ADVENTURE);
