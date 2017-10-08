@@ -1,4 +1,5 @@
 name: Battle Test Room
+schematic: testRoom
 #0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
 type: 3
 entryLoc:

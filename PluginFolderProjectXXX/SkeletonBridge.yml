@@ -1,5 +1,6 @@
 # description or Name of this dungeon room as in "Loading Module XX":
 name: Skeleton Bridge
+schematic: SkeletonBridge
 #0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
 type: 3
 # Pos of entry lower left "air" block, counted from the copy operation's first position:

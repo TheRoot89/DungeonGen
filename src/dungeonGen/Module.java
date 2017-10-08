@@ -88,7 +88,6 @@ public abstract class Module implements Listener {
 	 */
 	public Module(DungeonGen parent, String name, Vector targetL, Direc towardsD) {
 		this.parent = parent;
-		this.fileName = name + ".schematic";
 		this.origin = new Vector(targetL);
 		this.entryDirec = towardsD;
 		this.turnedBy = entryDirec.degree()-initEntryDirec.degree();
@@ -128,8 +127,10 @@ public abstract class Module implements Listener {
 	}
 	
 	// loads all basic properties common for every module
+	// TODO Catch errors in config files?
 	public void loadConfig() {
 		name			= conf.getString("name");
+		fileName 		= conf.getString("schematic") + ".schematic";
 		type			= ModuleType.values()[conf.getInt("type")]; // valid Enum from int
 		entryLoc  		= BukkitUtil.toVector(conf.getVector("entryLoc"));
 		entryWidth  	= conf.getInt("entryWidth");
