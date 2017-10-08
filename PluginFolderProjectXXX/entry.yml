@@ -1,5 +1,6 @@
 # description of this dungeon room
 name: Test Entry
+schematic: entry
 #0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
 type: 0
 # Pos of entry lower left

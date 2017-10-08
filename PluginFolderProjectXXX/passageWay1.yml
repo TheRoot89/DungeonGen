@@ -1,4 +1,5 @@
 name: Test Passage Way 1
+schematic: passageWay1
 #0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
 type: 1
 entryLoc:

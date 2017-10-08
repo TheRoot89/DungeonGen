@@ -1,5 +1,7 @@
 # description or Name of this dungeon room as in "Loading Module XX":
 name: Template
+# name of the schematic file used by this room (without .schematic):
+schematic: entry
 # Type of this room:  0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
 type: 0
 # Pos of entry lower left "air" block, counted from the copy operation's first position:
