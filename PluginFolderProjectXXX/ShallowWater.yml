@@ -8,7 +8,7 @@ type: 3
 # Always looking east: X: forward, Y: up, Z: to the right
 entryLoc:
   ==: Vector
-  x: 1.0
+  x: 0.0
   y: 2.0
   z: 14.0
 
@@ -20,7 +20,7 @@ entryHeight: 2
 initExitDirec: 270
 exitLoc:
   ==: Vector
-  x: 33.0
+  x: 32.0
   y: 2.0
   z: 3.0
 
@@ -40,7 +40,7 @@ group1:
   spawnRegion:
     corner1:
       ==: Vector
-      x: 32.0
+      x: 31.0
       y: 2.0
       z: 1.0
     corner2:
@@ -58,7 +58,7 @@ group2:
   spawnRegion:
     corner1:
       ==: Vector
-      x: 32.0
+      x: 31.0
       y: 2.0
       z: 1.0
     corner2:
