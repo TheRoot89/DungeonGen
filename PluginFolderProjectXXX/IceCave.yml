@@ -1,0 +1,67 @@
+# description or Name of this dungeon room as in "Loading Module XX":
+name: Ice Cave
+# name of the schematic file used by this room (without .schematic):
+schematic: IceCave
+# Type of this room:  0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
+type: 3
+# Pos of entry lower left "air" block, counted from the copy operation's first position:
+# Always looking east: X: forward, Y: up, Z: to the right
+entryLoc:
+  ==: Vector
+  x: 0.0
+  y: 6.0
+  z: 9.0
+
+# dimensions of entry gate, always 2 at the moment:
+entryWidth: 2
+entryHeight: 2
+
+# Direc: South=0, East=270, North=180, West=90:
+initExitDirec: 270
+exitLoc:
+  ==: Vector
+  x: 23.0
+  y: 6.0
+  z: 10.0
+
+# Pos of exit lower left "air" block, counted from the copy operation's first position
+# Always looking east: X: forward, Y: up, Z: to the right:
+exitWidth: 2
+exitHeight: 2
+
+# BattleRooms only: Angaben zu Gegnergruppen:
+group1:
+  type: ZOMBIE
+  count: 5
+  isTarget: yes
+  spawnInterval: -1
+  # Spawn-Region dieser Gruppe, beide Punkte gleich wenn ein Punkt
+  spawnRegion:
+    corner1:
+      ==: Vector
+      x: 17.0
+      y: 6.0
+      z: 13.0
+    corner2:
+      ==: Vector
+      x: 13.0
+      y: 6.0
+      z: 6.0  
+    
+group2:
+  type: CREEPER
+  count: 1
+  isTarget: yes
+  spawnInterval: -1
+  # Spawn-Region dieser Gruppe, beide Punkte gleich wenn ein Punkt
+  spawnRegion:
+    corner1:
+      ==: Vector
+      x: 17.0
+      y: 6.0
+      z: 13.0
+    corner2:
+      ==: Vector
+      x: 13.0
+      y: 6.0
+      z: 6.0  
