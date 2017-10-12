@@ -4,4 +4,4 @@ Features:
 Creates and connects different room "modules" using WorldEdit
 New modules of different types can be created and added using WorldEdit and config files.
 
-WIP:
+Please see the project wiki for more details.
