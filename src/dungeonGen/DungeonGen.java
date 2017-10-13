@@ -1,12 +1,13 @@
 package dungeonGen;
 
-//TODO: Set spawns and player modes: working on it
+//TODO Test resetting of gamemodes for multiple players
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -51,6 +52,8 @@ public final class DungeonGen extends JavaPlugin {
 	private List<String> roomModules;
 	
 	// working variables and pointers:
+	private int state = 0; 	// state variable as integer marks status of the plugin:
+							// 0: dun not started,  1: dun entry generated but not started,  2: dun running
 	private PassageWay curPassWay1 = null;
 	private PassageWay curPassWay2 = null;
 	private Room curRoom = null;
@@ -59,7 +62,8 @@ public final class DungeonGen extends JavaPlugin {
 	private Random randGen = new Random();
 	private long seed;
 	
-	public Collection<? extends Player> activePlayers;
+	public List<? extends Player> activePlayers;
+	public List<GameMode> playersSnapshotAtStart; //TODO does this work?
 	
 	@Override
     public void onEnable() {
@@ -74,7 +78,7 @@ public final class DungeonGen extends JavaPlugin {
         
 		
         // Set executors (test feature for later code sorting):
-        this.getCommand("test").setExecutor(new DunGenCommandExecutor(this));
+        //this.getCommand("test").setExecutor(new DunGenCommandExecutor(this));
         
         // setup directory:
         dir = getDataFolder();
@@ -99,8 +103,8 @@ public final class DungeonGen extends JavaPlugin {
         if (initSuccessful)
         	getLogger().info("Initialization successful.");
 
-        
-        // TODO DEBUG ONLY (remove if not needed any more): /////////
+        /*
+        // DEBUG ONLY (remove if not needed any more): /////////
         // generates dummy yaml file to see syntax for different saves
         FileConfiguration tstC = new YamlConfiguration();
         tstC.set("testVector.erster", new Vector(1,2,3));
@@ -123,7 +127,7 @@ public final class DungeonGen extends JavaPlugin {
 
 			e.printStackTrace();
 		}
-        //////////////////////////////////////////////////////////
+        */
     }
     
     @SuppressWarnings("unchecked")
@@ -145,10 +149,12 @@ public final class DungeonGen extends JavaPlugin {
     }
 	
 	
-    // Checks command strings and acts upon found commands
+	/**
+	 * Checks command strings and acts upon found commands
+	 */
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {	
-		
+		//////////////////////////////////////////////////////////
 		if (cmd.getName().equalsIgnoreCase("instructions")) {
 			if (sender instanceof Player ) {
 				Player player = (Player) sender;
@@ -161,40 +167,96 @@ public final class DungeonGen extends JavaPlugin {
 				sender.sendMessage("Cannot be executed from console!");
 			}
 			return true;
-			
+		//////////////////////////////////////////////////////////
 		}else if (cmd.getName().equalsIgnoreCase("start")) {
-			if (sender instanceof Player) {
-				Player player = (Player) sender;
-				this.world = player.getWorld();
-				
-				if (!initSuccessful) {
-					player.sendMessage("Initialization of plugin was not successful! See log.");
-					return true;
-				}
-				
-				// calc starting location in front of player on level ground:
-				// also check if ground is solid. if not then paste over the gras etc.
-				int initDist = 10; // distance to player
-				Vector start = new Vector(player.getLocation().getBlockX(),player.getLocation().getBlockY(),player.getLocation().getBlockZ());
-				Direc playerDirec = Helper.getPlayerDirec(player);
-				int deltaX = (int)Math.round(-Helper.sind(playerDirec.degree())*initDist);
-				int deltaZ = (int)Math.round(+Helper.cosd(playerDirec.degree())*initDist);
-				start.add(new Vector(deltaX,0,deltaZ));
-				int solidOffset = 0;
-				if (world.getHighestBlockAt(start.getBlockX(), start.getBlockZ()).getType().isSolid()) {
-					solidOffset = 1;
-				}
-				start.setY(world.getHighestBlockYAt(start.getBlockX(), start.getBlockZ())+solidOffset);
-				
-				genEntry(start, playerDirec);
-			}else {
+			if (!(sender instanceof Player)) {
 				sender.sendMessage("Cannot be executed from console!");
+				return true;
 			}
+			Player player = (Player) sender;
+			this.world = player.getWorld();
+			
+			// input checking:
+			if (!initSuccessful) {
+				player.sendMessage("Initialization of plugin was not successful! See log.");
+				return true;
+			}
+			if (state != 0) {
+				player.sendMessage("Dungeon is already running");
+				return true;
+			}
+			
+			startDungeon(player);
 			return true;
+		///////////////////////////////////////////////////////////
+		}else if (cmd.getName().equalsIgnoreCase("stop")){
+			if (state == 0) {
+				if (sender instanceof Player) {
+					Player p = (Player) sender;
+					p.sendMessage("Dungeon was not started yet!");
+				}
+			}else {
+				for (Player p : activePlayers) {
+					p.sendMessage("Stopping dungeon.");
+				}
+				stopDungeon();
+			}
 		}
-		
+		///////////////////////////////////////////////////////////
 		return false;
 	}
+	
+	
+	private void startDungeon(Player p) {
+		// calc starting location in front of player on level ground:
+		// also check if ground is solid. if not then paste over the gras etc.
+		int initDist = 10; // distance to player
+		Vector start = new Vector(p.getLocation().getBlockX(),p.getLocation().getBlockY(),p.getLocation().getBlockZ());
+		Direc playerDirec = Helper.getPlayerDirec(p);
+		int deltaX = (int)Math.round(-Helper.sind(playerDirec.degree())*initDist);
+		int deltaZ = (int)Math.round(+Helper.cosd(playerDirec.degree())*initDist);
+		start.add(new Vector(deltaX,0,deltaZ));
+		int solidOffset = 0;
+		if (world.getHighestBlockAt(start.getBlockX(), start.getBlockZ()).getType().isSolid()) {
+			solidOffset = 1;
+		}
+		start.setY(world.getHighestBlockYAt(start.getBlockX(), start.getBlockZ())+solidOffset);
+		
+		genEntry(start, playerDirec);
+	}
+
+	
+	private void stopDungeon() {
+		// state 0 is catched during the command call
+		if (state == 1) {		// during startup
+			curPassWay2 = null;
+			entry.unregister();
+			entry.delete();
+			entry = null;
+			state = 0;
+		}else if (state == 2) {	// during running dungeon
+			curPassWay1.unregister();
+			curPassWay1.delete();
+			curPassWay1 = null;
+			curRoom.unregister();
+			curRoom.delete();
+			curRoom = null;
+			curPassWay2.unregister();
+			curPassWay2.delete();
+			curPassWay2 = null;
+			state = 0;
+		}	
+
+		// resetting GameModes of players
+		for (int i=0; i< activePlayers.size(); i++) {
+			if (activePlayers.get(i).isValid())
+				activePlayers.get(i).setGameMode(playersSnapshotAtStart.get(i));
+		}
+		activePlayers.clear();
+		playersSnapshotAtStart.clear();
+
+	}
+
 	
 	/**
 	 * Starts the dungeon, generating the entry area and setting up listeners(?) for player actions.
@@ -202,8 +264,13 @@ public final class DungeonGen extends JavaPlugin {
 	 * @param towardsD	Dungeon Entry direction
 	 */
 	public void genEntry(Vector start, Direc towardsD) {
-		// players in the team:
-		activePlayers = getServer().getOnlinePlayers();
+		state = 1;
+		activePlayers = new LinkedList<>(getServer().getOnlinePlayers());
+		playersSnapshotAtStart = new ArrayList<GameMode>();// backup copy of gamemode
+		for (int i=0; i<activePlayers.size(); i++) {
+			playersSnapshotAtStart.add(activePlayers.get(i).getGameMode());
+		}
+
 		//TODO: move player listing to when the dungeon is actually started and not everyone on the server
 		// generate entry:
 		String name = getRandomModule(entryModules);
@@ -218,7 +285,6 @@ public final class DungeonGen extends JavaPlugin {
 	
 	public String getRandomModule(List<String> type) {
 		return type.get(randGen.nextInt(type.size()));
-
 	}
 	
 	/**
@@ -228,7 +294,7 @@ public final class DungeonGen extends JavaPlugin {
 	 */
 	public void genNextRoom() {
 		//check for startup phase:
-		if (curPassWay2.type == ModuleType.ENTRY)
+		if (state == 1)
 			startup();
 		
 		// prep: close this passageWay and delete old:
@@ -285,10 +351,12 @@ public final class DungeonGen extends JavaPlugin {
 	 * Take appropriate actions.
 	 */
 	private void startup() {
-		//TODO move everything? set player modes? take their items? Give them starting gear?
+		state = 2;
+		//TODO move everything? take their items? Give them starting gear?
 		for (Player p : activePlayers) {
 			p.setFoodLevel(18);
 			p.setGameMode(GameMode.ADVENTURE);
+			p.sendMessage("Your mode was set to adventure...");
 		}
 	}
 	

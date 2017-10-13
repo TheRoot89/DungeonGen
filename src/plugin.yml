@@ -4,12 +4,12 @@ version: 0.1
 author: theroot89
 
 commands:
-   test:
-      description: This is a test command. It tests stuff.
+   stop:
+      description: Ends the dungeon and deletes the buildings etc.
       usage: /<command>
    instructions:
       description: Displays the WorldEdit workflow.
-      usage: /<command> <File name>
+      usage: /<command>
    start:
       description: Generates a new dungeon in front of the player.
       usage: /<command>

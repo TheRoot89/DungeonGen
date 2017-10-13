@@ -123,7 +123,8 @@ public abstract class Room extends Module {
 
 	@Override
 	public void unregister() {
-		checkTask.cancel();
+		if (checkTask != null)
+			checkTask.cancel();
 		if (empowerTask != null)
 			empowerTask.cancel();
 		if (depowerTask != null) {
