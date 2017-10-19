@@ -61,9 +61,9 @@ public class PassageWay extends Module {
 	public void toggleEntry(boolean open) {
 		// Code for only setting/removing blocks in the way:
 		Vector curV;
-		for (int h = 0; h < entryHeight; h++) {
-			for (int w = 0; w < entryWidth; w++) {
-				curV = toGlobal(entryLoc.add(0, h, w));// to right:z, up:y  (doors always start lower left)
+		for (int h = 0; h < entry.height; h++) {
+			for (int w = 0; w < entry.width; w++) {
+				curV = toGlobal(entry.doorLoc.add(0, h, w));// to right:z, up:y  (doors always start lower left)
 				if (open)
 					parent.world.getBlockAt(curV.getBlockX(),curV.getBlockY(),curV.getBlockZ()).setType(Material.AIR);
 				else
@@ -75,9 +75,9 @@ public class PassageWay extends Module {
 	public void toggleExit(boolean open) {
 		// Code for only setting/removing blocks in the way:
 		Vector curV;
-		for (int h = 0; h < exitHeight; h++) {
-			for (int w = 0; w < exitWidth; w++) {
-				curV = toGlobal(exitLoc.add(0, h, w));// to right:z, up:y  (doors always start lower left)
+		for (int h = 0; h < exit.height; h++) {
+			for (int w = 0; w < exit.width; w++) {
+				curV = toGlobal(exit.doorLoc.add(0, h, w));// to right:z, up:y  (doors always start lower left)
 				if (open)
 					parent.world.getBlockAt(curV.getBlockX(),curV.getBlockY(),curV.getBlockZ()).setType(Material.AIR);
 				else
@@ -91,21 +91,19 @@ public class PassageWay extends Module {
 		PlayerInteractEvent.getHandlerList().unregister(this);
 	}
 
-	// loads properties special for passageWays
+	// loads properties special for passageWays, add more door stuff here
 	@Override
 	public void loadConfig() {
 		super.loadConfig();
 		if (conf.contains("respawnLoc"))
 			respawnLoc = BukkitUtil.toVector(conf.getVector("respawnLoc"));
 		else
-			respawnLoc = entryLoc.add(new Vector(1,0,0));
+			respawnLoc = entry.doorLoc.add(new Vector(1,0,0));
 	}
 
 	@Override
 	public void postPlacementActions() {
 		// no spawning etc. to be done here atm
-		// TODO Add Loot in passageWays
-		
 	}
 	
 }

@@ -19,9 +19,6 @@ public class Entry extends PassageWay{
 	@Override
 	public void loadConfig() {
 		super.loadConfig();
-		// entries can be placed relative to a different pos., than entryLoc:
-		if (conf.contains("placementLoc"));
-			placementLoc  = BukkitUtil.toVector(conf.getVector("placementLoc"));
 	}
-	
+
 }

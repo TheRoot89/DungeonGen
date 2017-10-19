@@ -38,36 +38,41 @@ import com.sk89q.worldedit.world.registry.WorldData;
 
 public abstract class Module implements Listener {
 	
-	//Fix:
-	private final Direc initEntryDirec = Direc.EAST;	// aktuell zwingende(!) Richtung bei Speicherung des Moduls
 	
-	//Loaded from config:
+	//////////////////////// Properties ///////////////////////////
+	// Loaded from config:
 	public ModuleType type;
-	protected Vector placementLoc;	// rel. pos within this module, which will correspond to the given origin, once placed
-									// typ. this will be entryLoc, but it is possible be set differently after the constructor, before placement
-	//entry:
-	protected Vector entryLoc;		// (x,y,z) = (forward, up, right).
-	protected int entryWidth;		// entry free space to the right
-	protected int entryHeight;  	// entry free space upwards
-	//exit:
-	protected Direc initExitDirec;
-	protected Vector exitLoc;
-	protected int exitWidth;
-	protected int exitHeight;
+	protected Connector entry;
+	protected Connector exit;
 	
 	// set in constructor:
 	protected String name;				// name of this module
 	protected String fileName;			// name of the schematic
 	protected FileConfiguration conf;	// file config the discr. of this module is saved in
-	protected Direc entryDirec;		// the Direction this module should face after placement
-	protected DungeonGen parent;	// the DungeonGen plugin (pointer)
-	protected int turnedBy;			// e.g. 90° from EAST to SOUTH
-	protected Vector origin;		// where the entryLoc shall be placed in global coord
+	protected DungeonGen parent;		// the DungeonGen plugin (pointer)
+	protected int turnedBy;				// e.g. 90° from EAST to SOUTH
+	protected Vector origin;			// where the entryLoc shall be placed in global coord
 	
 	// set during placement:
-	public Direc exitDirec 	 =null;	// the Direction the exit will face after placement
-	public CuboidClipboard cc=null;	// the clipboard with it's own coordinates before placement
-	public CuboidRegion modVolume;	// the volume occupied by this module
+	public CuboidClipboard cc=null;		// the clipboard with it's own coordinates before placement
+	public CuboidRegion modVolume;		// the volume occupied by this module
+	
+	
+	/////////////////// Inner class as struct: ////////////////////////
+	class Connector{
+		public Vector placementLoc = null;	// (x,y,z) = (forward, up, right). rel. pos within this module, which will correspond to the given origin, once placed
+												// typ. this will be entryLoc, but it is possible be set differently after the constructor, before placement
+		public Vector doorLoc = null;		// where the actual door is located
+		public int width;					// free space to the right
+		public int height;					// free space upwards
+		public Direc initDirec; 			// initial direction this connector is facing (entries must be EAST!)
+		public Direc afterPasteDirec;		// direction after placement (init direc is rotated)
+												// for entries: needed direc of the module after placement
+												// for exits: the direc the exit faces after placement
+	}
+	
+	
+	//////////////////////// Methods ////////////////////////////////////
 	
 	// These methods are abstract and have to be implemented (often empty) by subclasses:
 	public abstract void prePlacementActions();		// stuff done while not yet placed, but obejct and clipboad exist
@@ -87,10 +92,14 @@ public abstract class Module implements Listener {
 	 * @param towardsD	Direction the dungeon is facing (inwards)
 	 */
 	public Module(DungeonGen parent, String name, Vector targetL, Direc towardsD) {
+		this.entry = new Connector();
+		this.entry.initDirec = Direc.EAST; //fixed at the moment!
+		this.exit = new Connector();
+		
 		this.parent = parent;
 		this.origin = new Vector(targetL);
-		this.entryDirec = towardsD;
-		this.turnedBy = entryDirec.degree()-initEntryDirec.degree();
+		this.entry.afterPasteDirec = towardsD;
+		this.turnedBy = towardsD.degree()-entry.initDirec.degree();
 		
 		// check and load config file:
 		File confFile = new File(parent.getDataFolder(),name+".yml");
@@ -108,7 +117,7 @@ public abstract class Module implements Listener {
 		}
 	}
 	
-	// static method to get type before constructor is 
+	// static method to get a moduel type before constructor has been executed
 	public static ModuleType getType(DungeonGen parent, String name) {
 		File confFile = new File(parent.getDataFolder(),name+".yml");
 		if (!confFile.exists()) {
@@ -127,23 +136,45 @@ public abstract class Module implements Listener {
 	}
 	
 	// loads all basic properties common for every module
-	// TODO Catch errors in config files?
 	public void loadConfig() {
-		name			= conf.getString("name");
-		fileName 		= conf.getString("schematic") + ".schematic";
-		type			= ModuleType.values()[conf.getInt("type")]; // valid Enum from int
-		entryLoc  		= BukkitUtil.toVector(conf.getVector("entryLoc"));
-		entryWidth  	= conf.getInt("entryWidth");
-		entryHeight 	= conf.getInt("entryHeight");
-		initExitDirec 	= Direc.fromDeg(conf.getInt("initExitDirec"));
-		exitLoc   		= BukkitUtil.toVector(conf.getVector("exitLoc"));
-		exitWidth    	= conf.getInt("exitWidth");
-		exitHeight    	= conf.getInt("exitHeight");
-		if (entryLoc == null || initExitDirec == null || exitLoc == null) {
+		// basic values for placement:
+		if (conf.contains("name")      			&&
+			conf.contains("schematic") 			&&
+			conf.contains("type")      			&&
+			conf.contains("entry.placementLoc")	&&
+			conf.contains("entry.doorLoc")      &&
+			conf.contains("entry.width")		&&
+			conf.contains("entry.height")		&&
+			conf.contains("exit.placementloc") 	&&
+			conf.contains("exit.doorLoc") 		&&
+			conf.contains("exit.width") 		&&
+			conf.contains("exit.height")	 	&&
+			conf.contains("exit.initDirec") ) {
+			
+			// actual loading:
+			name 				= conf.getString("name");
+			fileName 			= conf.getString("schematic") + ".schematic";
+			type 				= ModuleType.values()[conf.getInt("type")]; // valid Enum from int
+			entry.placementLoc 	= BukkitUtil.toVector(conf.getVector("entry.placementLoc"));
+			entry.doorLoc 		= BukkitUtil.toVector(conf.getVector("entry.doorLoc"));
+			entry.width  		= conf.getInt("entry.width");
+			entry.height		= conf.getInt("entry.height");
+			exit.placementLoc	= BukkitUtil.toVector(conf.getVector("exit.placementLoc"));
+			exit.doorLoc 		= BukkitUtil.toVector(conf.getVector("exit.doorLoc"));
+			exit.width  		= conf.getInt("exit.width");
+			exit.height			= conf.getInt("exit.height");
+			exit.initDirec 		= Direc.fromDeg(conf.getInt("exit.initDirec"));
+		}else {
 			parent.getLogger().severe("Unable to load config fields for " + name);
+			return; //TODO some error signal, or stop command?
 		}
-		// set initial placement loc to entryLoc (connecting passageWays via their doors):
-		placementLoc = new Vector(entryLoc);
+		
+		// door stuff: //TODO: move door stuff to passageWay only!
+		//if () {
+		//	
+		//}else {
+		//	
+		//}
 	}
 	
 	
@@ -152,7 +183,7 @@ public abstract class Module implements Listener {
 		
 		/*
 		// new and lag free(?):
-		// TODO implement lag-free loading
+		// TODO use new WorldEdit API
 		Clipboard clipboard;
 		ClipboardHolder holder;
 		EditSession es;
@@ -205,7 +236,6 @@ public abstract class Module implements Listener {
     	*/
     	
     	
-
 		// Laden & vorbereiten der geladenen Region
 		EditSession es;
     	try {
@@ -221,12 +251,12 @@ public abstract class Module implements Listener {
         }
     	
 		
-    	// compensate the offset for the placement pos. (typ. entry lower left):
-    	cc.setOffset(new Vector(-placementLoc.getBlockX(),-placementLoc.getBlockY(),-placementLoc.getBlockZ()));
+    	// compensate the offset for the placement pos. (typ. entry placement loc = lower left air block of entry 'hole'):
+    	cc.setOffset(new Vector(-entry.placementLoc.getBlockX(),-entry.placementLoc.getBlockY(),-entry.placementLoc.getBlockZ()));
     	// --> rotate the module and determine exit direction:
     	Vector size = cc.getSize(); // get size before module is turned
     	cc.rotate2D(turnedBy);
-    	exitDirec = Direc.fromDeg(initExitDirec.degree() + turnedBy);
+    	exit.afterPasteDirec = Direc.fromDeg(exit.initDirec.degree() + turnedBy);
     	
     	// do stuff before placement
     	prePlacementActions();
@@ -244,7 +274,6 @@ public abstract class Module implements Listener {
     	
     	// do stuff after placement
     	postPlacementActions();
-
 	}
 	
 	
@@ -254,20 +283,23 @@ public abstract class Module implements Listener {
 	
 	
 	public Vector toGlobal(Vector relativePt) {
-		Vector relPlusOff = relativePt.subtract(placementLoc);
-		//System.out.println(relPlusOff.toString());
+		Vector relPlusOff = relativePt.subtract(entry.placementLoc);
 		// rotate according to rotation of clipboard:
 		Vector v_glob = Direc.rotatedBy(relPlusOff, turnedBy);
 		return v_glob.add(origin);
 	}
 
+	
 	public Vector toRelative(Vector globalPt) {
 		Vector globMinusOrig = globalPt.subtract(origin);
 		// rotate back according to rotation of clipboard:
 		Vector v_rel = new Vector(globMinusOrig);
 		Direc.rotatedBy(v_rel, -turnedBy);
-		return v_rel.add(placementLoc);
-				
-				
+		return v_rel.add(entry.placementLoc);	
+	}
+	
+	// Return the the next block after the exit (where the next module global origin should be placed)
+	public Vector getNextEntryPos() {
+		return toGlobal(exit.placementLoc).add(exit.afterPasteDirec.toUnityVec());
 	}
 }
