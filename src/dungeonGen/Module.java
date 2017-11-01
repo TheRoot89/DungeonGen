@@ -95,7 +95,7 @@ public abstract class Module implements Listener {
 		this.entry = new Connector();
 		this.entry.initDirec = Direc.EAST; //fixed at the moment!
 		this.exit = new Connector();
-		
+		//TODO: add 'name' here and make name property to description, so debug has the name info!
 		this.parent = parent;
 		this.origin = new Vector(targetL);
 		this.entry.afterPasteDirec = towardsD;
@@ -106,6 +106,8 @@ public abstract class Module implements Listener {
 		if (!confFile.exists()) {
 			parent.getLogger().severe("Config file for module " + name + " could not be found!");
 			return;
+		}else {
+			parent.getLogger().info("Config file for module " + name + " found.");
 		}
 		conf = new YamlConfiguration();
 		try {
@@ -115,6 +117,7 @@ public abstract class Module implements Listener {
 			e.printStackTrace();
 			return;
 		}
+		parent.getLogger().info("Config file for module " + name + " loaded.");
 	}
 	
 	// static method to get a moduel type before constructor has been executed
@@ -145,7 +148,7 @@ public abstract class Module implements Listener {
 			conf.contains("entry.doorLoc")      &&
 			conf.contains("entry.width")		&&
 			conf.contains("entry.height")		&&
-			conf.contains("exit.placementloc") 	&&
+			conf.contains("exit.placementLoc") 	&&
 			conf.contains("exit.doorLoc") 		&&
 			conf.contains("exit.width") 		&&
 			conf.contains("exit.height")	 	&&
@@ -165,8 +168,20 @@ public abstract class Module implements Listener {
 			exit.height			= conf.getInt("exit.height");
 			exit.initDirec 		= Direc.fromDeg(conf.getInt("exit.initDirec"));
 		}else {
-			parent.getLogger().severe("Unable to load config fields for " + name);
-			return; //TODO some error signal, or stop command?
+			parent.getLogger().severe("Unable to load config fields for " + conf.getCurrentPath() + ". Something is wrong with:");
+			// Debug output, to see witch property in the file needs to be fixed:
+			parent.getLogger().info("name: " + conf.contains("name") );
+			parent.getLogger().info("schematic: " + conf.contains("schematic") );
+			parent.getLogger().info("entry.placementLoc: " + conf.contains("entry.placementLoc") );
+			parent.getLogger().info("entry.doorLoc: " + conf.contains("entry.doorLoc") );
+			parent.getLogger().info("entry.width: " + conf.contains("entry.width") );
+			parent.getLogger().info("entry.height: " + conf.contains("entry.height") );
+			parent.getLogger().info("exit.placementLoc: " + conf.contains("exit.placementLoc") );
+			parent.getLogger().info("exit.doorLoc: " + conf.contains("exit.doorLoc") );
+			parent.getLogger().info("exit.width: " + conf.contains("exit.width") );
+			parent.getLogger().info("exit.height: " + conf.contains("exit.height") );
+			parent.getLogger().info("exit.initDirec: " + conf.contains("exit.initDirec") );
+			return; //TODO some error signal, or stop command? This way it will just crash.
 		}
 		
 		// door stuff: //TODO: move door stuff to passageWay only!
