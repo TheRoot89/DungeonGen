@@ -1,0 +1,75 @@
+# TODO: module 'events': spawning enemies, redstone stuff, appearing blocks
+# TODO: door type (redstone, falling, appearing) 
+# description or Name of this dungeon room as in "Loading Module XX":
+name: Piston-powered passageway test
+# name of the schematic file used by this room (without .schematic):
+schematic: passWayPistonTest
+# Type of this room:  0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
+type: 1
+
+# Description of the entry
+entry:
+  # Pos of entry lower left "air" block, counted from the copy operation's first position:
+  # Size of entry 'hole' fixed to 2x2 at the moment
+  # Always looking east: X: forward, Y: up, Z: to the right
+  placementLoc:
+    ==: Vector
+    x: 0.0
+    y: 4.0
+    z: 3.0
+  # Where the door blocks should be generated (lower left air block)
+  doorLoc:
+    ==: Vector
+    x: 0.0
+    y: 4.0
+    z: 3.0
+  # dimensions of entry gate, always 2 at the moment:
+  width: 2
+  height: 2
+  # type of the actual door opening and closing process: 
+  # 0: appearing, 1: falling, 2: piston
+  type: 2
+  # locations for redstone to open mechanical doors, as many as needed
+  redstoneLoc:
+    ==: Vector
+    x: 4.0
+    y: 4.0
+    z: 9.0
+      
+
+exit:
+  # Direc: South=0, East=270, North=180, West=90:
+  initDirec: 270
+  # Pos of exit lower left "air" block, counted from the copy operation's first position
+  # lower left in the direction looking 'out' of the module from the inside
+  placementLoc:
+    ==: Vector
+    x: 12.0
+    y: 4.0
+    z: 3.0
+  # Where the door blocks should be generated (lower left air block)
+  doorLoc:
+    ==: Vector
+    x: 12.0
+    y: 4.0
+    z: 3.0
+  # dimensions of exit gate, always 2 at the moment:
+  width: 2
+  height: 2
+  # type of the actual door opening and closing process: 
+  # 0: appearing, 1: falling, 2: piston
+  type: 2
+  # location for redstone to open mechanical doors, as many as needed
+  redstoneLoc:
+    ==: Vector
+    x: 8.0
+    y: 4.0
+    z: 9.0
+
+
+# PassageWays only: respawn location for dead players:
+respawnLoc:
+  ==: Vector
+  x: 6.0
+  y: 4.0
+  z: 2.0
