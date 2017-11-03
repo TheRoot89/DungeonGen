@@ -62,7 +62,7 @@ public abstract class Module implements Listener {
 	/////////////////// Inner class as struct: ////////////////////////
 	class Connector{
 		public Vector placementLoc = null;	// (x,y,z) = (forward, up, right). rel. pos within this module, which will correspond to the given origin, once placed
-												// typ. this will be entryLoc, but it is possible be set differently after the constructor, before placement
+											// typ. this will be entryLoc, but it is possible be set differently after the constructor, before placement
 		public Vector doorLoc = null;		// where the actual door is located
 		public int width;					// free space to the right
 		public int height;					// free space upwards
@@ -70,6 +70,8 @@ public abstract class Module implements Listener {
 		public Direc afterPasteDirec;		// direction after placement (init direc is rotated)
 												// for entries: needed direc of the module after placement
 												// for exits: the direc the exit faces after placement
+		public Material doorMaterial;		// Material of the door being generated or falls down
+		public Vector redstonePos;			// Pos where redstone needs to spawn to close the door or disappear for opening
 	}
 	
 	

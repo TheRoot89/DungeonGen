@@ -18,6 +18,15 @@ import com.sk89q.worldedit.regions.Region;
 public class PassageWay extends Module {
 	
 	public Vector respawnLoc;
+	private DoorType entryType;
+	private DoorType exitType;
+	
+	protected enum DoorType{
+		APPEARING,
+		FALLING,
+		PISTON
+	}
+	
 	
 	//automatically call Module-Contructor upon creation.
 	public PassageWay(DungeonGen parent, String name, Vector targetL, Direc towardsD) {
@@ -59,30 +68,68 @@ public class PassageWay extends Module {
 	}
 	
 	public void toggleEntry(boolean open) {
-		// Code for only setting/removing blocks in the way:
+		switch (entryType) {
+		case APPEARING:
+			if (open)
+				genWall(entry.doorLoc,entry.height,entry.width,Material.AIR);
+			else//close
+				genWall(entry.doorLoc,entry.height,entry.width,entry.doorMaterial);
+			break;
+		case FALLING:
+			Vector curV_above = entry.doorLoc.add(0,entry.height,0); // the door location but height higher for stuff to fall down
+			Vector curV_below = entry.doorLoc.add(0,-entry.height,0); // the door location but height deeper
+			Material doorMat;
+			if (open) {
+				genWall(curV_below,entry.height,entry.width,Material.AIR);
+				genWall(curV_above,entry.height,entry.width,Material.SMOOTH_BRICK);
+			}else{//close
+				genWall(curV_above,entry.height,entry.width,entry.doorMaterial);
+			}
+			break;
+		case PISTON:
+			if (open)
+				parent.world.getBlockAt(entry.redstonePos.getBlockX(),entry.redstonePos.getBlockY(),entry.redstonePos.getBlockZ()).setType(Material.AIR);
+			else //close
+				parent.world.getBlockAt(entry.redstonePos.getBlockX(),entry.redstonePos.getBlockY(),entry.redstonePos.getBlockZ()).setType(Material.REDSTONE_BLOCK);
+			break;
+		}
+	}
+	
+	private void genWall(Vector relLowerLeft, int height, int width, Material mat) {
 		Vector curV;
-		for (int h = 0; h < entry.height; h++) {
-			for (int w = 0; w < entry.width; w++) {
-				curV = toGlobal(entry.doorLoc.add(0, h, w));// to right:z, up:y  (doors always start lower left)
-				if (open)
-					parent.world.getBlockAt(curV.getBlockX(),curV.getBlockY(),curV.getBlockZ()).setType(Material.AIR);
-				else
-					parent.world.getBlockAt(curV.getBlockX(),curV.getBlockY(),curV.getBlockZ()).setType(Material.COBBLESTONE);
+		for (int h = 0; h < height; h++) {
+			for (int w = 0; w < width; w++) {
+				curV = toGlobal(relLowerLeft.add(0, h, w));// to right:z, up:y  (doors always start lower left)
+				parent.world.getBlockAt(curV.getBlockX(),curV.getBlockY(),curV.getBlockZ()).setType(mat);
 			}
 		}
 	}
 	
 	public void toggleExit(boolean open) {
-		// Code for only setting/removing blocks in the way:
-		Vector curV;
-		for (int h = 0; h < exit.height; h++) {
-			for (int w = 0; w < exit.width; w++) {
-				curV = toGlobal(exit.doorLoc.add(0, h, w));// to right:z, up:y  (doors always start lower left)
-				if (open)
-					parent.world.getBlockAt(curV.getBlockX(),curV.getBlockY(),curV.getBlockZ()).setType(Material.AIR);
-				else
-					parent.world.getBlockAt(curV.getBlockX(),curV.getBlockY(),curV.getBlockZ()).setType(Material.COBBLESTONE);
+		switch (exitType) {
+		case APPEARING:
+			if (open)
+				genWall(exit.doorLoc,exit.height,exit.width,Material.AIR);
+			else//close
+				genWall(exit.doorLoc,exit.height,exit.width,exit.doorMaterial);
+			break;
+		case FALLING:
+			Vector curV_above = exit.doorLoc.add(0,exit.height,0); // the door location but height higher for stuff to fall down
+			Vector curV_below = exit.doorLoc.add(0,-exit.height,0); // the door location but height deeper
+			Material doorMat;
+			if (open) {
+				genWall(curV_below,exit.height,exit.width,Material.AIR);
+				genWall(curV_above,exit.height,exit.width,Material.SMOOTH_BRICK);
+			}else{//close
+				genWall(curV_above,exit.height,exit.width,exit.doorMaterial);
 			}
+			break;
+		case PISTON:
+			if (open)
+				parent.world.getBlockAt(exit.redstonePos.getBlockX(),exit.redstonePos.getBlockY(),exit.redstonePos.getBlockZ()).setType(Material.AIR);
+			else //close
+				parent.world.getBlockAt(exit.redstonePos.getBlockX(),exit.redstonePos.getBlockY(),exit.redstonePos.getBlockZ()).setType(Material.REDSTONE_BLOCK);
+			break;
 		}
 	}
 
@@ -99,6 +146,38 @@ public class PassageWay extends Module {
 			respawnLoc = BukkitUtil.toVector(conf.getVector("respawnLoc"));
 		else
 			respawnLoc = entry.doorLoc.add(new Vector(1,0,0));
+		
+		// entry:
+		if (conf.contains("entry.type"))
+			entryType = DoorType.values()[conf.getInt("entry.type")];
+		else
+			entryType = DoorType.APPEARING;
+		
+		switch (entryType) {
+		case APPEARING:
+		case FALLING:
+			entry.doorMaterial = Material.getMaterial(conf.getString("entry.doorMaterial"));
+			break;
+		case PISTON: // do not load Material if redstone powered door (case PISTON)
+			entry.redstonePos = BukkitUtil.toVector(conf.getVector("entry.redstoneLoc"));
+			break;
+		}
+		
+		// exit:
+		if (conf.contains("exit.type"))
+			exitType = DoorType.values()[conf.getInt("exit.type")];
+		else
+			exitType = DoorType.APPEARING;
+		
+		switch (exitType) {
+		case APPEARING:
+		case FALLING:
+			exit.doorMaterial = Material.getMaterial(conf.getString("exit.doorMaterial"));
+			break;
+		case PISTON: // do not load Material if redstone powered door (case PISTON)
+			exit.redstonePos = BukkitUtil.toVector(conf.getVector("exit.redstoneLoc"));
+			break;
+		}
 	}
 
 	@Override

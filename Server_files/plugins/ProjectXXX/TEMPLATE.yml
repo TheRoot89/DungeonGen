@@ -28,9 +28,9 @@ entry:
   # type of the actual door opening and closing process: 
   # 0: appearing, 1: falling, 2: piston
   type: 0
-  # the material of the door blocks being generated, only for type 0: 'appearing'
-  doorMaterial: stone_brick
-  # location for redstone to close mechanical doors, as many as needed
+  # the material of the door blocks being generated, only for type 0: 'appearing', Check API whether this exists!
+  doorMaterial: smooth_brick
+  # location for redstone to close mechanical doors. Has to be present upon schematic save.
   redstoneLoc:
     ==: Vector
     x: 1.0
@@ -59,8 +59,8 @@ exit:
   # type of the actual door opening and closing process: 
   # 0: appearing, 1: falling, 2: piston
   type: 0
-  # the material of the door blocks being generated, only for type '0' and '1'
-  doorMaterial: stone_brick
+  # the material of the door blocks being generated, only for type '0' and '1', Check API whether this exists!
+  doorMaterial: smooth_brick
   # location for redstone to close mechanical doors, as many as needed
   redstoneLoc:
     ==: Vector

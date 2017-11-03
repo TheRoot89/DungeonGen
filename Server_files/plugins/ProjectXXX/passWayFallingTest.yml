@@ -27,7 +27,7 @@ entry:
   # type of the actual door opening and closing process: 
   # 0: appearing, 1: falling, 2: piston
   type: 2
-  # locations for redstone to open mechanical doors, as many as needed
+  # location for redstone to open mechanical doors, as many as needed
   redstoneLoc:
     ==: Vector
     x: 4.0

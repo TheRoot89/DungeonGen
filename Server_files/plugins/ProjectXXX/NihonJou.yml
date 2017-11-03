@@ -24,7 +24,7 @@ entry:
   width: 2
   height: 2
   # the material of the door blocks being generated
-  doorMaterial: stone_brick
+  doorMaterial: smooth_brick
   # locations for redstone to open mechanical doors, as many as needed
   redstoneLocs:
     '1':
@@ -54,7 +54,7 @@ exit:
   width: 2
   height: 2
   # the material of the door blocks being generated
-  doorMaterial: stone_brick
+  doorMaterial: smooth_brick
 
 
 # PassageWays only: respawn location for dead players:
