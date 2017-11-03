@@ -1,5 +1,4 @@
 # TODO: module 'events': spawning enemies, redstone stuff, appearing blocks
-# TODO: door type (redstone, falling, appearing) 
 # description or Name of this dungeon room as in "Loading Module XX":
 name: Template
 # name of the schematic file used by this room (without .schematic):
@@ -7,7 +6,7 @@ schematic: entry
 # Type of this room:  0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
 type: 0
 
-# Description of the entry
+
 entry:
   # Pos of entry lower left "air" block, counted from the copy operation's first position:
   # Size of entry 'hole' fixed to 2x2 at the moment
@@ -60,7 +59,7 @@ exit:
   # type of the actual door opening and closing process: 
   # 0: appearing, 1: falling, 2: piston
   type: 0
-  # the material of the door blocks being generated, only for type 0: 'appearing'
+  # the material of the door blocks being generated, only for type '0' and '1'
   doorMaterial: stone_brick
   # location for redstone to close mechanical doors, as many as needed
   redstoneLoc:
