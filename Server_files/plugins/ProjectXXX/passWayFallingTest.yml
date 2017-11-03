@@ -1,5 +1,5 @@
 # description or Name of this dungeon room as in "Loading Module XX":
-name: falling stuff passageway test
+description: falling stuff passageway test
 # name of the schematic file used by this room (without .schematic):
 schematic: passWayFallingTest
 # Type of this room:  0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom

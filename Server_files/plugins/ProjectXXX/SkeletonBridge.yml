@@ -1,5 +1,5 @@
 # description or Name of this dungeon room as in "Loading Module XX":
-name: Skeleton Bridge
+description: Skeleton Bridge
 schematic: SkeletonBridge
 #0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
 type: 3

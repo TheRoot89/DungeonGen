@@ -1,5 +1,5 @@
 # description or Name of this dungeon room as in "Loading Module XX":
-name: Wellness-Paradies fuer die ganze Familie
+description: a wet spiral staircase
 schematic: ThermeErding
 #0: entry, 1: passageWay, 2: platformRoom, 3: battleRoom
 type: 3

@@ -342,7 +342,7 @@ public final class DungeonGen extends JavaPlugin {
 		// and go! (open the door to the room):
 		curRoom.register();
 		curPassWay1.toggleExit(true);
-		getServer().broadcastMessage("Entering room: " + curRoom.name);
+		getServer().broadcastMessage("Entering " + curRoom.description);
 	}
     
 	

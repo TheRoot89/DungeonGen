@@ -46,7 +46,8 @@ public abstract class Module implements Listener {
 	protected Connector exit;
 	
 	// set in constructor:
-	protected String name;				// name of this module
+	protected String name;				// (file) name of this module
+	protected String description;		// in-game name of this module
 	protected String fileName;			// name of the schematic
 	protected FileConfiguration conf;	// file config the discr. of this module is saved in
 	protected DungeonGen parent;		// the DungeonGen plugin (pointer)
@@ -82,9 +83,7 @@ public abstract class Module implements Listener {
 	
 	
 	/**
-	 * Contructs the new module object, initializes and places it.
-	 * In a future release, the entry may be selected randomly, or the name might be read from a setup file. Here it is hardcoded, as well as its attributes.
-	 * Also the geometric relations may be in settings-files for each module
+	 * Contructs the new module object and initializes it by reading its yml file.
 	 * 
 	 * @param parent	The parent Plugin for member access
 	 * @param name 		The name of this module, as well as .schematic and .yml files
@@ -92,6 +91,7 @@ public abstract class Module implements Listener {
 	 * @param towardsD	Direction the dungeon is facing (inwards)
 	 */
 	public Module(DungeonGen parent, String name, Vector targetL, Direc towardsD) {
+		this.name = name;
 		this.entry = new Connector();
 		this.entry.initDirec = Direc.EAST; //fixed at the moment!
 		this.exit = new Connector();
@@ -104,11 +104,10 @@ public abstract class Module implements Listener {
 		// check and load config file:
 		File confFile = new File(parent.getDataFolder(),name+".yml");
 		if (!confFile.exists()) {
-			parent.getLogger().severe("Config file for module " + name + " could not be found!");
+			parent.getLogger().severe("YML file for module " + name + " could not be found!");
 			return;
-		}else {
-			parent.getLogger().info("Config file for module " + name + " found.");
 		}
+
 		conf = new YamlConfiguration();
 		try {
 			conf.load(confFile);
@@ -117,7 +116,7 @@ public abstract class Module implements Listener {
 			e.printStackTrace();
 			return;
 		}
-		parent.getLogger().info("Config file for module " + name + " loaded.");
+		parent.getLogger().info("YML file for module " + name + " loaded.");
 	}
 	
 	// static method to get a moduel type before constructor has been executed
@@ -138,10 +137,13 @@ public abstract class Module implements Listener {
 		return ModuleType.values()[conf.getInt("type")]; // valid Enum from int
 	}
 	
-	// loads all basic properties common for every module
+
+	/** Loads all basic properties common for every module.
+	 * This superclass function has to be called by every subclass upon loading its own config!
+	 */
 	public void loadConfig() {
 		// basic values for placement:
-		if (conf.contains("name")      			&&
+		if (conf.contains("description")      	&&
 			conf.contains("schematic") 			&&
 			conf.contains("type")      			&&
 			conf.contains("entry.placementLoc")	&&
@@ -155,7 +157,7 @@ public abstract class Module implements Listener {
 			conf.contains("exit.initDirec") ) {
 			
 			// actual loading:
-			name 				= conf.getString("name");
+			name 				= conf.getString("description");
 			fileName 			= conf.getString("schematic") + ".schematic";
 			type 				= ModuleType.values()[conf.getInt("type")]; // valid Enum from int
 			entry.placementLoc 	= BukkitUtil.toVector(conf.getVector("entry.placementLoc"));
@@ -168,9 +170,9 @@ public abstract class Module implements Listener {
 			exit.height			= conf.getInt("exit.height");
 			exit.initDirec 		= Direc.fromDeg(conf.getInt("exit.initDirec"));
 		}else {
-			parent.getLogger().severe("Unable to load config fields for " + conf.getCurrentPath() + ". Something is wrong with:");
+			parent.getLogger().severe("Unable to load config fields for " + name + ". Something is wrong with:");
 			// Debug output, to see witch property in the file needs to be fixed:
-			parent.getLogger().info("name: " + conf.contains("name") );
+			parent.getLogger().info("description: " + conf.contains("description") );
 			parent.getLogger().info("schematic: " + conf.contains("schematic") );
 			parent.getLogger().info("entry.placementLoc: " + conf.contains("entry.placementLoc") );
 			parent.getLogger().info("entry.doorLoc: " + conf.contains("entry.doorLoc") );
@@ -181,15 +183,7 @@ public abstract class Module implements Listener {
 			parent.getLogger().info("exit.width: " + conf.contains("exit.width") );
 			parent.getLogger().info("exit.height: " + conf.contains("exit.height") );
 			parent.getLogger().info("exit.initDirec: " + conf.contains("exit.initDirec") );
-			return; //TODO some error signal, or stop command? This way it will just crash.
 		}
-		
-		// door stuff: //TODO: move door stuff to passageWay only!
-		//if () {
-		//	
-		//}else {
-		//	
-		//}
 	}
 	
 	
@@ -292,11 +286,19 @@ public abstract class Module implements Listener {
 	}
 	
 	
+	/**
+	 * Fills the bounding box occupied by this module with air.
+	 * Idea: actual restoring of the destroyed landscape
+	 */
 	public void delete() {
 		Helper.fillVolume(parent.world, modVolume.getPos1(), modVolume.getPos2(), Material.AIR);
 	}
 	
 	
+	/** Converts the module's relative coordinates to global points (only after placement!)
+	 * @param relativePt A relative position, measured from the module origin, facing EAST.
+	 * @return A global position, according to where and in which rotation this module was placed.
+	 */
 	public Vector toGlobal(Vector relativePt) {
 		Vector relPlusOff = relativePt.subtract(entry.placementLoc);
 		// rotate according to rotation of clipboard:

@@ -1,6 +1,6 @@
 # TODO: module 'events': spawning enemies, redstone stuff, appearing blocks
-# description or Name of this dungeon room as in "Loading Module XX":
-name: Template
+# description of this dungeon room as in "Loading XX":
+description: Template
 # name of the schematic file used by this room (without .schematic):
 schematic: entry
 # Type of this room:  0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom

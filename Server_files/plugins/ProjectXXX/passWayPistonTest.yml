@@ -1,7 +1,7 @@
 # TODO: module 'events': spawning enemies, redstone stuff, appearing blocks
 # TODO: door type (redstone, falling, appearing) 
 # description or Name of this dungeon room as in "Loading Module XX":
-name: Piston-powered passageway test
+description: Piston-powered passageway test
 # name of the schematic file used by this room (without .schematic):
 schematic: passWayPistonTest
 # Type of this room:  0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom

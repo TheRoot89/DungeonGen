@@ -1,4 +1,4 @@
-name: Bridge Test Room
+description: Bridge Test Room
 schematic: bridgeTest
 
 #0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
