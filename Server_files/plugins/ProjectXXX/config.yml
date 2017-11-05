@@ -3,6 +3,7 @@
 entryModules:
 - NihonJou
 passageWayModules:
-- passWayPistonTest
+#- passWayPistonTest
+- passWayFallingTest
 roomModules:
 - ColumnHall

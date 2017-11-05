@@ -102,9 +102,10 @@ public class PassageWay extends Module {
 		for (int h = 0; h < height; h++) {
 			for (int w = 0; w < width; w++) {
 				curV = toGlobal(relLowerLeft.add(0, h, w));// to right:z, up:y  (doors always start lower left)
-				parent.world.getBlockAt(curV.getBlockX(),curV.getBlockY(),curV.getBlockZ()).setType(mat);
+				parent.world.getBlockAt(curV.getBlockX(),curV.getBlockY(),curV.getBlockZ()).setType(mat,true);
 			}
 		}
+		parent.world.getBlockAt(relLowerLeft.getBlockX(),relLowerLeft.getBlockY(),relLowerLeft.getBlockZ()).getState().update(true, true);
 	}
 	
 	public void toggleExit(boolean open) {

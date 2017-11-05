@@ -23,16 +23,12 @@ entry:
     z: 3.0
   # dimensions of entry gate, always 2 at the moment:
   width: 2
-  height: 2
+  height: 3
   # type of the actual door opening and closing process: 
   # 0: appearing, 1: falling, 2: piston
-  type: 2
-  # location for redstone to open mechanical doors, as many as needed
-  redstoneLoc:
-    ==: Vector
-    x: 4.0
-    y: 4.0
-    z: 9.0
+  type: 1
+  # the material of the door blocks being generated, only for type '0' and '1', Check API whether this exists!
+  doorMaterial: gravel
       
 
 exit:
@@ -53,16 +49,12 @@ exit:
     z: 3.0
   # dimensions of exit gate, always 2 at the moment:
   width: 2
-  height: 2
+  height: 3
   # type of the actual door opening and closing process: 
   # 0: appearing, 1: falling, 2: piston
-  type: 2
-  # location for redstone to open mechanical doors, as many as needed
-  redstoneLoc:
-    ==: Vector
-    x: 8.0
-    y: 4.0
-    z: 9.0
+  type: 1
+  # the material of the door blocks being generated, only for type '0' and '1', Check API whether this exists!
+  doorMaterial: gravel
 
 
 # PassageWays only: respawn location for dead players:
@@ -70,4 +62,4 @@ respawnLoc:
   ==: Vector
   x: 6.0
   y: 4.0
-  z: 2.0
+  z: 4.0
