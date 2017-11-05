@@ -159,7 +159,7 @@ public abstract class Module implements Listener {
 			conf.contains("exit.initDirec") ) {
 			
 			// actual loading:
-			name 				= conf.getString("description");
+			description			= conf.getString("description");
 			fileName 			= conf.getString("schematic") + ".schematic";
 			type 				= ModuleType.values()[conf.getInt("type")]; // valid Enum from int
 			entry.placementLoc 	= BukkitUtil.toVector(conf.getVector("entry.placementLoc"));

@@ -1,5 +1,7 @@
 package dungeonGen;
 
+import java.util.Locale;
+
 // TODO Use Gate-Class or adaptor modules to adapt different door sizes
 
 import org.bukkit.Material;
@@ -76,21 +78,21 @@ public class PassageWay extends Module {
 				genWall(entry.doorLoc,entry.height,entry.width,entry.doorMaterial);
 			break;
 		case FALLING:
-			Vector curV_above = entry.doorLoc.add(0,entry.height,0); // the door location but height higher for stuff to fall down
-			Vector curV_below = entry.doorLoc.add(0,-entry.height,0); // the door location but height deeper
-			Material doorMat;
+			Vector v_above = entry.doorLoc.add(0,entry.height,0); // the door location but height higher for stuff to fall down
+			Vector v_below = entry.doorLoc.add(0,-entry.height,0); // the door location but height deeper
 			if (open) {
-				genWall(curV_below,entry.height,entry.width,Material.AIR);
-				genWall(curV_above,entry.height,entry.width,Material.SMOOTH_BRICK);
+				genWall(v_below,entry.height,entry.width,Material.AIR);
+				genWall(v_above,entry.height,entry.width,Material.SMOOTH_BRICK);
 			}else{//close
-				genWall(curV_above,entry.height,entry.width,entry.doorMaterial);
+				genWall(v_above,entry.height,entry.width,entry.doorMaterial);
 			}
 			break;
 		case PISTON:
+			Vector v = toGlobal(entry.redstonePos);
 			if (open)
-				parent.world.getBlockAt(entry.redstonePos.getBlockX(),entry.redstonePos.getBlockY(),entry.redstonePos.getBlockZ()).setType(Material.AIR);
+				parent.world.getBlockAt(v.getBlockX(),v.getBlockY(),v.getBlockZ()).setType(Material.AIR);
 			else //close
-				parent.world.getBlockAt(entry.redstonePos.getBlockX(),entry.redstonePos.getBlockY(),entry.redstonePos.getBlockZ()).setType(Material.REDSTONE_BLOCK);
+				parent.world.getBlockAt(v.getBlockX(),v.getBlockY(),v.getBlockZ()).setType(Material.REDSTONE_BLOCK);
 			break;
 		}
 	}
@@ -114,21 +116,21 @@ public class PassageWay extends Module {
 				genWall(exit.doorLoc,exit.height,exit.width,exit.doorMaterial);
 			break;
 		case FALLING:
-			Vector curV_above = exit.doorLoc.add(0,exit.height,0); // the door location but height higher for stuff to fall down
-			Vector curV_below = exit.doorLoc.add(0,-exit.height,0); // the door location but height deeper
-			Material doorMat;
+			Vector v_above = exit.doorLoc.add(0,exit.height,0); // the door location but height higher for stuff to fall down
+			Vector v_below = exit.doorLoc.add(0,-exit.height,0); // the door location but height deeper
 			if (open) {
-				genWall(curV_below,exit.height,exit.width,Material.AIR);
-				genWall(curV_above,exit.height,exit.width,Material.SMOOTH_BRICK);
+				genWall(v_below,exit.height,exit.width,Material.AIR);
+				genWall(v_above,exit.height,exit.width,Material.SMOOTH_BRICK);
 			}else{//close
-				genWall(curV_above,exit.height,exit.width,exit.doorMaterial);
+				genWall(v_above,exit.height,exit.width,exit.doorMaterial);
 			}
 			break;
 		case PISTON:
+			Vector v = toGlobal(exit.redstonePos);
 			if (open)
-				parent.world.getBlockAt(exit.redstonePos.getBlockX(),exit.redstonePos.getBlockY(),exit.redstonePos.getBlockZ()).setType(Material.AIR);
+				parent.world.getBlockAt(v.getBlockX(),v.getBlockY(),v.getBlockZ()).setType(Material.AIR);
 			else //close
-				parent.world.getBlockAt(exit.redstonePos.getBlockX(),exit.redstonePos.getBlockY(),exit.redstonePos.getBlockZ()).setType(Material.REDSTONE_BLOCK);
+				parent.world.getBlockAt(v.getBlockX(),v.getBlockY(),v.getBlockZ()).setType(Material.REDSTONE_BLOCK);
 			break;
 		}
 	}
@@ -156,7 +158,8 @@ public class PassageWay extends Module {
 		switch (entryType) {
 		case APPEARING:
 		case FALLING:
-			entry.doorMaterial = Material.getMaterial(conf.getString("entry.doorMaterial"));
+			String matName = conf.getString("entry.doorMaterial").toUpperCase(Locale.ENGLISH);//to upper case
+			entry.doorMaterial = Material.getMaterial(matName); //this is a lookup 'string' -> 'enum value'
 			break;
 		case PISTON: // do not load Material if redstone powered door (case PISTON)
 			entry.redstonePos = BukkitUtil.toVector(conf.getVector("entry.redstoneLoc"));
@@ -172,7 +175,8 @@ public class PassageWay extends Module {
 		switch (exitType) {
 		case APPEARING:
 		case FALLING:
-			exit.doorMaterial = Material.getMaterial(conf.getString("exit.doorMaterial"));
+			String matName = conf.getString("exit.doorMaterial").toUpperCase(Locale.ENGLISH);//to upper case
+			exit.doorMaterial = Material.getMaterial(matName); //this is a lookup 'string' -> 'enum value'
 			break;
 		case PISTON: // do not load Material if redstone powered door (case PISTON)
 			exit.redstonePos = BukkitUtil.toVector(conf.getVector("exit.redstoneLoc"));

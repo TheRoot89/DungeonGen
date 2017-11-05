@@ -23,6 +23,9 @@ entry:
   # dimensions of entry gate, always 2 at the moment:
   width: 2
   height: 2
+  # type of the actual door opening and closing process: 
+  # 0: appearing, 1: falling, 2: piston
+  type: 0
   # the material of the door blocks being generated
   doorMaterial: smooth_brick
   # locations for redstone to open mechanical doors, as many as needed
@@ -53,6 +56,9 @@ exit:
   # dimensions of exit gate, always 2 at the moment:
   width: 2
   height: 2
+  # type of the actual door opening and closing process: 
+  # 0: appearing, 1: falling, 2: piston
+  type: 0
   # the material of the door blocks being generated
   doorMaterial: smooth_brick
 
