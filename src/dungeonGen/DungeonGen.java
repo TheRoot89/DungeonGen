@@ -1,7 +1,5 @@
 package dungeonGen;
 
-//TODO Test resetting of gamemodes for multiple players
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -302,33 +300,35 @@ public final class DungeonGen extends JavaPlugin {
 		if (curPassWay1 != null && curPassWay2.type != ModuleType.ENTRY) //entry should not be deleted, should it?
 			curPassWay1.delete();
 		
-		//
-		curPassWay1 = curPassWay2;		// go one step further with our dungeon objects
-		if (curRoom != null) {			// delete the last room
+		// go one step further with our dungeon objects and delete old room:
+		curPassWay1 = curPassWay2;
+		if (curRoom != null) {
 			curRoom.delete();
 		}
 		
+		
 		// get new room name and place it:
-		com.sk89q.worldedit.Vector nextEntry = curPassWay1.toGlobal(curPassWay2.exitLoc).add(curPassWay2.exitDirec.toUnityVec());
+		com.sk89q.worldedit.Vector nextEntry = curPassWay1.getNextEntryPos();
 		//getServer().broadcastMessage("Next room at:" + nextEntry.toString());
 		//TODO: How to set randomness of rooms? fully random at the moment
 		String name = getRandomModule(roomModules);
 		ModuleType type = Module.getType(this, name);
 		switch (type) {
-		case PLATFORMROOM:	curRoom = new PlatformRoom(this, name, nextEntry, curPassWay2.exitDirec);
+		case PLATFORMROOM:	curRoom = new PlatformRoom(this, name, nextEntry, curPassWay1.exit.afterPasteDirec);
 							break;
-		case BATTLEROOM:	curRoom = new BattleRoom(this, name, nextEntry, curPassWay2.exitDirec);
+		case BATTLEROOM:	curRoom = new BattleRoom(this, name, nextEntry, curPassWay1.exit.afterPasteDirec);
 							break;
 		default:			getLogger().severe("Error with room type during instantiation!");
-							return;
+							return;//TODO stop plugin?
 		}	
 		curRoom.place();
 		
+		
 		// Gen new passageWay name after that room, place and close its entry:
 		name = getRandomModule(passageWayModules);
-		nextEntry = curRoom.toGlobal(curRoom.exitLoc).add(curRoom.exitDirec.toUnityVec());
+		nextEntry = curRoom.getNextEntryPos();
 		//getServer().broadcastMessage("Next passageWay at:" + nextEntry.toString());
-		curPassWay2 = new PassageWay(this, name, nextEntry, curRoom.exitDirec);
+		curPassWay2 = new PassageWay(this, name, nextEntry, curRoom.exit.afterPasteDirec);
 		curPassWay2.place();
 		curPassWay2.toggleEntry(false);
 		curPassWay2.toggleExit(false);
@@ -342,7 +342,7 @@ public final class DungeonGen extends JavaPlugin {
 		// and go! (open the door to the room):
 		curRoom.register();
 		curPassWay1.toggleExit(true);
-		getServer().broadcastMessage("Entering room: " + curRoom.name);
+		getServer().broadcastMessage("Entering " + curRoom.description);
 	}
     
 	

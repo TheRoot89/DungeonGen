@@ -1,5 +1,7 @@
 package dungeonGen;
 
+import java.util.Locale;
+
 // TODO Use Gate-Class or adaptor modules to adapt different door sizes
 
 import org.bukkit.Material;
@@ -18,6 +20,15 @@ import com.sk89q.worldedit.regions.Region;
 public class PassageWay extends Module {
 	
 	public Vector respawnLoc;
+	private DoorType entryType;
+	private DoorType exitType;
+	
+	protected enum DoorType{
+		APPEARING,
+		FALLING,
+		PISTON
+	}
+	
 	
 	//automatically call Module-Contructor upon creation.
 	public PassageWay(DungeonGen parent, String name, Vector targetL, Direc towardsD) {
@@ -59,30 +70,69 @@ public class PassageWay extends Module {
 	}
 	
 	public void toggleEntry(boolean open) {
-		// Code for only setting/removing blocks in the way:
-		Vector curV;
-		for (int h = 0; h < entryHeight; h++) {
-			for (int w = 0; w < entryWidth; w++) {
-				curV = toGlobal(entryLoc.add(0, h, w));// to right:z, up:y  (doors always start lower left)
-				if (open)
-					parent.world.getBlockAt(curV.getBlockX(),curV.getBlockY(),curV.getBlockZ()).setType(Material.AIR);
-				else
-					parent.world.getBlockAt(curV.getBlockX(),curV.getBlockY(),curV.getBlockZ()).setType(Material.COBBLESTONE);
+		switch (entryType) {
+		case APPEARING:
+			if (open)
+				genWall(entry.doorLoc,entry.height,entry.width,Material.AIR);
+			else//close
+				genWall(entry.doorLoc,entry.height,entry.width,entry.doorMaterial);
+			break;
+		case FALLING:
+			Vector v_above = entry.doorLoc.add(0,entry.height,0); // the door location but height higher for stuff to fall down
+			Vector v_below = entry.doorLoc.add(0,-entry.height,0); // the door location but height deeper
+			if (open) {
+				genWall(v_below,entry.height,entry.width,Material.AIR);
+				genWall(v_above,entry.height,entry.width,Material.SMOOTH_BRICK);
+			}else{//close
+				genWall(v_above,entry.height,entry.width,entry.doorMaterial);
 			}
+			break;
+		case PISTON:
+			Vector v = toGlobal(entry.redstonePos);
+			if (open)
+				parent.world.getBlockAt(v.getBlockX(),v.getBlockY(),v.getBlockZ()).setType(Material.AIR);
+			else //close
+				parent.world.getBlockAt(v.getBlockX(),v.getBlockY(),v.getBlockZ()).setType(Material.REDSTONE_BLOCK);
+			break;
 		}
 	}
 	
-	public void toggleExit(boolean open) {
-		// Code for only setting/removing blocks in the way:
+	private void genWall(Vector relLowerLeft, int height, int width, Material mat) {
 		Vector curV;
-		for (int h = 0; h < exitHeight; h++) {
-			for (int w = 0; w < exitWidth; w++) {
-				curV = toGlobal(exitLoc.add(0, h, w));// to right:z, up:y  (doors always start lower left)
-				if (open)
-					parent.world.getBlockAt(curV.getBlockX(),curV.getBlockY(),curV.getBlockZ()).setType(Material.AIR);
-				else
-					parent.world.getBlockAt(curV.getBlockX(),curV.getBlockY(),curV.getBlockZ()).setType(Material.COBBLESTONE);
+		for (int h = 0; h < height; h++) {
+			for (int w = 0; w < width; w++) {
+				curV = toGlobal(relLowerLeft.add(0, h, w));// to right:z, up:y  (doors always start lower left)
+				parent.world.getBlockAt(curV.getBlockX(),curV.getBlockY(),curV.getBlockZ()).setType(mat,true);
 			}
+		}
+		parent.world.getBlockAt(relLowerLeft.getBlockX(),relLowerLeft.getBlockY(),relLowerLeft.getBlockZ()).getState().update(true, true);
+	}
+	
+	public void toggleExit(boolean open) {
+		switch (exitType) {
+		case APPEARING:
+			if (open)
+				genWall(exit.doorLoc,exit.height,exit.width,Material.AIR);
+			else//close
+				genWall(exit.doorLoc,exit.height,exit.width,exit.doorMaterial);
+			break;
+		case FALLING:
+			Vector v_above = exit.doorLoc.add(0,exit.height,0); // the door location but height higher for stuff to fall down
+			Vector v_below = exit.doorLoc.add(0,-exit.height,0); // the door location but height deeper
+			if (open) {
+				genWall(v_below,exit.height,exit.width,Material.AIR);
+				genWall(v_above,exit.height,exit.width,Material.SMOOTH_BRICK);
+			}else{//close
+				genWall(v_above,exit.height,exit.width,exit.doorMaterial);
+			}
+			break;
+		case PISTON:
+			Vector v = toGlobal(exit.redstonePos);
+			if (open)
+				parent.world.getBlockAt(v.getBlockX(),v.getBlockY(),v.getBlockZ()).setType(Material.AIR);
+			else //close
+				parent.world.getBlockAt(v.getBlockX(),v.getBlockY(),v.getBlockZ()).setType(Material.REDSTONE_BLOCK);
+			break;
 		}
 	}
 
@@ -91,21 +141,53 @@ public class PassageWay extends Module {
 		PlayerInteractEvent.getHandlerList().unregister(this);
 	}
 
-	// loads properties special for passageWays
+	// loads properties special for passageWays, add more door stuff here
 	@Override
 	public void loadConfig() {
 		super.loadConfig();
 		if (conf.contains("respawnLoc"))
 			respawnLoc = BukkitUtil.toVector(conf.getVector("respawnLoc"));
 		else
-			respawnLoc = entryLoc.add(new Vector(1,0,0));
+			respawnLoc = entry.doorLoc.add(new Vector(1,0,0));
+		
+		// entry:
+		if (conf.contains("entry.type"))
+			entryType = DoorType.values()[conf.getInt("entry.type")];
+		else
+			entryType = DoorType.APPEARING;
+		
+		switch (entryType) {
+		case APPEARING:
+		case FALLING:
+			String matName = conf.getString("entry.doorMaterial").toUpperCase(Locale.ENGLISH);//to upper case
+			entry.doorMaterial = Material.getMaterial(matName); //this is a lookup 'string' -> 'enum value'
+			break;
+		case PISTON: // do not load Material if redstone powered door (case PISTON)
+			entry.redstonePos = BukkitUtil.toVector(conf.getVector("entry.redstoneLoc"));
+			break;
+		}
+		
+		// exit:
+		if (conf.contains("exit.type"))
+			exitType = DoorType.values()[conf.getInt("exit.type")];
+		else
+			exitType = DoorType.APPEARING;
+		
+		switch (exitType) {
+		case APPEARING:
+		case FALLING:
+			String matName = conf.getString("exit.doorMaterial").toUpperCase(Locale.ENGLISH);//to upper case
+			exit.doorMaterial = Material.getMaterial(matName); //this is a lookup 'string' -> 'enum value'
+			break;
+		case PISTON: // do not load Material if redstone powered door (case PISTON)
+			exit.redstonePos = BukkitUtil.toVector(conf.getVector("exit.redstoneLoc"));
+			break;
+		}
 	}
 
 	@Override
 	public void postPlacementActions() {
 		// no spawning etc. to be done here atm
-		// TODO Add Loot in passageWays
-		
 	}
 	
 }
