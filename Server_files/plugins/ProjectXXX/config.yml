@@ -3,7 +3,15 @@
 entryModules:
 - NihonJou
 passageWayModules:
-#- passWayPistonTest
+- passWayPistonTest
 - passWayFallingTest
+- PassageFireStraight
+- PassageMiningStraight
 roomModules:
 - ColumnHall
+- IceCave
+- ShallowWater
+- SkeletonBridge
+- testRoom
+- ThermeErding
+#- bridgeTest
