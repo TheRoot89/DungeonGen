@@ -26,7 +26,19 @@ public class PassageWay extends Module {
 	protected enum DoorType{
 		APPEARING,
 		FALLING,
-		PISTON
+		PISTON;
+		
+		public static DoorType fromInteger(int x) {
+			switch (x) {
+			case 0:
+				return APPEARING;
+			case 1:
+				return FALLING;
+			case 2:
+				return PISTON;
+			}
+			return null; // if int is out of range of this enum
+		}
 	}
 	
 	

@@ -25,6 +25,8 @@ entry:
   # dimensions of entry gate, always 2 at the moment:
   width: 2
   height: 2
+  
+  # Only in Passageways:
   # type of the actual door opening and closing process: 
   # 0: appearing, 1: falling, 2: piston
   type: 0
@@ -56,7 +58,8 @@ exit:
   # dimensions of exit gate, always 2 at the moment:
   width: 2
   height: 2
-  # type of the actual door opening and closing process: 
+  
+  # Only in Passageways: type of the actual door opening and closing process: 
   # 0: appearing, 1: falling, 2: piston
   type: 0
   # the material of the door blocks being generated, only for type '0' and '1', Check API whether this exists!
@@ -68,7 +71,6 @@ exit:
     y: 1.0
     z: 2.0
 
-
 # PassageWays only: respawn location for dead players:
 respawnLoc:
   ==: Vector
@@ -76,8 +78,7 @@ respawnLoc:
   y: 1.0
   z: 3.0
 
-# BattleRooms only: Angaben zu Gegnergruppen:
-battle:
+
 
 group1:
   type: CREEPER
