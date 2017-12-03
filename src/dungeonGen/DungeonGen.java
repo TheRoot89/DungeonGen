@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.bukkit.Material;
 import org.bukkit.Bukkit;
@@ -34,15 +35,13 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 
 public final class DungeonGen extends JavaPlugin {
 	
-	
-	private boolean initSuccessful = false;		// flag to signal successful startup or errors during execution
 	public File dir;							// directory of this plugin
-	private String confFileName = "config.yml";	// file this plugin saves its settings in
 	public WorldEditPlugin worldEdit;			// the worldEdit plugin pointer uses for saving/loading schematics
 	public World world = null;					// the world this plugin is started in
 	
 	// Settings:
-	//TODO: how to set how rooms are chosen?
+	private String confFileName = "config.yml";	// file this plugin saves its settings in
+	private boolean initYmlCheck = false;		// Flag to test YAML files on startup, set in config
 	
 	// The lists of module names per module type, loaded from config:
 	private List<String> entryModules;				
@@ -50,8 +49,7 @@ public final class DungeonGen extends JavaPlugin {
 	private List<String> roomModules;
 	
 	// working variables and pointers:
-	private int state = 0; 	// state variable as integer marks status of the plugin:
-							// 0: dun not started,  1: dun entry generated but not started,  2: dun running
+	private State state = State.NOT_STARTED; // state variable marks status of the plugin
 	private PassageWay curPassWay1 = null;
 	private PassageWay curPassWay2 = null;
 	private Room curRoom = null;
@@ -61,19 +59,20 @@ public final class DungeonGen extends JavaPlugin {
 	private long seed;
 	
 	public List<? extends Player> activePlayers;
-	public List<GameMode> playersSnapshotAtStart; //TODO does this work?
+	public List<GameMode> playersSnapshotAtStart;
+	
+
+	
 	
 	@Override
     public void onEnable() {
 		// Check dependencies:
         Plugin plugin = getServer().getPluginManager().getPlugin("WorldEdit");
         if (plugin == null || !(plugin instanceof WorldEditPlugin)) {
-        	getLogger().severe("WorldEdit not found!");
-        	return; // => initSuccessfull = false
+        	setStateAndNotify(State.ERROR, "WorldEdit not found!");
+        	return;
         }
-
         worldEdit = (WorldEditPlugin) plugin;
-        
 		
         // Set executors (test feature for later code sorting):
         //this.getCommand("test").setExecutor(new DunGenCommandExecutor(this));
@@ -82,25 +81,44 @@ public final class DungeonGen extends JavaPlugin {
         dir = getDataFolder();
         if (!dir.exists())
         	if(!dir.mkdir()) {
-        		getLogger().severe("Could not create directory for plugin!");
-        		return; // => initSuccessfull = false
+        		setStateAndNotify(State.ERROR, "Could not create directory for plugin!");
+        		return;
 			}
+        
+        // setup Seed:
+        seed = randGen.nextLong();
+        randGen.setSeed(seed);
         
         // setup the configuration:
         File configFile = new File(dir, confFileName);
         if (!configFile.exists()) {
-            getLogger().info("config.yml not found, creating.");
+            getLogger().info("config.yml not found, creating default.");
             saveDefaultConfig();
         } else {
             getLogger().info("config.yml found, loading.");
         }
-        seed = randGen.nextLong();
-        randGen.setSeed(seed);
-        initSuccessful = loadConfig();
+        // and load:
+        boolean success = loadConfig();
+        if (success)
+        	getLogger().info("Loading successful.");
+        else {
+        	setStateAndNotify(State.ERROR, "Loading of config failed!");
+        	return;
+        }
+        	
+    	// YAML check if active:
+    	if (initYmlCheck) {
+    		getLogger().info("Checking YAML files ...");
+    		try {
+				checkModuleYmlFiles();
+				getLogger().info("Check ok.");
+			} catch (Exception e) {
+				e.printStackTrace();
+				setStateAndNotify(State.ERROR, "YAML check failed!");
+    			return;
+			}
+    	}	
         
-        if (initSuccessful)
-        	getLogger().info("Initialization successful.");
-
         /*
         // DEBUG ONLY (remove if not needed any more): /////////
         // generates dummy yaml file to see syntax for different saves
@@ -128,7 +146,86 @@ public final class DungeonGen extends JavaPlugin {
         */
     }
     
-    @SuppressWarnings("unchecked")
+	class ConfigException extends Exception{
+		private static final long serialVersionUID = 1L; // serializeable, suppresses warning
+		public ConfigException(String message) {super(message);} // allows a message to be used, getMessage() gets it back.
+	}
+	
+    private void checkModuleYmlFiles() throws ConfigException{
+    	YamlConfiguration curConf;
+    	String moduleName = "";
+
+    	// Check for keys, if clauses check special room keys. If a checks fails, an exception with the current key
+    	// is thrown.
+    	//TODO: check the values of keys as well
+    	String key = ""; // empty key serves as flag everything went well
+    	
+    	// keys contained in "Module":
+    	List<String> inspectionList = new ArrayList<String>();
+    	inspectionList.addAll(entryModules);
+    	inspectionList.addAll(passageWayModules);
+    	inspectionList.addAll(roomModules);
+		for (String curName : inspectionList) {
+			moduleName = curName; // cannot iterate using 'name' directly, saves the name for the exception
+			curConf = Module.getConfig(this, moduleName);
+			
+			if (!curConf.contains("description")) 		{key = "description"; break;}
+			if (!curConf.contains("schematic")) 		{key = "schematic"; break;}
+			if (!curConf.contains("type")) 				{key = "type"; break;}
+				// entry
+			if (!curConf.contains("entry"))				{key = "entry"; break;}	
+			if (!curConf.contains("entry.placementLoc")){key = "entry.placementLoc"; break;}	
+			if (!curConf.contains("entry.doorLoc")) 	{key = "entry.doorLoc"; break;}	
+			if (!curConf.contains("entry.width")) 		{key = "entry.width"; break;}
+			if (!curConf.contains("entry.height")) 		{key = "entry.height"; break;}
+				// exit
+			if (!curConf.contains("exit"))				{key = "exit"; break;}	
+			if (!curConf.contains("exit.placementLoc")) {key = "exit.placementLoc"; break;}	
+			if (!curConf.contains("exit.doorLoc")) 		{key = "exit.doorLoc"; break;}	
+			if (!curConf.contains("exit.width")) 		{key = "exit.width"; break;}
+			if (!curConf.contains("exit.height")) 		{key = "exit.height"; break;}
+		}	
+		if (!key.equalsIgnoreCase("")) throw new ConfigException("Key missing: " + key + ", in " + moduleName);	
+			
+		// keys contained in "Passageway" or "Entry":
+		// (no differences at the moment, add new block if things are added to Entries alone)
+		inspectionList.clear();
+		inspectionList.addAll(entryModules);
+		inspectionList.addAll(passageWayModules);
+		for (String curName : inspectionList) {
+			moduleName = curName; // cannot iterate using 'name' directly
+			curConf = Module.getConfig(this, moduleName);
+			
+			if (!curConf.contains("entry.type")) 			{key = "entry.type"; break;}
+			if (PassageWay.DoorType.fromInteger(curConf.getInt("entry.type")) == PassageWay.DoorType.PISTON) {
+				if (!curConf.contains("entry.redstoneLoc"))	{key = "entry.redstoneLoc"; break;}
+			}else { // APPEARING and FALLING
+				if (!curConf.contains("entry.doorMaterial")){key = "entry.doorMaterial"; break;}
+			}
+			if (!curConf.contains("exit.type")) 			{key = "exit.type"; break;}
+			if (PassageWay.DoorType.fromInteger(curConf.getInt("exit.type")) == PassageWay.DoorType.PISTON) {
+				if (!curConf.contains("exit.redstoneLoc"))	{key = "exit.redstoneLoc"; break;}
+			}else { // APPEARING and FALLING
+				if (!curConf.contains("exit.doorMaterial"))	{key = "exit.doorMaterial"; break;}
+			}
+			if (!curConf.contains("respawnLoc"))			{key = "respawnLoc"; break;}
+		}
+		if (!key.equalsIgnoreCase("")) throw new ConfigException("Key missing: " + key + ", in " + moduleName);
+		
+		// keys contained in "Room":
+		for (String curName : roomModules) {
+			moduleName = curName; // cannot iterate using 'name' directly
+			curConf = Module.getConfig(this, moduleName);
+			
+			// TODO: add room key checks when changing mechanism to "tasks"
+			//if (!curConf.contains("respawnLoc"))			{key = "respawnLoc"; break;}
+		}
+		if (!key.equalsIgnoreCase("")) throw new ConfigException("Key missing: " + key + ", in " + moduleName);
+		
+		// everything ok, if code reached here, returns no value
+	}
+
+	@SuppressWarnings("unchecked")
 	private boolean loadConfig() {
     	entryModules 		= (List<String>) getConfig().getList("entryModules",new ArrayList<String>());
     	passageWayModules 	= (List<String>) getConfig().getList("passageWayModules",new ArrayList<String>());
@@ -137,6 +234,7 @@ public final class DungeonGen extends JavaPlugin {
     		getLogger().severe("No module names given in config for some types!");
     		return false;
     	}
+    	initYmlCheck = getConfig().getBoolean("initYmlCheck", true);
     	return true;
 	}
 
@@ -159,6 +257,7 @@ public final class DungeonGen extends JavaPlugin {
 				player.sendMessage("Please use worldEdit to save schematics!");
 				player.sendMessage("Use //wand to get the selection item!");
 				player.sendMessage("Select an area via leftclick and rightclick.");
+				player.sendMessage("Be sure to face east when looking at the new module's entry.");
 				player.sendMessage("//copy to copy the selection to the clipboard.");
 				player.sendMessage("//schematic save <fileName> to save the clipboard.");
 			}else {
@@ -174,13 +273,13 @@ public final class DungeonGen extends JavaPlugin {
 			Player player = (Player) sender;
 			this.world = player.getWorld();
 			
-			// input checking:
-			if (!initSuccessful) {
-				player.sendMessage("Initialization of plugin was not successful! See log.");
+			// checking whether plugin is ready:
+			if (state == State.ERROR) {
+				player.sendMessage("Initialization of plugin was not successful! See server log.");
 				return true;
 			}
-			if (state != 0) {
-				player.sendMessage("Dungeon is already running");
+			if (state == State.STARTUP || state == State.RUNNING) {
+				player.sendMessage("Dungeon has already been created!");
 				return true;
 			}
 			
@@ -188,20 +287,53 @@ public final class DungeonGen extends JavaPlugin {
 			return true;
 		///////////////////////////////////////////////////////////
 		}else if (cmd.getName().equalsIgnoreCase("stop")){
-			if (state == 0) {
+			
+			switch (state) {
+			case NOT_STARTED:
+			case STARTUP:
 				if (sender instanceof Player) {
 					Player p = (Player) sender;
 					p.sendMessage("Dungeon was not started yet!");
+				}else {
+					getLogger().info("Dungeon was not started yet!");
 				}
-			}else {
+				break;
+			case RUNNING:
 				for (Player p : activePlayers) {
 					p.sendMessage("Stopping dungeon.");
 				}
 				stopDungeon();
+				break;
+			case ERROR:
+				if (sender instanceof Player) {
+					Player p = (Player) sender;
+					p.sendMessage("There has been an error during DunGen plugin startup!");
+				}else {
+					getLogger().info("There has been an error during DunGen plugin startup!");
+				}
+				break;
 			}
+			return true;
 		}
 		///////////////////////////////////////////////////////////
 		return false;
+	}
+	
+	private void setStateAndNotify(State state, String message) {
+		setStateSilenty(state,message);
+		if (this.state == State.ERROR)
+			getLogger().info(this.state.statusMessage);
+		else
+			getLogger().severe(this.state.statusMessage);
+	}
+	
+	private void setStateSilenty(State state) {
+		setStateSilenty(state,"");
+	}
+	
+	private void setStateSilenty(State state, String message) {
+		this.state = state;
+		this.state.statusMessage = message;
 	}
 	
 	
@@ -226,13 +358,13 @@ public final class DungeonGen extends JavaPlugin {
 	
 	private void stopDungeon() {
 		// state 0 is catched during the command call
-		if (state == 1) {		// during startup
+		if (state == State.STARTUP) {		// during startup
 			curPassWay2 = null;
 			entry.unregister();
 			entry.delete();
 			entry = null;
-			state = 0;
-		}else if (state == 2) {	// during running dungeon
+			state = State.NOT_STARTED;
+		}else if (state == State.RUNNING) {	// during running dungeon
 			curPassWay1.unregister();
 			curPassWay1.delete();
 			curPassWay1 = null;
@@ -242,7 +374,7 @@ public final class DungeonGen extends JavaPlugin {
 			curPassWay2.unregister();
 			curPassWay2.delete();
 			curPassWay2 = null;
-			state = 0;
+			state = State.NOT_STARTED;
 		}	
 
 		// resetting GameModes of players
@@ -252,24 +384,19 @@ public final class DungeonGen extends JavaPlugin {
 		}
 		activePlayers.clear();
 		playersSnapshotAtStart.clear();
-
 	}
 
 	
 	/**
-	 * Starts the dungeon, generating the entry area and setting up listeners(?) for player actions.
+	 * Starts the dungeon, generating the entry area and setting up listeners for player button press actions.
+	 * The STARTUP status will lead to the execution of the startup() member as soon as the entry's button
+	 * is pressed.
 	 * @param start		Vector where the dungeon entry is generated
 	 * @param towardsD	Dungeon Entry direction
 	 */
 	public void genEntry(Vector start, Direc towardsD) {
-		state = 1;
-		activePlayers = new LinkedList<>(getServer().getOnlinePlayers());
-		playersSnapshotAtStart = new ArrayList<GameMode>();// backup copy of gamemode
-		for (int i=0; i<activePlayers.size(); i++) {
-			playersSnapshotAtStart.add(activePlayers.get(i).getGameMode());
-		}
+		state = State.STARTUP;
 
-		//TODO: move player listing to when the dungeon is actually started and not everyone on the server
 		// generate entry:
 		String name = getRandomModule(entryModules);
 		entry = new Entry(this,name,BukkitUtil.toVector(start),towardsD); //generate the named entry. 'This' is given for attribute access.
@@ -292,7 +419,7 @@ public final class DungeonGen extends JavaPlugin {
 	 */
 	public void genNextRoom() {
 		//check for startup phase:
-		if (state == 1)
+		if (state == State.STARTUP)
 			startup();
 		
 		// prep: close this passageWay and delete old:
@@ -310,7 +437,7 @@ public final class DungeonGen extends JavaPlugin {
 		// get new room name and place it:
 		com.sk89q.worldedit.Vector nextEntry = curPassWay1.getNextEntryPos();
 		//getServer().broadcastMessage("Next room at:" + nextEntry.toString());
-		//TODO: How to set randomness of rooms? fully random at the moment
+		// better "structured" randomness has to start here
 		String name = getRandomModule(roomModules);
 		ModuleType type = Module.getType(this, name);
 		switch (type) {
@@ -319,7 +446,8 @@ public final class DungeonGen extends JavaPlugin {
 		case BATTLEROOM:	curRoom = new BattleRoom(this, name, nextEntry, curPassWay1.exit.afterPasteDirec);
 							break;
 		default:			getLogger().severe("Error with room type during instantiation!");
-							return;//TODO stop plugin?
+							stopDungeon();
+							return;
 		}	
 		curRoom.place();
 		
@@ -351,13 +479,22 @@ public final class DungeonGen extends JavaPlugin {
 	 * Take appropriate actions.
 	 */
 	private void startup() {
-		state = 2;
-		//TODO move everything? take their items? Give them starting gear?
+		activePlayers = new LinkedList<>(getServer().getOnlinePlayers());
+		
+		// Backing up player modes to restore upon dungeon stop
+		playersSnapshotAtStart = new ArrayList<GameMode>();// backup copy of gamemode
+		for (int i=0; i<activePlayers.size(); i++) {
+			playersSnapshotAtStart.add(activePlayers.get(i).getGameMode());
+		}
+		
 		for (Player p : activePlayers) {
 			p.setFoodLevel(18);
 			p.setGameMode(GameMode.ADVENTURE);
 			p.sendMessage("Your mode was set to adventure...");
 		}
+		//TODO move everything? take their items? Give them starting gear?
+		
+		state = State.RUNNING;
 	}
 	
 	
@@ -370,4 +507,12 @@ public final class DungeonGen extends JavaPlugin {
 		getServer().broadcastMessage("Room solved. Well done.");
 	}
 	
+	private enum State {
+		NOT_STARTED,			// no dungeon was started yet
+		STARTUP,				// entry generated but not started yet
+		RUNNING,				// running fully
+		ERROR;					// something happened :/
+		
+		public String statusMessage; // an additional message can be stored
+	}
 }

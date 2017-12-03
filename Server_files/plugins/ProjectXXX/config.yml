@@ -1,4 +1,8 @@
 # This config contains the settings of the plugin, as well as a list of the names of all rooms, ordered by room type, e.g. the "entry" entryModule.
+
+# check to enable a check of all known yml files upon startup
+initYmlCheck: true
+
 # These lists enable the plugin to know that room (with schematic and .yml) is there and may be loaded from its respective files.
 entryModules:
 - NihonJou
