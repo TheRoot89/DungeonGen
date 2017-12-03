@@ -38,6 +38,7 @@ public final class DungeonGen extends JavaPlugin {
 	private boolean initSuccessful = false;		// flag to signal successful startup or errors during execution
 	public File dir;							// directory of this plugin
 	private String confFileName = "config.yml";	// file this plugin saves its settings in
+	private boolean initYmlCheck = false;		// Flag to test YAML files on startup, set in config
 	public WorldEditPlugin worldEdit;			// the worldEdit plugin pointer uses for saving/loading schematics
 	public World world = null;					// the world this plugin is started in
 	
@@ -83,7 +84,7 @@ public final class DungeonGen extends JavaPlugin {
         if (!dir.exists())
         	if(!dir.mkdir()) {
         		getLogger().severe("Could not create directory for plugin!");
-        		return; // => initSuccessfull = false
+        		return; // => initSuccessfull stays "false"
 			}
         
         // setup the configuration:
@@ -99,8 +100,25 @@ public final class DungeonGen extends JavaPlugin {
         initSuccessful = loadConfig();
         
         if (initSuccessful)
-        	getLogger().info("Initialization successful.");
-
+        	getLogger().info("Loading successful.");
+        else
+        	return; 
+        	
+    	// YAML check if active:
+    	if (initYmlCheck) {
+    		getLogger().info("Checking YAML files ...");
+    		try {
+				checkModuleYmlFiles();
+				initSuccessful = true;
+				getLogger().info("Successful.");
+			} catch (Exception e) {
+				e.printStackTrace();
+				initSuccessful = false;
+				getLogger().info("YAML check failed!");
+    			return;
+			}
+    	}	
+        
         /*
         // DEBUG ONLY (remove if not needed any more): /////////
         // generates dummy yaml file to see syntax for different saves
@@ -128,7 +146,51 @@ public final class DungeonGen extends JavaPlugin {
         */
     }
     
-    @SuppressWarnings("unchecked")
+	class ConfigException extends Exception{
+		private static final long serialVersionUID = 1L; // serializeable, suppresses warning
+		public ConfigException(String message) {super(message);} // allows a message to be used, getMessage() gets it back.
+	}
+	
+    private void checkModuleYmlFiles() throws ConfigException{
+    	YamlConfiguration curConf;
+    	String name;
+
+    	// Check for keys, if clauses check special room keys
+    	String key;
+		for (String curName : entryModules) {
+			name = curName; // cannot iterate using 'name' directly
+			curConf = Module.getConfig(this, name);
+			if (!curConf.contains("description")) 		{key = "description"; break;}
+			if (!curConf.contains("schematic")) 		{key = "schematic"; break;}
+			if (!curConf.contains("type")) 				{key = "type"; break;}	
+			if (!curConf.contains("entry.placementLoc")){key = "entry.placementLoc"; break;}	
+			if (!curConf.contains("entry.doorLoc")) 	{key = "entry.doorLoc"; break;}	
+			if (!curConf.contains("entry.width")) 		{key = "entry.width"; break;}
+			if (!curConf.contains("entry.height")) 		{key = "entry.height"; break;}
+			if (!curConf.contains("entry.type")) 		{key = "entry.type"; break;}
+				
+			if (curConf.getInt("entry.type") == 2) {
+				if (!curConf.contains("entry.redstoneLoc"))
+					{key = "entry.redstoneLoc"; break;}
+			}else {
+				if (!curConf.contains("entry.redstoneLoc"))
+					{key = "entry.redstoneLoc"; break;}
+			}
+			
+		}
+		throw new ConfigException("Key missing: " + key + ", in " + name);
+		
+		for (String name : passageWayModules) {
+			 curConf = Module.getConfig(this, name);
+		}
+		for (String name : roomModules) {
+			 curConf = Module.getConfig(this, name);
+		}
+    	
+		return true; // everything ok, if code reached here
+	}
+
+	@SuppressWarnings("unchecked")
 	private boolean loadConfig() {
     	entryModules 		= (List<String>) getConfig().getList("entryModules",new ArrayList<String>());
     	passageWayModules 	= (List<String>) getConfig().getList("passageWayModules",new ArrayList<String>());
@@ -137,6 +199,7 @@ public final class DungeonGen extends JavaPlugin {
     		getLogger().severe("No module names given in config for some types!");
     		return false;
     	}
+    	initYmlCheck = getConfig().getBoolean("initYmlCheck", true);
     	return true;
 	}
 

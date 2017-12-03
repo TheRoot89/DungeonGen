@@ -123,6 +123,16 @@ public abstract class Module implements Listener {
 	
 	// static method to get a moduel type before constructor has been executed
 	public static ModuleType getType(DungeonGen parent, String name) {
+		YamlConfiguration conf = getConfig(parent, name);
+		if (conf != null)
+			return ModuleType.values()[conf.getInt("type")]; // valid Enum from int
+		else
+			return null;
+	}
+	
+	
+	// static method to get a modules config alone, returns null if failed
+	public static YamlConfiguration getConfig(DungeonGen parent, String name) {
 		File confFile = new File(parent.getDataFolder(),name+".yml");
 		if (!confFile.exists()) {
 			parent.getLogger().severe("Config file for module " + name + " could not be found!");
@@ -136,9 +146,8 @@ public abstract class Module implements Listener {
 			e.printStackTrace();
 			return null;
 		}
-		return ModuleType.values()[conf.getInt("type")]; // valid Enum from int
+		return conf;
 	}
-	
 
 	/** Loads all basic properties common for every module.
 	 * This superclass function has to be called by every subclass upon loading its own config!
