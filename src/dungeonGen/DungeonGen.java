@@ -157,7 +157,7 @@ public final class DungeonGen extends JavaPlugin {
 
     	// Check for keys, if clauses check special room keys. If a checks fails, an exception with the current key
     	// is thrown.
-    	//TODO: check the values of keys
+    	//TODO: check the values of keys as well
     	String key = ""; // empty key serves as flag everything went well
     	
     	// keys contained in "Module":
@@ -173,17 +173,19 @@ public final class DungeonGen extends JavaPlugin {
 			if (!curConf.contains("schematic")) 		{key = "schematic"; break;}
 			if (!curConf.contains("type")) 				{key = "type"; break;}
 				// entry
+			if (!curConf.contains("entry"))				{key = "entry"; break;}	
 			if (!curConf.contains("entry.placementLoc")){key = "entry.placementLoc"; break;}	
 			if (!curConf.contains("entry.doorLoc")) 	{key = "entry.doorLoc"; break;}	
 			if (!curConf.contains("entry.width")) 		{key = "entry.width"; break;}
 			if (!curConf.contains("entry.height")) 		{key = "entry.height"; break;}
 				// exit
+			if (!curConf.contains("exit"))				{key = "exit"; break;}	
 			if (!curConf.contains("exit.placementLoc")) {key = "exit.placementLoc"; break;}	
 			if (!curConf.contains("exit.doorLoc")) 		{key = "exit.doorLoc"; break;}	
 			if (!curConf.contains("exit.width")) 		{key = "exit.width"; break;}
 			if (!curConf.contains("exit.height")) 		{key = "exit.height"; break;}
 		}	
-		if (key == "") throw new ConfigException("Key missing: " + key + ", in " + moduleName);	
+		if (!key.equalsIgnoreCase("")) throw new ConfigException("Key missing: " + key + ", in " + moduleName);	
 			
 		// keys contained in "Passageway" or "Entry":
 		// (no differences at the moment, add new block if things are added to Entries alone)
@@ -208,7 +210,7 @@ public final class DungeonGen extends JavaPlugin {
 			}
 			if (!curConf.contains("respawnLoc"))			{key = "respawnLoc"; break;}
 		}
-		if (key == "") throw new ConfigException("Key missing: " + key + ", in " + moduleName);
+		if (!key.equalsIgnoreCase("")) throw new ConfigException("Key missing: " + key + ", in " + moduleName);
 		
 		// keys contained in "Room":
 		for (String curName : roomModules) {
@@ -218,7 +220,7 @@ public final class DungeonGen extends JavaPlugin {
 			// TODO: add room key checks when changing mechanism to "tasks"
 			//if (!curConf.contains("respawnLoc"))			{key = "respawnLoc"; break;}
 		}
-		if (key == "") throw new ConfigException("Key missing: " + key + ", in " + moduleName);
+		if (!key.equalsIgnoreCase("")) throw new ConfigException("Key missing: " + key + ", in " + moduleName);
 		
 		// everything ok, if code reached here, returns no value
 	}
@@ -255,6 +257,7 @@ public final class DungeonGen extends JavaPlugin {
 				player.sendMessage("Please use worldEdit to save schematics!");
 				player.sendMessage("Use //wand to get the selection item!");
 				player.sendMessage("Select an area via leftclick and rightclick.");
+				player.sendMessage("Be sure to face east when looking at the new module's entry.");
 				player.sendMessage("//copy to copy the selection to the clipboard.");
 				player.sendMessage("//schematic save <fileName> to save the clipboard.");
 			}else {
@@ -272,7 +275,7 @@ public final class DungeonGen extends JavaPlugin {
 			
 			// checking whether plugin is ready:
 			if (state == State.ERROR) {
-				player.sendMessage("Initialization of plugin was not successful! See log.");
+				player.sendMessage("Initialization of plugin was not successful! See server log.");
 				return true;
 			}
 			if (state == State.STARTUP || state == State.RUNNING) {
@@ -284,16 +287,31 @@ public final class DungeonGen extends JavaPlugin {
 			return true;
 		///////////////////////////////////////////////////////////
 		}else if (cmd.getName().equalsIgnoreCase("stop")){
-			if (state == State.NOT_STARTED) {
+			
+			switch (state) {
+			case NOT_STARTED:
+			case STARTUP:
 				if (sender instanceof Player) {
 					Player p = (Player) sender;
 					p.sendMessage("Dungeon was not started yet!");
+				}else {
+					getLogger().info("Dungeon was not started yet!");
 				}
-			}else {
+				break;
+			case RUNNING:
 				for (Player p : activePlayers) {
 					p.sendMessage("Stopping dungeon.");
 				}
 				stopDungeon();
+				break;
+			case ERROR:
+				if (sender instanceof Player) {
+					Player p = (Player) sender;
+					p.sendMessage("There has been an error during DunGen plugin startup!");
+				}else {
+					getLogger().info("There has been an error during DunGen plugin startup!");
+				}
+				break;
 			}
 			return true;
 		}
