@@ -4,7 +4,7 @@ version: 0.2
 author: TheRoot89
 
 commands:
-   stop:
+   end:
       description: Ends the dungeon and deletes the buildings etc.
       usage: /<command>
    instructions:

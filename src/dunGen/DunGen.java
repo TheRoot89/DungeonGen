@@ -286,7 +286,7 @@ public final class DunGen extends JavaPlugin {
 			startDungeon(player);
 			return true;
 		///////////////////////////////////////////////////////////
-		}else if (cmd.getName().equalsIgnoreCase("stop")){
+		}else if (cmd.getName().equalsIgnoreCase("end")){
 			
 			switch (state) {
 			case NOT_STARTED:
