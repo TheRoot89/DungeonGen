@@ -1,4 +1,4 @@
-package dungeonGen;
+package dunGen;
 import org.bukkit.entity.EntityType;
 
 import com.sk89q.worldedit.Vector;

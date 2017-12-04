@@ -1,4 +1,4 @@
-package dungeonGen;
+package dunGen;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +33,7 @@ import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.regions.CuboidRegion;
 
 
-public final class DungeonGen extends JavaPlugin {
+public final class DunGen extends JavaPlugin {
 	
 	public File dir;							// directory of this plugin
 	public WorldEditPlugin worldEdit;			// the worldEdit plugin pointer uses for saving/loading schematics

@@ -1,4 +1,4 @@
-package dungeonGen;
+package dunGen;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -50,7 +50,7 @@ public abstract class Module implements Listener {
 	protected String description;		// in-game name of this module
 	protected String fileName;			// name of the schematic
 	protected FileConfiguration conf;	// file config the discr. of this module is saved in
-	protected DungeonGen parent;		// the DungeonGen plugin (pointer)
+	protected DunGen parent;		// the DunGen plugin (pointer)
 	protected int turnedBy;				// e.g. 90° from EAST to SOUTH
 	protected Vector origin;			// where the entryLoc shall be placed in global coord
 	
@@ -92,7 +92,7 @@ public abstract class Module implements Listener {
 	 * @param targetL	The location of the entry as global vector (lower left free(air or door) block)
 	 * @param towardsD	Direction the dungeon is facing (inwards)
 	 */
-	public Module(DungeonGen parent, String name, Vector targetL, Direc towardsD) {
+	public Module(DunGen parent, String name, Vector targetL, Direc towardsD) {
 		this.name = name;
 		this.entry = new Connector();
 		this.entry.initDirec = Direc.EAST; //fixed at the moment!
@@ -122,7 +122,7 @@ public abstract class Module implements Listener {
 	}
 	
 	// static method to get a moduel type before constructor has been executed
-	public static ModuleType getType(DungeonGen parent, String name) {
+	public static ModuleType getType(DunGen parent, String name) {
 		YamlConfiguration conf = getConfig(parent, name);
 		if (conf != null)
 			return ModuleType.values()[conf.getInt("type")]; // valid Enum from int
@@ -132,7 +132,7 @@ public abstract class Module implements Listener {
 	
 	
 	// static method to get a modules config alone, returns null if failed
-	public static YamlConfiguration getConfig(DungeonGen parent, String name) {
+	public static YamlConfiguration getConfig(DunGen parent, String name) {
 		File confFile = new File(parent.getDataFolder(),name+".yml");
 		if (!confFile.exists()) {
 			parent.getLogger().severe("Config file for module " + name + " could not be found!");

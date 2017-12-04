@@ -92,7 +92,7 @@ public class MazeGenerator {
 //		maze.display();
 //	}
 
-	// does not include outer walls! -> entry and exit are due to DungeonGen
+	// does not include outer walls! -> entry and exit are due to DunGen
 	public static boolean[][] getMaze(int nSectX, int nSectZ, int wallWidth, int roadWidth){
 		// use MazeGen: z -> x, x -> y (Diff. in Coord. systems)
 		MazeGenerator mazeGen = new MazeGenerator(nSectZ,nSectX);

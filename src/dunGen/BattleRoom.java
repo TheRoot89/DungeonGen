@@ -1,4 +1,4 @@
-package dungeonGen;
+package dunGen;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -15,7 +15,7 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 
 public class BattleRoom extends Room {
 	
-	public BattleRoom(DungeonGen parent, String name, Vector targetL, Direc towardsD) {
+	public BattleRoom(DunGen parent, String name, Vector targetL, Direc towardsD) {
 		super(parent, name, targetL, towardsD);
 		loadConfig();
 	}

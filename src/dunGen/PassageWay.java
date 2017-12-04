@@ -1,4 +1,4 @@
-package dungeonGen;
+package dunGen;
 
 import java.util.Locale;
 
@@ -43,7 +43,7 @@ public class PassageWay extends Module {
 	
 	
 	//automatically call Module-Contructor upon creation.
-	public PassageWay(DungeonGen parent, String name, Vector targetL, Direc towardsD) {
+	public PassageWay(DunGen parent, String name, Vector targetL, Direc towardsD) {
 		super(parent, name, targetL, towardsD);
 		loadConfig();
 	}

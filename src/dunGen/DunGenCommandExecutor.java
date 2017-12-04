@@ -1,4 +1,4 @@
-package dungeonGen;
+package dunGen;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -7,9 +7,9 @@ import org.bukkit.entity.Player;
 
 
 public class DunGenCommandExecutor implements CommandExecutor {
-	private final DungeonGen plugin;
+	private final DunGen plugin;
 	
-	public DunGenCommandExecutor(DungeonGen plugin) {
+	public DunGenCommandExecutor(DunGen plugin) {
 		this.plugin = plugin;
 	}
 	

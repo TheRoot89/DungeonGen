@@ -1,4 +1,4 @@
-package dungeonGen;
+package dunGen;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -38,7 +38,7 @@ public abstract class Room extends Module {
 	private DepowerTask depowerTask;
 	
 
-	public Room(DungeonGen parent, String name, Vector targetL, Direc towardsD) {
+	public Room(DunGen parent, String name, Vector targetL, Direc towardsD) {
 		super(parent, name, targetL, towardsD);
 		loadConfig();
 	}

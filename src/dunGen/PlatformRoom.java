@@ -1,4 +1,4 @@
-package dungeonGen;
+package dunGen;
 
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -16,7 +16,7 @@ public class PlatformRoom extends Room {
 	//Vector corner2Glob;
 	CuboidRegion targetReg;
 	
-	public PlatformRoom(DungeonGen parent, String name, Vector targetL, Direc towardsD) {
+	public PlatformRoom(DunGen parent, String name, Vector targetL, Direc towardsD) {
 		super(parent, name, targetL, towardsD);
 		loadConfig();
 	}

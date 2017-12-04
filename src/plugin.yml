@@ -1,7 +1,7 @@
-name: ProjectXXX
-main: dungeonGen.DungeonGen
-version: 0.1
-author: theroot89
+name: DunGen
+main: dunGen.DunGen
+version: 0.2
+author: TheRoot89
 
 commands:
    stop:

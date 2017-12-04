@@ -1,4 +1,4 @@
-package dungeonGen;
+package dunGen;
 
 public enum ModuleType {
 	ENTRY,
