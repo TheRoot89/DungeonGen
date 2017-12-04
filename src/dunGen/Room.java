@@ -18,10 +18,11 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.regions.CuboidRegion;
 
-import scheduledTasks.CheckRoomDoneTask;
-import scheduledTasks.DepowerTask;
-import scheduledTasks.EmpowerTask;
-import scheduledTasks.SpawnGroupTask;
+import dunGen.Helper.Direc;
+import dunGen.scheduledTasks.CheckRoomDoneTask;
+import dunGen.scheduledTasks.DepowerTask;
+import dunGen.scheduledTasks.EmpowerTask;
+import dunGen.scheduledTasks.SpawnGroupTask;
 
 public abstract class Room extends Module {
 	

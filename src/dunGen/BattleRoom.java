@@ -13,6 +13,8 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.regions.CuboidRegion;
 
+import dunGen.Helper.Direc;
+
 public class BattleRoom extends Room {
 	
 	public BattleRoom(DunGen parent, String name, Vector targetL, Direc towardsD) {

@@ -7,6 +7,8 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.regions.CuboidRegion;
 
+import dunGen.Helper.Direc;
+
 public class PlatformRoom extends Room {
 	
 	// target area is given to the checking task and saved there in global coordinates

@@ -3,6 +3,8 @@ package dunGen;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 
+import dunGen.Helper.Direc;
+
 public class Entry extends PassageWay{
 	
 	//automatically calls PassageWay-Contructor upon creation

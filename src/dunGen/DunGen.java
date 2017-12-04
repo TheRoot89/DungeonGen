@@ -32,6 +32,9 @@ import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.regions.CuboidRegion;
 
+import dunGen.Helper.Direc;
+import dunGen.Module.ModuleType;
+
 
 public final class DunGen extends JavaPlugin {
 	

@@ -17,6 +17,8 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.regions.Region;
 
+import dunGen.Helper.Direc;
+
 public class PassageWay extends Module {
 	
 	public Vector respawnLoc;

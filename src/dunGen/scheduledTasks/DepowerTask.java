@@ -1,24 +1,21 @@
-package scheduledTasks;
+package dunGen.scheduledTasks;
 
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.sk89q.worldedit.Vector;
 
-import dunGen.EnemyGroup;
 import dunGen.Room;
 
-public class SpawnGroupTask extends BukkitRunnable {
+public class DepowerTask extends BukkitRunnable {
 	
 	Room parent;	// to invoke the room-specific check-method
-	EnemyGroup grp;
 	
-	public SpawnGroupTask(Room parent, EnemyGroup grp) {
+	public DepowerTask(Room parent) {
 		this.parent = parent;
-		this.grp = grp;
 	}
 	
 	@Override
 	public void run() {
-		parent.spawnGroup(grp);
+		parent.depower();
 	}
 }

@@ -36,6 +36,8 @@ import com.sk89q.worldedit.world.DataException;
 import com.sk89q.worldedit.world.registry.LegacyWorldData;
 import com.sk89q.worldedit.world.registry.WorldData;
 
+import dunGen.Helper.Direc;
+
 public abstract class Module implements Listener {
 	
 	
@@ -57,7 +59,6 @@ public abstract class Module implements Listener {
 	// set during placement:
 	public CuboidClipboard cc=null;		// the clipboard with it's own coordinates before placement
 	public CuboidRegion modVolume;		// the volume occupied by this module
-	
 	
 	/////////////////// Inner class as struct: ////////////////////////
 	class Connector{
@@ -330,4 +331,13 @@ public abstract class Module implements Listener {
 	public Vector getNextEntryPos() {
 		return toGlobal(exit.placementLoc).add(exit.afterPasteDirec.toUnityVec());
 	}
+	
+	//////////////// Enums: ////////////////////
+	public enum ModuleType {
+		ENTRY,
+		PASSAGEWAY,
+		PLATFORMROOM,
+		BATTLEROOM
+	}
+	
 }
