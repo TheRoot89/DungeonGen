@@ -4,8 +4,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import com.sk89q.worldedit.Vector;
 
-import dungeonGen.EnemyGroup;
-import dungeonGen.Room;
+import dunGen.EnemyGroup;
+import dunGen.Room;
 
 public class SpawnGroupTask extends BukkitRunnable {
 	

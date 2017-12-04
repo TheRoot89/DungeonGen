@@ -4,7 +4,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import com.sk89q.worldedit.Vector;
 
-import dungeonGen.Room;
+import dunGen.Room;
 
 public class EmpowerTask extends BukkitRunnable {
 	

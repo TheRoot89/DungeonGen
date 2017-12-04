@@ -1,4 +1,4 @@
-package dungeonGen;
+package dunGen;
 
 import java.util.Random;
 

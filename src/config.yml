@@ -7,7 +7,6 @@ initYmlCheck: true
 entryModules:
 - NihonJou
 passageWayModules:
-#- passWayPistonTest
 - passWayFallingTest
 roomModules:
 - ColumnHall

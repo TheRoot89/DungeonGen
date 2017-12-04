@@ -1,4 +1,4 @@
-package dungeonGen;
+package dunGen;
 
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
@@ -6,7 +6,7 @@ import com.sk89q.worldedit.bukkit.BukkitUtil;
 public class Entry extends PassageWay{
 	
 	//automatically calls PassageWay-Contructor upon creation
-	public Entry(DungeonGen parent, String name, Vector targetL, Direc towardsD) {
+	public Entry(DunGen parent, String name, Vector targetL, Direc towardsD) {
 		super(parent, name, targetL, towardsD);
 		loadConfig();
 	}
