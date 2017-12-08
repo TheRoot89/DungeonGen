@@ -17,6 +17,7 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.regions.Region;
 
+import dunGen.DunGen.State;
 import dunGen.Helper.Direc;
 
 public class PassageWay extends Module {
@@ -73,11 +74,12 @@ public class PassageWay extends Module {
 	        	&& modVolume.contains(BukkitUtil.toVector(clicked.getLocation())) ) {
 	        	unregister(); // button cannot be pushed twice
 	        	// TODO if double button push appears more often, then use flag here
-	        	for (Player p : parent.activePlayers) {
-	        		if (!modVolume.contains(BukkitUtil.toVector(p.getLocation()))) {
-	        			p.teleport(BukkitUtil.toLocation(parent.world, toGlobal(respawnLoc).add(0.5, 0, 0.5)));
-	        		}
-	        	}
+	        	if (parent.state == State.RUNNING)
+		        	for (Player p : parent.activePlayers) {
+		        		if (!modVolume.contains(BukkitUtil.toVector(p.getLocation()))) {
+		        			p.teleport(BukkitUtil.toLocation(parent.world, toGlobal(respawnLoc).add(0.5, 0, 0.5)));
+		        		}
+		        	}
 	        	parent.genNextRoom();
 	        }
 	    }

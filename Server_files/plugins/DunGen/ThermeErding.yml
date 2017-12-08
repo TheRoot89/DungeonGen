@@ -27,7 +27,7 @@ entry:
   # 0: appearing, 1: falling, 2: piston
   type: 0
   # the material of the door blocks being generated, only for type 0: 'appearing'
-  doorMaterial: stone_brick
+  doorMaterial: smooth_brick
 
 
 exit:
@@ -53,7 +53,7 @@ exit:
   # 0: appearing, 1: falling, 2: piston
   type: 0
   # the material of the door blocks being generated, only for type 0: 'appearing'
-  doorMaterial: stone_brick
+  doorMaterial: smooth_brick
 
 
 # BattleRooms only: Angaben zu Gegnergruppen:

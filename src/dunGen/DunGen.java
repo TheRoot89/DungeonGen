@@ -52,7 +52,7 @@ public final class DunGen extends JavaPlugin {
 	private List<String> roomModules;
 	
 	// working variables and pointers:
-	private State state = State.NOT_STARTED; // state variable marks status of the plugin
+	public State state = State.NOT_STARTED; // state variable marks status of the plugin
 	private PassageWay curPassWay1 = null;
 	private PassageWay curPassWay2 = null;
 	private Room curRoom = null;
@@ -510,7 +510,7 @@ public final class DunGen extends JavaPlugin {
 		getServer().broadcastMessage("Room solved. Well done.");
 	}
 	
-	private enum State {
+	public enum State {
 		NOT_STARTED,			// no dungeon was started yet
 		STARTUP,				// entry generated but not started yet
 		RUNNING,				// running fully

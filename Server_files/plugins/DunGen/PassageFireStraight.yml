@@ -28,7 +28,7 @@ entry:
   # 0: appearing, 1: falling, 2: piston
   type: 0
   # the material of the door blocks being generated, only for type 0: 'appearing'
-  doorMaterial: stone_brick
+  doorMaterial: smooth_brick
 
 exit:
   # Direc: South=0, East=270, North=180, West=90:
@@ -53,7 +53,7 @@ exit:
   # 0: appearing, 1: falling, 2: piston
   type: 0
   # the material of the door blocks being generated, only for type 0: 'appearing'
-  doorMaterial: stone_brick
+  doorMaterial: smooth_brick
 
 
 # PassageWays only: respawn location for dead players:
