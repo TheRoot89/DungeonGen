@@ -1,4 +1,4 @@
-package dunGen.scheduledTasks;
+package dunGen.tasks;
 
 import org.bukkit.scheduler.BukkitRunnable;
 

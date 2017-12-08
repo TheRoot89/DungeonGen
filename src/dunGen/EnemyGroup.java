@@ -3,7 +3,7 @@ import org.bukkit.entity.EntityType;
 
 import com.sk89q.worldedit.Vector;
 
-import dunGen.scheduledTasks.SpawnGroupTask;
+import dunGen.tasks.SpawnGroupTask;
 
 /**
  * Struct-like class representing an enemy group in a room (with default values)
