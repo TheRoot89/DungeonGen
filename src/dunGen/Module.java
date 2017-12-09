@@ -36,6 +36,7 @@ import com.sk89q.worldedit.world.DataException;
 import com.sk89q.worldedit.world.registry.LegacyWorldData;
 import com.sk89q.worldedit.world.registry.WorldData;
 
+import dunGen.DunGen.State;
 import dunGen.Helper.Direc;
 
 public abstract class Module implements Listener {
@@ -98,29 +99,16 @@ public abstract class Module implements Listener {
 		this.entry = new Connector();
 		this.entry.initDirec = Direc.EAST; //fixed at the moment!
 		this.exit = new Connector();
-		//TODO: add 'name' here and make name property to description, so debug has the name info!
 		this.parent = parent;
 		this.origin = new Vector(targetL);
 		this.entry.afterPasteDirec = towardsD;
 		this.turnedBy = towardsD.degree()-entry.initDirec.degree();
 		
 		// check and load config file:
-		File confFile = new File(parent.getDataFolder(),name+".yml");
-		if (!confFile.exists()) {
-			parent.getLogger().severe("YML file for module " + name + " could not be found!");
-			return;
-		}
-
-		conf = new YamlConfiguration();
-		try {
-			conf.load(confFile);
-		}catch (IOException | InvalidConfigurationException e) {
-			parent.getLogger().severe("Loading of config file for module " + name + " failed!");
-			e.printStackTrace();
-			return;
-		}
-		parent.getLogger().info("YML file for module " + name + " loaded.");
+		conf = getConfig(parent, name);
+		if (conf == null) parent.setStateAndNotify(State.ERROR, "Module " + name + ": Config could not be loaded!");
 	}
+	
 	
 	// static method to get a moduel type before constructor has been executed
 	public static ModuleType getType(DunGen parent, String name) {
@@ -147,55 +135,28 @@ public abstract class Module implements Listener {
 			e.printStackTrace();
 			return null;
 		}
+		// everything ok, if code reached here.
+		parent.getLogger().info("YML file for module " + name + " loaded.");
 		return conf;
 	}
 
 	/** Loads all basic properties common for every module.
+	 * The initial yml check makes sure all properties are already in there.
 	 * This superclass function has to be called by every subclass upon loading its own config!
 	 */
 	public void loadConfig() {
-		// basic values for placement:
-		if (conf.contains("description")      	&&
-			conf.contains("schematic") 			&&
-			conf.contains("type")      			&&
-			conf.contains("entry.placementLoc")	&&
-			conf.contains("entry.doorLoc")      &&
-			conf.contains("entry.width")		&&
-			conf.contains("entry.height")		&&
-			conf.contains("exit.placementLoc") 	&&
-			conf.contains("exit.doorLoc") 		&&
-			conf.contains("exit.width") 		&&
-			conf.contains("exit.height")	 	&&
-			conf.contains("exit.initDirec") ) {
-			
-			// actual loading:
-			description			= conf.getString("description");
-			fileName 			= conf.getString("schematic") + ".schematic";
-			type 				= ModuleType.values()[conf.getInt("type")]; // valid Enum from int
-			entry.placementLoc 	= BukkitUtil.toVector(conf.getVector("entry.placementLoc"));
-			entry.doorLoc 		= BukkitUtil.toVector(conf.getVector("entry.doorLoc"));
-			entry.width  		= conf.getInt("entry.width");
-			entry.height		= conf.getInt("entry.height");
-			exit.placementLoc	= BukkitUtil.toVector(conf.getVector("exit.placementLoc"));
-			exit.doorLoc 		= BukkitUtil.toVector(conf.getVector("exit.doorLoc"));
-			exit.width  		= conf.getInt("exit.width");
-			exit.height			= conf.getInt("exit.height");
-			exit.initDirec 		= Direc.fromDeg(conf.getInt("exit.initDirec"));
-		}else {
-			parent.getLogger().severe("Unable to load config fields for " + name + ". Something is wrong with:");
-			// Debug output, to see witch property in the file needs to be fixed:
-			parent.getLogger().info("description: " + conf.contains("description") );
-			parent.getLogger().info("schematic: " + conf.contains("schematic") );
-			parent.getLogger().info("entry.placementLoc: " + conf.contains("entry.placementLoc") );
-			parent.getLogger().info("entry.doorLoc: " + conf.contains("entry.doorLoc") );
-			parent.getLogger().info("entry.width: " + conf.contains("entry.width") );
-			parent.getLogger().info("entry.height: " + conf.contains("entry.height") );
-			parent.getLogger().info("exit.placementLoc: " + conf.contains("exit.placementLoc") );
-			parent.getLogger().info("exit.doorLoc: " + conf.contains("exit.doorLoc") );
-			parent.getLogger().info("exit.width: " + conf.contains("exit.width") );
-			parent.getLogger().info("exit.height: " + conf.contains("exit.height") );
-			parent.getLogger().info("exit.initDirec: " + conf.contains("exit.initDirec") );
-		}
+		description			= conf.getString("description");
+		fileName 			= conf.getString("schematic") + ".schematic";
+		type 				= ModuleType.values()[conf.getInt("type")]; // valid Enum from int
+		entry.placementLoc 	= BukkitUtil.toVector(conf.getVector("entry.placementLoc"));
+		entry.doorLoc 		= BukkitUtil.toVector(conf.getVector("entry.doorLoc"));
+		entry.width  		= conf.getInt("entry.width");
+		entry.height		= conf.getInt("entry.height");
+		exit.placementLoc	= BukkitUtil.toVector(conf.getVector("exit.placementLoc"));
+		exit.doorLoc 		= BukkitUtil.toVector(conf.getVector("exit.doorLoc"));
+		exit.width  		= conf.getInt("exit.width");
+		exit.height			= conf.getInt("exit.height");
+		exit.initDirec 		= Direc.fromDeg(conf.getInt("exit.initDirec"));
 	}
 	
 	
@@ -203,8 +164,7 @@ public abstract class Module implements Listener {
 	public void place() {
 		
 		/*
-		// new and lag free(?):
-		// TODO use new WorldEdit API
+		// Use new WorldEdit API, FAWE gives out warnings: :/
 		Clipboard clipboard;
 		ClipboardHolder holder;
 		EditSession es;

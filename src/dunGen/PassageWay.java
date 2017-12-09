@@ -2,8 +2,6 @@ package dunGen;
 
 import java.util.Locale;
 
-// TODO Use Gate-Class or adaptor modules to adapt different door sizes
-
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -73,7 +71,9 @@ public class PassageWay extends Module {
 	        if (   clicked.getType() == Material.STONE_BUTTON 
 	        	&& modVolume.contains(BukkitUtil.toVector(clicked.getLocation())) ) {
 	        	unregister(); // button cannot be pushed twice
-	        	// TODO if double button push appears more often, then use flag here
+	        	// If double button push appears more often, then use flag here
+	        	// Here we need the activePlayers list. This is not present in the entry, so don't teleport during STARTUP phase.
+	        	// This might be solvable better somehow...
 	        	if (parent.state == State.RUNNING)
 		        	for (Player p : parent.activePlayers) {
 		        		if (!modVolume.contains(BukkitUtil.toVector(p.getLocation()))) {

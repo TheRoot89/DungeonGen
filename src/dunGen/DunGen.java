@@ -160,7 +160,6 @@ public final class DunGen extends JavaPlugin {
 
     	// Check for keys, if clauses check special room keys. If a checks fails, an exception with the current key
     	// is thrown.
-    	//TODO: check the values of keys as well
     	String key = ""; // empty key serves as flag everything went well
     	
     	// keys contained in "Module":
@@ -220,7 +219,7 @@ public final class DunGen extends JavaPlugin {
 			moduleName = curName; // cannot iterate using 'name' directly
 			curConf = Module.getConfig(this, moduleName);
 			
-			// TODO: add room key checks when changing mechanism to "tasks"
+			// Add room key checks here, when changing mechanism to "tasks"
 			//if (!curConf.contains("respawnLoc"))			{key = "respawnLoc"; break;}
 		}
 		if (!key.equalsIgnoreCase("")) throw new ConfigException("Key missing: " + key + ", in " + moduleName);
@@ -322,7 +321,7 @@ public final class DunGen extends JavaPlugin {
 		return false;
 	}
 	
-	private void setStateAndNotify(State state, String message) {
+	public void setStateAndNotify(State state, String message) {
 		setStateSilenty(state,message);
 		if (this.state == State.ERROR)
 			getLogger().info(this.state.statusMessage);

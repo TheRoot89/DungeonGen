@@ -47,9 +47,10 @@ public class PlatformRoom extends Room {
 
 	/**
 	 * PlatformRoom checks, whether one player has reached the target area.
+	 * @return 
 	 */
 	@Override
-	public void checkRoomDone() {
+	public Void checkRoomDone(Void v) {
 		for (Player p : parent.activePlayers) { // for loop with iterator over collection in short syntax
 			Vector ppos = BukkitUtil.toVector(p.getLocation()).floor(); // round downwards as player coords and block coords off by 0.5
 			if (targetReg.contains(ppos)) {
@@ -57,6 +58,7 @@ public class PlatformRoom extends Room {
 				parent.roomClear();
 			}
 		}
+		return null;
 	}
 
 	/*@Override

@@ -3,6 +3,7 @@ package dunGen;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -19,9 +20,7 @@ import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.regions.CuboidRegion;
 
 import dunGen.Helper.Direc;
-import dunGen.tasks.CheckRoomDoneTask;
-import dunGen.tasks.DepowerTask;
-import dunGen.tasks.EmpowerTask;
+import dunGen.tasks.TaskWithCallback;
 import dunGen.tasks.SpawnGroupTask;
 
 public abstract class Room extends Module {
@@ -34,9 +33,9 @@ public abstract class Room extends Module {
 	
 	// work variables:
 	protected List<Entity> trackedEnemies;
-	protected CheckRoomDoneTask checkTask;
-	private EmpowerTask empowerTask;
-	private DepowerTask depowerTask;
+	protected TaskWithCallback 	checkTask;
+	private   TaskWithCallback 	empowerTask;
+	private   TaskWithCallback 	depowerTask;
 	
 
 	public Room(DunGen parent, String name, Vector targetL, Direc towardsD) {
@@ -45,7 +44,12 @@ public abstract class Room extends Module {
 	}
 
 	
-	public abstract void checkRoomDone();
+	/**
+	 * This member function will be called by Room periodically using a TaskWithCallback.
+	 * @param v A Void object that will not be used. Only necessary to use the method reference here.
+	 * @return  Enter return null; in your Implementation. Only needed for method reference implementation.
+	 */
+	public abstract Void checkRoomDone(Void v);
 	
 	
 	@Override
@@ -99,15 +103,15 @@ public abstract class Room extends Module {
 	@Override
 	public void register() {
 		// done condition check:
-		checkTask = new CheckRoomDoneTask(this);
+		checkTask = new TaskWithCallback(this::checkRoomDone);
 		checkTask.runTaskTimer(parent, 50, 50);// 20 ticks = 1 sec -> 50 is a good two seconds in between each execution
 		
 		// redstone periodic activation:
 		if (powerBlockLoc != null && onTime != 0 && offTime != 0) {
-			empowerTask = new EmpowerTask(this);
+			empowerTask = new TaskWithCallback(this::empower);
 			empowerTask.runTaskTimer(parent, 0, onTime+offTime);
 			
-			depowerTask = new DepowerTask(this);
+			depowerTask = new TaskWithCallback(this::depower);
 			depowerTask.runTaskTimer(parent, onTime, onTime+offTime);
 		}
 		
@@ -129,7 +133,7 @@ public abstract class Room extends Module {
 		if (empowerTask != null)
 			empowerTask.cancel();
 		if (depowerTask != null) {
-			depower();
+			depower(null);
 			depowerTask.cancel();
 		}
 		for (int i=0; i<enemyGroups.size(); i++) {
@@ -139,19 +143,23 @@ public abstract class Room extends Module {
 	}
 	
 	
-	/**
-	 * Basically creates a redstone block at the powerBlockLoc location
+	/** Basically creates a redstone block at the powerBlockLoc location
+	 * @param v Void object to make this usable as method reference.
+	 * @return Void object to make this usable as method reference.
 	 */
-	public void empower() {
+	public Void empower(Void v) {
 		parent.world.getBlockAt(powerBlockLoc.getBlockX(),powerBlockLoc.getBlockY(),powerBlockLoc.getBlockZ()).setType(Material.REDSTONE_BLOCK);
+		return null;
 	}
 
 	
-	/**
-	 * Sets the powerBlockLoc Location to AIR, removing any redstone block there
+	/**Sets the powerBlockLoc Location to AIR, removing any redstone block there
+	 * @param v Void object to make this usable as method reference.
+	 * @return Void object to make this usable as method reference.
 	 */
-	public void depower() {
+	public Void depower(Void v) {
 		parent.world.getBlockAt(powerBlockLoc.getBlockX(),powerBlockLoc.getBlockY(),powerBlockLoc.getBlockZ()).setType(Material.AIR);
+		return null;
 	}
 
 

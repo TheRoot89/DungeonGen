@@ -78,6 +78,10 @@ respawnLoc:
   y: 1.0
   z: 3.0
 
+# Rooms only: tasks to be carried out after placement:
+tasks:
+  task1:
+    type: EntitySpawn
 
 
 group1:
