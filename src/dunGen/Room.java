@@ -19,20 +19,29 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.regions.CuboidRegion;
 
+import dunGen.DunGen.State;
 import dunGen.Helper.Direc;
 import dunGen.tasks.TaskWithCallback;
-import dunGen.tasks.SpawnGroupTask;
+import dunGen.tasks.RoomTask.TaskType;
+import dunGen.tasks.BlockSpawnTask;
+import dunGen.tasks.EntitySpawnTask;
+import dunGen.tasks.PowerTask;
+import dunGen.tasks.RoomTask;
 
+/**
+ * Rooms feature an arbitrary number of Tasks, configured in its yaml file.
+ * These are activated (registered) automatically after placement in the postPlacementActions().
+ */
 public abstract class Room extends Module {
 	
 	// loaded from config:
-	private List<EnemyGroup> enemyGroups;
+	private List<RoomTask> tasks;
 	private Vector powerBlockLoc;
 	int onTime = 0;
 	int offTime = 0;
 	
 	// work variables:
-	protected List<Entity> trackedEnemies;
+	protected List<Entity>      trackedEnemies;
 	protected TaskWithCallback 	checkTask;
 	private   TaskWithCallback 	empowerTask;
 	private   TaskWithCallback 	depowerTask;
@@ -41,6 +50,7 @@ public abstract class Room extends Module {
 	public Room(DunGen parent, String name, Vector targetL, Direc towardsD) {
 		super(parent, name, targetL, towardsD);
 		loadConfig();
+		trackedEnemies = new LinkedList<>();
 	}
 
 	
@@ -55,27 +65,29 @@ public abstract class Room extends Module {
 	@Override
 	public void loadConfig() {
 		super.loadConfig();
-		// enemies:
-		enemyGroups = new ArrayList<EnemyGroup>();
-		int grpCounter = 1;
-		EnemyGroup grp;
-		while (conf.contains("group"+grpCounter)) {
-			String path = "group"+grpCounter+".";
-			grp = new EnemyGroup();
-			if (conf.contains(path + "type"))
-				grp.type = EntityType.valueOf(conf.getString(path + "type"));
-			if (conf.contains(path + "count"))
-				grp.count = conf.getInt(path + "count");
-			if (conf.contains(path + "isTarget"))
-				grp.isTarget = conf.getBoolean(path + "isTarget");
-			if (conf.contains(path + "spawnInterval"))
-				grp.spawnInterval = conf.getInt(path + "spawnInterval");
-			if (conf.contains(path + "spawnRegion")) {
-				grp.spawnCorner1 = BukkitUtil.toVector(conf.getVector(path + "spawnRegion.corner1"));
-				grp.spawnCorner2 = BukkitUtil.toVector(conf.getVector(path + "spawnRegion.corner2"));
+		
+		// load and add RoomTasks:
+		tasks = new ArrayList<RoomTask>();
+		int taskNr = 1;
+		RoomTask newTask;
+		while (conf.contains("tasks.task"+taskNr)) {
+			TaskType type = TaskType.valueOf(conf.getString("tasks.task" + taskNr + "." + "type"));
+			switch (type) {
+			case BLOCKSPAWN:
+				newTask = new BlockSpawnTask(this, conf, taskNr);
+				break;
+			case ENTITYSPAWN:
+				newTask = new EntitySpawnTask(this, conf, taskNr);
+				break;
+			case POWER:
+				newTask = new PowerTask(this, conf, taskNr);
+				break;
+			default:
+				parent.setStateAndNotify(State.ERROR, "Task type could not be loaded for room: " + this.name + ". Skipping Task.");
+				continue;
 			}
-			enemyGroups.add(grp);
-			grpCounter++;
+			tasks.add(newTask);
+			taskNr++;
 		}
 		
 		// redstone stuff (if set in config):
@@ -92,19 +104,20 @@ public abstract class Room extends Module {
 
 	@Override
 	public final void postPlacementActions() {
-		// spawn enemies:
-		trackedEnemies = new LinkedList<>();
-		for (int i=0; i< enemyGroups.size(); i++) {
-			spawnGroup(enemyGroups.get(i));
-		}
+		// nothing atm
 	}
 
 
 	@Override
 	public void register() {
-		// done condition check:
+		// victory condition check:
 		checkTask = new TaskWithCallback(this::checkRoomDone);
 		checkTask.runTaskTimer(parent, 50, 50);// 20 ticks = 1 sec -> 50 is a good two seconds in between each execution
+		
+		// activate tasks:
+		for (RoomTask task : tasks) {
+			task.register();
+		}
 		
 		// redstone periodic activation:
 		if (powerBlockLoc != null && onTime != 0 && offTime != 0) {
@@ -114,31 +127,18 @@ public abstract class Room extends Module {
 			depowerTask = new TaskWithCallback(this::depower);
 			depowerTask.runTaskTimer(parent, onTime, onTime+offTime);
 		}
-		
-		// periodic spawning of groups:
-		for (int i=0; i<enemyGroups.size(); i++) {
-			EnemyGroup grp = enemyGroups.get(i);
-			if (grp.spawnInterval > 0) { // so -1 or 0 deactivate the function
-				grp.spawnTask = new SpawnGroupTask(this, grp);
-				grp.spawnTask.runTaskTimer(parent, 0, grp.spawnInterval);
-			}
-		}
 	}
 
 
+	public void addTrackedEntity(Entity e) {
+		trackedEnemies.add(e);
+	}
+	
+	
 	@Override
 	public void unregister() {
-		if (checkTask != null)
-			checkTask.cancel();
-		if (empowerTask != null)
-			empowerTask.cancel();
-		if (depowerTask != null) {
-			depower(null);
-			depowerTask.cancel();
-		}
-		for (int i=0; i<enemyGroups.size(); i++) {
-			if (enemyGroups.get(i).spawnTask != null)
-				enemyGroups.get(i).spawnTask.cancel();
+		for (RoomTask task : tasks) {
+			task.cancel();
 		}
 	}
 	
@@ -160,21 +160,5 @@ public abstract class Room extends Module {
 	public Void depower(Void v) {
 		parent.world.getBlockAt(powerBlockLoc.getBlockX(),powerBlockLoc.getBlockY(),powerBlockLoc.getBlockZ()).setType(Material.AIR);
 		return null;
-	}
-
-
-	public void spawnGroup(EnemyGroup grp) {
-		// values valid for whole group:
-		CuboidRegion spawnReg = new CuboidRegion(toGlobal(grp.spawnCorner1), toGlobal(grp.spawnCorner2));
-		EntityType type = grp.type;
-		boolean tracked = grp.isTarget;
-		for (int nr=0; nr<grp.count; nr++) {// repeat according to number of entities of this type
-			// individual random spawn:
-			Location spawnL = BukkitUtil.toLocation(parent.world, Helper.getRandVector(spawnReg));
-			spawnL = spawnL.add(new org.bukkit.util.Vector(0.5,0,0.5)); // full qualified name again, meh// 0.5 added for world coord!
-			Entity thisEnemy = parent.world.spawnEntity(spawnL, type);	// spawn and get pointer to track it
-			if (tracked)
-				trackedEnemies.add(thisEnemy);
-		}
 	}
 }

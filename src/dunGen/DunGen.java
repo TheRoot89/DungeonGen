@@ -494,7 +494,7 @@ public final class DunGen extends JavaPlugin {
 			p.setGameMode(GameMode.ADVENTURE);
 			p.sendMessage("Your mode was set to adventure...");
 		}
-		//TODO move everything? take their items? Give them starting gear?
+		//add here: move everything? take their items? Give them starting gear?
 		
 		state = State.RUNNING;
 	}

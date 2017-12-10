@@ -12,6 +12,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.worldedit.CuboidClipboard;
@@ -52,8 +53,8 @@ public abstract class Module implements Listener {
 	protected String name;				// (file) name of this module
 	protected String description;		// in-game name of this module
 	protected String fileName;			// name of the schematic
-	protected FileConfiguration conf;	// file config the discr. of this module is saved in
-	protected DunGen parent;		// the DunGen plugin (pointer)
+	public    FileConfiguration conf;	// file config the discr. of this module is saved in
+	protected DunGen parent;		    // the DunGen plugin (pointer)
 	protected int turnedBy;				// e.g. 90° from EAST to SOUTH
 	protected Vector origin;			// where the entryLoc shall be placed in global coord
 	
@@ -140,6 +141,10 @@ public abstract class Module implements Listener {
 		return conf;
 	}
 
+	public DunGen getPlugin() {
+		return parent;
+	}
+	
 	/** Loads all basic properties common for every module.
 	 * The initial yml check makes sure all properties are already in there.
 	 * This superclass function has to be called by every subclass upon loading its own config!
