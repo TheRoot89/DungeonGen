@@ -61,9 +61,9 @@ exit:
   # Only in Passageways: type of the actual door opening and closing process: 
   # 0: appearing, 1: falling, 2: piston
   type: 0
-  # the material of the door blocks being generated, only for type '0' and '1', Check API whether this exists!
+  # type 01 or 1: the material of the door blocks being generated, Check API whether this exists!
   doorMaterial: smooth_brick
-  # location for redstone to close mechanical doors, as many as needed
+  # type 2: location for redstone to close mechanical doors, as many as needed
   redstoneLoc:
     ==: Vector
     x: 1.0
@@ -96,20 +96,57 @@ tasks:
       z: 4.0 
        
     # EntitySpawn only:
+    # Spawns the entity type periodically and randomly in the target region in the given number.
+    # Will not increase beyond the maximum number allowed.
     entityType: CREEPER
-    count: 3 # number of entities to spawn
-    isTarget: true
+    count: 3        # number of entities to spawn
+    maxCount: 20    # maximum number of these entities alive concurently if spawned periodically
+    isTarget: true  # whether all of these have to be dead at the same time to succeed.
     
   
   task2:
     type: BlockSpawn
+    delay: 1.0
+    period: 0.0
+    regionCorner1:
+      ==: Vector
+      x: 4.0
+      y: 21.0
+      z: 4.0
+    regionCorner2:
+      ==: Vector
+      x: 4.0
+      y: 21.0
+      z: 4.0
+      
+    # BlockSpawn only:
+    # Will spawn the the designated block type in the target region. Increments the positionsing every period.
+    blockType: smooth_brick
+    incrementVector:
+      ==: Vector
+      x: 1.0
+      y: 1.0
+      z: 1.0
     
   task3:
-    type: Empower
+    type: Power
+    delay: 1.0
+    period: 0.0
+    regionCorner1:
+      ==: Vector
+      x: 4.0
+      y: 21.0
+      z: 4.0
+    regionCorner2:
+      ==: Vector
+      x: 4.0
+      y: 21.0
+      z: 4.0
     
-  task4:
-    type: Depower
-
+    # Power only:
+    # Will spawn a redstone block for 'onTime' part of the period. If no period the redstone will only be spawned once.
+    # OnTime of 0 will spawn AIR insted of Redstone to switch OFF instead!
+    onTime: 0.5   # [%], no onTime if 0, always on if 1
     
 group2:
   type: CREEPER

@@ -6,7 +6,9 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
+import com.sk89q.worldedit.regions.CuboidRegion;
 
 import dunGen.Helper;
 import dunGen.Room;
@@ -24,7 +26,15 @@ public class EntitySpawnTask extends RoomTask {
 		grp = new EntityGroup();
 		grp.type = EntityType.valueOf(conf.getString( path + "entityType"));
 		grp.count = 				  conf.getInt(    path + "count");
+		//TODO: maxCount noch einbauen -> bei jedem Spawning z�hlen, bei Tod runterz�hlen
+		grp.maxCount =				  conf.getInt(    path + "maxCount");
 		grp.isTarget = 				  conf.getBoolean(path + "isTarget");
+		
+		// Conversion of targetRegion to global coordinates:
+		// This conversion thus happens only once (more efficient)
+		Vector pos1_glob = parent.toGlobal(targetRegion.getPos1());
+		Vector pos2_glob = parent.toGlobal(targetRegion.getPos2());
+		targetRegion = new CuboidRegion(pos1_glob, pos2_glob);
 	}
 
 	
@@ -50,6 +60,7 @@ public class EntitySpawnTask extends RoomTask {
 	public class EntityGroup {
 		public EntityType type = EntityType.ZOMBIE;
 		public int count = 0;
+		public int maxCount = 10;
 		public boolean isTarget = false;
 	}
 }
