@@ -23,6 +23,14 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
@@ -32,11 +40,12 @@ import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.regions.CuboidRegion;
 
+import dunGen.DunGen.State;
 import dunGen.Helper.Direc;
 import dunGen.Module.ModuleType;
 
 
-public final class DunGen extends JavaPlugin {
+public final class DunGen extends JavaPlugin implements Listener{
 	
 	public File dir;							// directory of this plugin
 	public WorldEditPlugin worldEdit;			// the worldEdit plugin pointer uses for saving/loading schematics
@@ -482,6 +491,8 @@ public final class DunGen extends JavaPlugin {
 	 * Take appropriate actions.
 	 */
 	private void startup() {
+		getServer().getPluginManager().registerEvents(this, this);
+		
 		activePlayers = new LinkedList<>(getServer().getOnlinePlayers());
 		
 		// Backing up player modes to restore upon dungeon stop
@@ -494,8 +505,10 @@ public final class DunGen extends JavaPlugin {
 			p.setFoodLevel(18);
 			p.setGameMode(GameMode.ADVENTURE);
 			p.sendMessage("Your mode was set to adventure...");
+			
+			giveStartingGear(p);
+
 		}
-		//TODO move everything? take their items? Give them starting gear?
 		
 		state = State.RUNNING;
 	}
@@ -509,6 +522,29 @@ public final class DunGen extends JavaPlugin {
 		curPassWay2.register();
 		getServer().broadcastMessage("Room solved. Well done.");
 	}
+	
+	
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void onPlayerRespawn(PlayerRespawnEvent event) {
+	    //Player p = event.getPlayer();
+	    if (state == State.RUNNING) {
+	    	giveStartingGear(event.getPlayer());
+	    	event.getPlayer().updateInventory();
+	    }
+	}
+	
+	
+	private void giveStartingGear(Player p) {
+		PlayerInventory i = p.getInventory();
+		i.clear();
+		i.addItem( new ItemStack(Material.STONE_SWORD, 	 1));
+		i.addItem( new ItemStack(Material.BOW, 			 1));
+		i.addItem( new ItemStack(Material.ARROW, 		 1));
+		i.addItem( new ItemStack(Material.MUSHROOM_SOUP, 1));
+		
+		i.setBoots(new ItemStack(Material.LEATHER_BOOTS, 1));
+	}
+	
 	
 	public enum State {
 		NOT_STARTED,			// no dungeon was started yet
