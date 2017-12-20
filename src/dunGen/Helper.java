@@ -71,7 +71,7 @@ public class Helper {
 		
 		
 		/**Constructor, saving the degree. Called implicitely by the enum values.
-		 * @param degree
+		 * @param degree	0, 90, 180 or 270
 		 */
 		Direc(int degree){
 			this.degree = degree;

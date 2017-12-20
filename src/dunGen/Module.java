@@ -81,7 +81,7 @@ public abstract class Module implements Listener {
 	/**Static method to get a modules config alone, returns null if failed.
 	 * The loading is tested during the initial yml test and should therefore work during DunGen runtime.
 	 * @param parent 	The parent plugin
-	 * @param name 		The modules name for witch the config should be loaded (file <name>.yml)
+	 * @param name 		The modules name for witch the config should be loaded (file 'name'.yml)
 	 * @return			The config object. Returns null if errors occured and sets plugin state to ERROR.
 	 */
 	public static YamlConfiguration getConfig(DunGen parent, String name) {
@@ -116,7 +116,7 @@ public abstract class Module implements Listener {
 	}
 	
 	
-	/**Contructs the new module object and initializes it by reading its <name>.yml file.
+	/**Contructs the new module object and initializes it by reading its 'name'.yml file.
 	 * @param parent	The parent Plugin for member access
 	 * @param name 		The name of this module, as well as .schematic and .yml files
 	 * @param targetL	The location of the entry as global vector (lower left free(air or door) block)
