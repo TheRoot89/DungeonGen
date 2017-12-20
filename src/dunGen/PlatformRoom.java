@@ -1,7 +1,6 @@
 package dunGen;
 
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitScheduler;
 
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
@@ -11,45 +10,31 @@ import dunGen.Helper.Direc;
 
 public class PlatformRoom extends Room {
 	
-	// target area is given to the checking task and saved there in global coordinates
-	Vector targetRegCorner1;
-	//Vector corner1Glob;
-	Vector targetRegCorner2;
-	//Vector corner2Glob;
-	CuboidRegion targetReg;
+	CuboidRegion targetReg; 		// Region to be reached as victory condition for PlatformRooms
+	Vector 		 targetRegCorner1;
+	Vector 		 targetRegCorner2;
 	
+	
+	// ######################### Member functions: ##########################
+	
+	/**Constructor takes same arguments as a Module and Room and forwards these. Then loads config.
+	 * @param parent	The parent Plugin for member access
+	 * @param name 		The name of this module, as well as .schematic and .yml files
+	 * @param targetL	The location of the entry as global vector (lower left free(air or door) block)
+	 * @param towardsD	Direction the dungeon is facing (inwards)
+	 */
 	public PlatformRoom(DunGen parent, String name, Vector targetL, Direc towardsD) {
 		super(parent, name, targetL, towardsD);
 		loadConfig();
 	}
 
-	@Override
-	public void loadConfig() {
-		super.loadConfig();
-		targetRegCorner1 = BukkitUtil.toVector(conf.getVector("targetRegCorner1"));
-		targetRegCorner2 = BukkitUtil.toVector(conf.getVector("targetRegCorner2"));
-	}
-
-	@Override
-	public void register() {
-		super.register();
-		// prepare the region check:
-		//corner1Glob = toGlobal(targetRegCorner1);
-		//corner2Glob = toGlobal(targetRegCorner2);
-		targetReg = new CuboidRegion(toGlobal(targetRegCorner1), toGlobal(targetRegCorner2));
-	}
 	
-	@Override
-	public void prePlacementActions() {
-		//Evtl. Scripte und Timer anregen die irgendwelche dinge tun, die genaue Variante könnte in Config stehen?
-	}
-
-
 	/**
-	 * PlatformRoom checks, whether one player has reached the target area.
+	 * PlatformRoom checks whether one player has reached the target area.
+	 * @return Void only for method reference implementation. Return null.
 	 */
 	@Override
-	public void checkRoomDone() {
+	public Void checkRoomDone(Void v) {
 		for (Player p : parent.activePlayers) { // for loop with iterator over collection in short syntax
 			Vector ppos = BukkitUtil.toVector(p.getLocation()).floor(); // round downwards as player coords and block coords off by 0.5
 			if (targetReg.contains(ppos)) {
@@ -57,10 +42,33 @@ public class PlatformRoom extends Room {
 				parent.roomClear();
 			}
 		}
+		return null;
 	}
 
-	/*@Override
+	
+	@Override
+	public void loadConfig() {
+		super.loadConfig();
+		targetRegCorner1 = BukkitUtil.toVector(conf.getVector("targetRegCorner1"));
+		targetRegCorner2 = BukkitUtil.toVector(conf.getVector("targetRegCorner2"));
+	}
+	
+	
+	@Override
+	public void prePlacementActions() {
+		//Evtl. Scripte und Timer anregen die irgendwelche dinge tun, die genaue Variante könnte in Config stehen?
+	}
+
+
+	@Override
+	public void register() {
+		super.register();
+	}
+
+	
+	@Override
 	public void postPlacementActions() {
-		// special stuff here will have to call super.postPlacementActions() and remove its final
-	}*/
+		super.postPlacementActions(); // nothing is done there at the moment.
+		targetReg = new CuboidRegion(toGlobal(targetRegCorner1), toGlobal(targetRegCorner2)); // can only be converted to global now
+	}
 }
