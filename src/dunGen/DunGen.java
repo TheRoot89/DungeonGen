@@ -12,6 +12,14 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
@@ -19,11 +27,12 @@ import org.bukkit.util.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
+import dunGen.DunGen.State;
 import dunGen.Helper.Direc;
 import dunGen.Module.ModuleType;
 
 
-public final class DunGen extends JavaPlugin {
+public final class DunGen extends JavaPlugin implements Listener{
 	
 	
 	/**Exception thrown if something during yml config loading failed. Contains an error message.*/
@@ -257,7 +266,22 @@ public final class DunGen extends JavaPlugin {
     		setStateAndNotify(State.ERROR, "No names given in config for some module types needed!");
 	}
 	
-	
+  
+	/**Gives the players starting gear, called during dungeon startup.
+   * @param p 	The player to give stuff to.
+   */
+  private void giveStartingGear(Player p) {
+		PlayerInventory i = p.getInventory();
+		i.clear();
+		i.addItem( new ItemStack(Material.STONE_SWORD, 	 1));
+		i.addItem( new ItemStack(Material.BOW, 			 1));
+		i.addItem( new ItemStack(Material.ARROW, 		 1));
+		i.addItem( new ItemStack(Material.MUSHROOM_SOUP, 1));
+		
+		i.setBoots(new ItemStack(Material.LEATHER_BOOTS, 1));
+  }
+  
+  
 	/**Checks command strings and acts upon found commands. Called by the server.*/
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {	
@@ -433,7 +457,20 @@ public final class DunGen extends JavaPlugin {
         */
     }
 
+  
+  /**Handles actions to be taken upon respawn.
+   * Currently gives new starting gear.
+   */
+  @EventHandler(priority = EventPriority.MONITOR)
+	public void onPlayerRespawn(PlayerRespawnEvent event) {
+	    //Player p = event.getPlayer();
+	    if (state == State.RUNNING) {
+	    	giveStartingGear(event.getPlayer());
+	    	event.getPlayer().updateInventory();
+	    }
+	}
 	
+  
 	/**This should be called when the plugin is in ERROR state to reset it to a hopefully working state. */
 	private void reset() {
 		if (curPassway1 != null) {
@@ -544,6 +581,8 @@ public final class DunGen extends JavaPlugin {
 	  * Takes appropriate startup actions and then sets the state to RUNNING.
 	  */
 	private void startup() {
+		getServer().getPluginManager().registerEvents(this, this);
+		
 		activePlayers = new LinkedList<>(getServer().getOnlinePlayers());
 		
 		// Backing up player modes to restore upon dungeon stop
@@ -556,8 +595,10 @@ public final class DunGen extends JavaPlugin {
 			p.setFoodLevel(18);
 			p.setGameMode(GameMode.ADVENTURE);
 			p.sendMessage("Your mode was set to adventure...");
+			
+			giveStartingGear(p);
+
 		}
-		//add here: move everything? take their items? Give them starting gear?
 		
 		state = State.RUNNING;
 	}
@@ -598,5 +639,6 @@ public final class DunGen extends JavaPlugin {
 		}
 
 		resetActivePlayers();
-	}
+  }
+	
 }
