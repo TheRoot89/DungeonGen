@@ -1,13 +1,12 @@
 package dunGen;
 
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.bukkit.BukkitUtil;
 
 import dunGen.Helper.Direc;
 
-public class Entry extends PassageWay{
+public class Entry extends Passageway{
 	
-	//automatically calls PassageWay-Contructor upon creation
+	//automatically calls Passageway-Contructor upon creation
 	public Entry(DunGen parent, String name, Vector targetL, Direc towardsD) {
 		super(parent, name, targetL, towardsD);
 		loadConfig();

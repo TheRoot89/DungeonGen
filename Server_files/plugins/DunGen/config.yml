@@ -7,15 +7,15 @@ initYmlCheck: true
 entryModules:
 - NihonJou
 passageWayModules:
-- passWayPistonTest
-- passWayFallingTest
-- PassageFireStraight
+#- passWayPistonTest
+#- passWayFallingTest
+#- PassageFireStraight
 - PassageMiningStraight
 roomModules:
-- ColumnHall
-- IceCave
-- ShallowWater
-- SkeletonBridge
-- testRoom
-- ThermeErding
-#- bridgeTest
+#- ColumnHall
+#- IceCave
+#- ShallowWater
+#- SkeletonBridge
+#- testRoom
+#- ThermeErding
+- bridgeTest

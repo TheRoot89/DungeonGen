@@ -4,169 +4,122 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.bukkit.BukkitUtil;
-import com.sk89q.worldedit.regions.CuboidRegion;
 
+import dunGen.DunGen.State;
 import dunGen.Helper.Direc;
-import dunGen.scheduledTasks.CheckRoomDoneTask;
-import dunGen.scheduledTasks.DepowerTask;
-import dunGen.scheduledTasks.EmpowerTask;
-import dunGen.scheduledTasks.SpawnGroupTask;
+import dunGen.tasks.TaskWithCallback;
+import dunGen.tasks.RoomTask.TaskType;
+import dunGen.tasks.BlockSpawnTask;
+import dunGen.tasks.EntitySpawnTask;
+import dunGen.tasks.PowerTask;
+import dunGen.tasks.RoomTask;
 
+/**
+ * Rooms feature an arbitrary number of Tasks, configured in its yaml file.
+ * These are activated (registered) automatically after placement in the postPlacementActions().
+ */
 public abstract class Room extends Module {
 	
-	// loaded from config:
-	private List<EnemyGroup> enemyGroups;
-	private Vector powerBlockLoc;
-	int onTime = 0;
-	int offTime = 0;
 	
-	// work variables:
-	protected List<Entity> trackedEnemies;
-	protected CheckRoomDoneTask checkTask;
-	private EmpowerTask empowerTask;
-	private DepowerTask depowerTask;
+	
+	// ################### Member variables ###################
+	protected 	TaskWithCallback 	checkTask;		// the Task used to check whether the room is solved, only calls checkRoomDone()
+	private 	List<RoomTask> 		tasks;			// The list of tasks this room is configured with.
+	protected 	List<Entity>      	trackedEnemies; // The list of enemies to track, only needed by BattleRooms. Move this?
 	
 
+	
+	// ###################### Member functions #######################
+	
+	/**Constructor takes same arguments as a Module and forwards these. Then loads config.
+	 * @param parent	The parent Plugin for member access
+	 * @param name 		The name of this module, as well as .schematic and .yml files
+	 * @param targetL	The location of the entry as global vector (lower left free(air or door) block)
+	 * @param towardsD	Direction the dungeon is facing (inwards)
+	 */
 	public Room(DunGen parent, String name, Vector targetL, Direc towardsD) {
 		super(parent, name, targetL, towardsD);
 		loadConfig();
+		trackedEnemies = new LinkedList<>();
 	}
 
 	
-	public abstract void checkRoomDone();
+	/**Adds an entity to be tracked as target (victory condition of BattleRooms).
+	 * @param e	The entity to be tracked.
+	 */
+	public void addTrackedEntity(Entity e) {
+		trackedEnemies.add(e);
+	}
 	
 	
+	/**
+	 * This member function will be called by Room periodically using a TaskWithCallback.
+	 * Will callback to DunGen::roomClear() if successful.
+	 * @param v A Void object that will not be used. Only necessary to use the method reference here.
+	 * @return  Enter "return null;" in your Implementation. Void is only needed for method reference implementation.
+	 */
+	public abstract Void checkRoomDone(Void v);
+
+	/**Calls the Module::loadConfig() for basic values. Then loads the properties special for Rooms.
+	 * For Room, this means initializing the Task objects.
+	 * Checks are not needed any more due to initial yml checks.*/
 	@Override
 	public void loadConfig() {
 		super.loadConfig();
-		// enemies:
-		enemyGroups = new ArrayList<EnemyGroup>();
-		int grpCounter = 1;
-		EnemyGroup grp;
-		while (conf.contains("group"+grpCounter)) {
-			String path = "group"+grpCounter+".";
-			grp = new EnemyGroup();
-			if (conf.contains(path + "type"))
-				grp.type = EntityType.valueOf(conf.getString(path + "type"));
-			if (conf.contains(path + "count"))
-				grp.count = conf.getInt(path + "count");
-			if (conf.contains(path + "isTarget"))
-				grp.isTarget = conf.getBoolean(path + "isTarget");
-			if (conf.contains(path + "spawnInterval"))
-				grp.spawnInterval = conf.getInt(path + "spawnInterval");
-			if (conf.contains(path + "spawnRegion")) {
-				grp.spawnCorner1 = BukkitUtil.toVector(conf.getVector(path + "spawnRegion.corner1"));
-				grp.spawnCorner2 = BukkitUtil.toVector(conf.getVector(path + "spawnRegion.corner2"));
+		
+		// load and add RoomTasks:
+		tasks = new ArrayList<RoomTask>();
+		int taskNr = 1;
+		RoomTask newTask;
+		while (conf.contains("tasks.task"+taskNr)) {
+			TaskType type = TaskType.valueOf(conf.getString("tasks.task" + taskNr + "." + "type"));
+			switch (type) {
+			case BLOCKSPAWN:
+				newTask = new BlockSpawnTask(this, conf, taskNr);
+				break;
+			case ENTITYSPAWN:
+				newTask = new EntitySpawnTask(this, conf, taskNr);
+				break;
+			case POWER:
+				newTask = new PowerTask(this, conf, taskNr);
+				break;
+			default:
+				parent.setStateAndNotify(State.ERROR, "Task type could not be loaded for room: " + this.name + ". Skipping Task.");
+				continue;
 			}
-			enemyGroups.add(grp);
-			grpCounter++;
+			tasks.add(newTask);
+			taskNr++;
 		}
-		
-		// redstone stuff (if set in config):
-		org.bukkit.util.Vector temp= conf.getVector("powerBlockLoc");
-		if (temp != null)
-			powerBlockLoc = toGlobal(BukkitUtil.toVector(temp));
-		else
-			powerBlockLoc = null;
-		
-		onTime = conf.getInt("onTimeTicks");
-		offTime = conf.getInt("offTimeTicks");
 	}
-
-
+	
+	
 	@Override
-	public final void postPlacementActions() {
-		// spawn enemies:
-		trackedEnemies = new LinkedList<>();
-		for (int i=0; i< enemyGroups.size(); i++) {
-			spawnGroup(enemyGroups.get(i));
-		}
+	public void postPlacementActions() {
+		// nothing atm
 	}
-
-
+	
+	
 	@Override
 	public void register() {
-		// done condition check:
-		checkTask = new CheckRoomDoneTask(this);
+		// victory condition check, using reference method implementation:
+		checkTask = new TaskWithCallback(this::checkRoomDone);
 		checkTask.runTaskTimer(parent, 50, 50);// 20 ticks = 1 sec -> 50 is a good two seconds in between each execution
 		
-		// redstone periodic activation:
-		if (powerBlockLoc != null && onTime != 0 && offTime != 0) {
-			empowerTask = new EmpowerTask(this);
-			empowerTask.runTaskTimer(parent, 0, onTime+offTime);
-			
-			depowerTask = new DepowerTask(this);
-			depowerTask.runTaskTimer(parent, onTime, onTime+offTime);
-		}
-		
-		// periodic spawning of groups:
-		for (int i=0; i<enemyGroups.size(); i++) {
-			EnemyGroup grp = enemyGroups.get(i);
-			if (grp.spawnInterval > 0) { // so -1 or 0 deactivate the function
-				grp.spawnTask = new SpawnGroupTask(this, grp);
-				grp.spawnTask.runTaskTimer(parent, 0, grp.spawnInterval);
-			}
+		// activate room tasks:
+		for (RoomTask task : tasks) {
+			task.register();
 		}
 	}
 
-
+	
 	@Override
 	public void unregister() {
-		if (checkTask != null)
-			checkTask.cancel();
-		if (empowerTask != null)
-			empowerTask.cancel();
-		if (depowerTask != null) {
-			depower();
-			depowerTask.cancel();
-		}
-		for (int i=0; i<enemyGroups.size(); i++) {
-			if (enemyGroups.get(i).spawnTask != null)
-				enemyGroups.get(i).spawnTask.cancel();
-		}
-	}
-	
-	
-	/**
-	 * Basically creates a redstone block at the powerBlockLoc location
-	 */
-	public void empower() {
-		parent.world.getBlockAt(powerBlockLoc.getBlockX(),powerBlockLoc.getBlockY(),powerBlockLoc.getBlockZ()).setType(Material.REDSTONE_BLOCK);
-	}
-
-	
-	/**
-	 * Sets the powerBlockLoc Location to AIR, removing any redstone block there
-	 */
-	public void depower() {
-		parent.world.getBlockAt(powerBlockLoc.getBlockX(),powerBlockLoc.getBlockY(),powerBlockLoc.getBlockZ()).setType(Material.AIR);
-	}
-
-
-	public void spawnGroup(EnemyGroup grp) {
-		// values valid for whole group:
-		CuboidRegion spawnReg = new CuboidRegion(toGlobal(grp.spawnCorner1), toGlobal(grp.spawnCorner2));
-		EntityType type = grp.type;
-		boolean tracked = grp.isTarget;
-		for (int nr=0; nr<grp.count; nr++) {// repeat according to number of entities of this type
-			// individual random spawn:
-			Location spawnL = BukkitUtil.toLocation(parent.world, Helper.getRandVector(spawnReg));
-			spawnL = spawnL.add(new org.bukkit.util.Vector(0.5,0,0.5)); // full qualified name again, meh// 0.5 added for world coord!
-			Entity thisEnemy = parent.world.spawnEntity(spawnL, type);	// spawn and get pointer to track it
-			if (tracked)
-				trackedEnemies.add(thisEnemy);
+		checkTask.cancel();
+		for (RoomTask task : tasks) {
+			task.cancel();
 		}
 	}
 }
