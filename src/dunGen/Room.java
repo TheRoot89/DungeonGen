@@ -75,7 +75,7 @@ public abstract class Room extends Module {
 		int taskNr = 1;
 		RoomTask newTask;
 		while (conf.contains("tasks.task"+taskNr)) {
-			TaskType type = TaskType.valueOf(conf.getString("tasks.task" + taskNr + "." + "type"));
+			TaskType type = TaskType.valueOf(conf.getString("tasks.task" + taskNr + "." + "type").trim().toUpperCase());
 			switch (type) {
 			case BLOCKSPAWN:
 				newTask = new BlockSpawnTask(this, conf, taskNr);

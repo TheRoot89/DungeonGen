@@ -1,5 +1,7 @@
 package dunGen.tasks;
 
+import java.util.Locale;
+
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -28,8 +30,8 @@ public class BlockSpawnTask extends RoomTask {
 		
 		// loading values for this Task type:
 		String path = "tasks.task" + this.taskNr + ".";
-		blockMaterial = Material.getMaterial(path + "blockType"); // this is a lookup 'string' -> 'enum value'
-		incrementVec = BukkitUtil.toVector(conf.getVector(path + "incrementVector",new org.bukkit.util.Vector())); // default no increment
+		blockMaterial = Material.getMaterial(conf.getString(path + "blockType").toUpperCase(Locale.ENGLISH)); // this is a lookup 'string' -> 'enum value'
+		incrementVec =   BukkitUtil.toVector(conf.getVector(path + "incrementVector",new org.bukkit.util.Vector())); // default no increment
 		
 		// The targetRegion is not converted to global here, as it is potentially incremented each cycle with a relative vector.
 	}

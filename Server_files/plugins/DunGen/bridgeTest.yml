@@ -54,20 +54,6 @@ exit:
   # the material of the door blocks being generated, only for type 0: 'appearing'
   doorMaterial: smooth_brick
   
-
-#TODO: new format: (not implemented yet)
-platform:
-  targetRegCorner1:
-    ==: Vector
-    x: 41.0
-    y: 1.0
-    z: 1.0
-  targetRegCorner2:
-    ==: Vector
-    x: 42.0
-    y: 1.0
-    z: 2.0
-    
     
 # PlatformRooms only:
 # Zielgebiet, dass die Spieler erreichen muessen:
@@ -86,9 +72,9 @@ targetRegCorner2:
 # Rooms only: tasks to be carried out after placement:
 tasks:
   task1:
-    type: EntitySpawn # type of this task, EntitySpawn, BlockSpawn, Empower or Depower
+    type: ENTITYSPAWN # type of this task, EntitySpawn, BlockSpawn, Empower or Depower
     delay: 5.0          # delay to start this task [s]
-    period: 0.0        # periodicity of this task [s]
+    period: 10.0        # periodicity of this task [s]
     # Region dieses Tasks, beide Punkte gleich wenn ein Punkt:
     regionCorner1:
       ==: Vector
@@ -104,10 +90,8 @@ tasks:
     # EntitySpawn only:
     # Spawns the entity type periodically and randomly in the target region in the given number.
     # Will not increase beyond the maximum number allowed.
-    entityType: CREEPER
+    entityType: ZOMBIE
     count: 3        # number of entities to spawn
     # TODO: implement maxCount
     maxCount: 20    # maximum number of these entities alive concurently if spawned periodically
     isTarget: false # whether all of these have to be dead at the same time to succeed.
-  
-  

@@ -56,66 +56,93 @@ exit:
   doorMaterial: smooth_brick
 
 
-# BattleRooms only: Angaben zu Gegnergruppen:
-group1:
-  type: CREEPER
-  count: 1
-  isTarget: yes
-  spawnInterval: 100
-  # Spawn-Region dieser Gruppe, beide Punkte gleich wenn ein Punkt
-  spawnRegion:
-    corner1:
+tasks:
+  task1:
+    type: ENTITYSPAWN   # type of this task, ENTITYSPAWN, BLOCKSPWAN, EMPOWER or DEPOWER
+    delay: 3.0          # delay to start this task [s]
+    period: 6.0        # periodicity of this task [s]
+    # Region dieses Tasks, beide Punkte gleich wenn ein Punkt:
+    regionCorner1:
       ==: Vector
       x: 4.0
       y: 21.0
       z: 4.0
-    corner2:
+    regionCorner2:
       ==: Vector
       x: 4.0
       y: 21.0
-      z: 4.0  
+      z: 4.0 
+    # EntitySpawn only:
+    # Spawns the entity type periodically and randomly in the target region in the given number.
+    # Will not increase beyond the maximum number allowed.
+    entityType: CREEPER
+    count: 1        # number of entities to spawn
+    maxCount: 20    # maximum number of these entities alive concurently if spawned periodically
+    isTarget: true  # whether all of these have to be dead at the same time to succeed.
 
-group2:
-  type: ZOMBIE
-  count: 10
-  isTarget: yes
-  spawnInterval: -1
-  spawnRegion:
-    corner1:
+  task2:
+    type: ENTITYSPAWN   # type of this task, ENTITYSPAWN, BLOCKSPWAN, EMPOWER or DEPOWER
+    delay: 0.0          # delay to start this task [s]
+    period: 0.0        # periodicity of this task [s]
+    # Region dieses Tasks, beide Punkte gleich wenn ein Punkt:
+    regionCorner1:
       ==: Vector
       x: 7.0
       y: 4.0  
       z: 6.0
-    corner2:
+    regionCorner2:
       ==: Vector
       x: 7.0
       y: 19.0
       z: 6.0
+    # EntitySpawn only:
+    # Spawns the entity type periodically and randomly in the target region in the given number.
+    # Will not increase beyond the maximum number allowed.
+    entityType: ZOMBIE
+    count: 10        # number of entities to spawn
+    maxCount: 20    # maximum number of these entities alive concurently if spawned periodically
+    isTarget: true  # whether all of these have to be dead at the same time to succeed.
+
+
+  task3:
+    type: ENTITYSPAWN   # type of this task, ENTITYSPAWN, BLOCKSPWAN, EMPOWER or DEPOWER
+    delay: 0.0          # delay to start this task [s]
+    period: 0.0        # periodicity of this task [s]
+    # Region dieses Tasks, beide Punkte gleich wenn ein Punkt:
+    regionCorner1:
+      ==: Vector
+      x: 7.0
+      y: 4.0  
+      z: 6.0
+    regionCorner2:
+      ==: Vector
+      x: 7.0
+      y: 19.0
+      z: 6.0
+    # EntitySpawn only:
+    # Spawns the entity type periodically and randomly in the target region in the given number.
+    # Will not increase beyond the maximum number allowed.
+    entityType: SKELETON
+    count: 4        # number of entities to spawn
+    maxCount: 20    # maximum number of these entities alive concurently if spawned periodically
+    isTarget: true  # whether all of these have to be dead at the same time to succeed.
+
     
-group3:
-  type: SKELETON
-  count: 4
-  isTarget: yes
-  spawnInterval: -1
-  spawnRegion:
-    corner1:
+  task4:
+    type: Power
+    delay: 0.0
+    period: 20.0
+    regionCorner1:
       ==: Vector
       x: 7.0
-      y: 4.0  
-      z: 6.0
-    corner2:
+      y: 25.0
+      z: 4.0
+    regionCorner2:
       ==: Vector
       x: 7.0
-      y: 19.0
-      z: 6.0
- 
-
-# Nur wenn ein periodisch aktivierter Redstone-Schaltkreis benoetigt wird:
-# Zeit in ticks: 20 ticks sind etwa 1 sec
-powerBlockLoc:
-  ==: Vector
-  x: 7.0
-  y: 25.0
-  z: 4.0
-onTimeTicks: 20
-offTimeTicks: 400
+      y: 25.0
+      z: 4.0
+    # Power only:
+    # Will spawn a redstone block for 'onTime' part of the period. If no period the redstone will only be spawned once.
+    # OnTime of 0 will spawn AIR insted of Redstone to switch OFF instead!
+    onTime: 0.05   # [%], no onTime if 0, always on if 1

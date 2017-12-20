@@ -6,16 +6,16 @@ initYmlCheck: true
 # These lists enable the plugin to know that room (with schematic and .yml) is there and may be loaded from its respective files.
 entryModules:
 - NihonJou
-passageWayModules:
-#- passWayPistonTest
-#- passWayFallingTest
-#- PassageFireStraight
+passagewayModules:
+- passWayPistonTest
+- passWayFallingTest
+- PassageFireStraight
 - PassageMiningStraight
 roomModules:
-#- ColumnHall
-#- IceCave
-#- ShallowWater
-#- SkeletonBridge
-#- testRoom
-#- ThermeErding
+- ColumnHall
+- IceCave
+- ShallowWater
+- SkeletonBridge
+- testRoom
+- ThermeErding
 - bridgeTest

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -15,8 +16,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -27,7 +26,6 @@ import org.bukkit.util.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
-import dunGen.DunGen.State;
 import dunGen.Helper.Direc;
 import dunGen.Module.ModuleType;
 
@@ -154,7 +152,7 @@ public final class DunGen extends JavaPlugin implements Listener{
 			curConf = Module.getConfig(this, moduleName);
 			if (curConf == null) throw new ConfigException("Config file missing: " + moduleName + ".yml");
 			
-			// Add room key checks here, when changing mechanism to "tasks"
+			//TODO: Add room key checks here, when changing mechanism to "tasks"
 			//if (!curConf.contains("respawnLoc"))			{key = "respawnLoc"; break;}
 		}
 		if (!key.equalsIgnoreCase("")) throw new ConfigException("Key missing: " + key + ", in " + moduleName);
@@ -350,11 +348,13 @@ public final class DunGen extends JavaPlugin implements Listener{
 			case ERROR:
 				if (sender instanceof Player) {
 					Player p = (Player) sender;
-					p.sendMessage("There has been an error during DunGen plugin startup:");
+					p.sendMessage("There has been an error during DunGen plugin execution:");
 					p.sendMessage(state.statusMessage);
+					p.sendMessage("Please use /reset");
 				}else {
-					getLogger().info("There has been an error during DunGen plugin startup:");
+					getLogger().info("There has been an error during DunGen plugin execution:");
 					getLogger().info(state.statusMessage);
+					getLogger().info("Please use /reset");
 				}
 				break;
 			}
@@ -532,9 +532,9 @@ public final class DunGen extends JavaPlugin implements Listener{
 	public void setStateAndNotify(State state, String message) {
 		setStateSilenty(state,message);
 		if (this.state == State.ERROR)
-			getLogger().info(this.state.statusMessage);
-		else
 			getLogger().severe(this.state.statusMessage);
+		else
+			getLogger().info(this.state.statusMessage);
 	}
 	
 	
@@ -639,6 +639,6 @@ public final class DunGen extends JavaPlugin implements Listener{
 		}
 
 		resetActivePlayers();
-  }
+	}
 	
 }

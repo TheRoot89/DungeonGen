@@ -37,7 +37,12 @@ public class Passageway extends Module {
 	public  Vector 	 respawnLoc;
 	
 	
-	/**Constructor, calls Module-Contructor. Then loads config values. */
+	/**Constructor, calls Module-Contructor. Then loads config values.
+	 * @param parent	The parent Plugin for member access
+	 * @param name 		The name of this module, as well as .schematic and .yml files
+	 * @param targetL	The location of the entry as global vector (lower left free(air or door) block)
+	 * @param towardsD	Direction the dungeon is facing (inwards)
+	 */
 	public Passageway(DunGen parent, String name, Vector targetL, Direc towardsD) {
 		super(parent, name, targetL, towardsD);
 		loadConfig();

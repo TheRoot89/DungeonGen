@@ -41,41 +41,51 @@ exit:
   height: 2
 
 
-# BattleRooms only: Angaben zu Gegnergruppen:
-group1:
-  type: CREEPER
-  count: 3
-  isTarget: yes
-  spawnInterval: -1
-  # Spawn-Region dieser Gruppe, beide Punkte gleich wenn ein Punkt
-  spawnRegion:
-    corner1:
+tasks:
+  task1:
+    type: ENTITYSPAWN   # type of this task, ENTITYSPAWN, BLOCKSPWAN, EMPOWER or DEPOWER
+    delay: 1.0          # delay to start this task [s]
+    period: 0.0        # periodicity of this task [s]
+    # Region dieses Tasks, beide Punkte gleich wenn ein Punkt:
+    regionCorner1:
       ==: Vector
       x: 31.0
       y: 2.0
       z: 1.0
-    corner2:
+    regionCorner2:
       ==: Vector
       x: 4.0
       y: 2.0
       z: 29.0  
-    
-group2:
-  type: ZOMBIE
-  count: 3
-  isTarget: yes
-  spawnInterval: -1
-  # Spawn-Region dieser Gruppe, beide Punkte gleich wenn ein Punkt
-  spawnRegion:
-    corner1:
+    # EntitySpawn only:
+    # Spawns the entity type periodically and randomly in the target region in the given number.
+    # Will not increase beyond the maximum number allowed.
+    entityType: CREEPER
+    count: 3        # number of entities to spawn
+    maxCount: 20    # maximum number of these entities alive concurently if spawned periodically
+    isTarget: true  # whether all of these have to be dead at the same time to succeed.
+
+  task2:
+    type: ENTITYSPAWN   # type of this task, ENTITYSPAWN, BLOCKSPWAN, EMPOWER or DEPOWER
+    delay: 1.0          # delay to start this task [s]
+    period: 0.0        # periodicity of this task [s]
+    # Region dieses Tasks, beide Punkte gleich wenn ein Punkt:
+    regionCorner1:
       ==: Vector
       x: 31.0
       y: 2.0
       z: 1.0
-    corner2:
+    regionCorner2:
       ==: Vector
       x: 4.0
       y: 2.0
       z: 29.0  
+    # EntitySpawn only:
+    # Spawns the entity type periodically and randomly in the target region in the given number.
+    # Will not increase beyond the maximum number allowed.
+    entityType: ZOMBIE
+    count: 3        # number of entities to spawn
+    maxCount: 20    # maximum number of these entities alive concurently if spawned periodically
+    isTarget: true  # whether all of these have to be dead at the same time to succeed.
 
       

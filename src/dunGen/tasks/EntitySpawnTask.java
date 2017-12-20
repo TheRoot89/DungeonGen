@@ -6,7 +6,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 
-import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.regions.CuboidRegion;
 
@@ -27,7 +26,9 @@ public class EntitySpawnTask extends RoomTask {
 	
 	// ################## Members: ######################
 	
-	EntityGroup grp;	// The group of enemies to be spawned with this Task
+	private boolean 	convertedToGlobal = false;	// Flag whether targetRegion has been converted
+	private EntityGroup grp;						// The group of enemies to be spawned with this Task
+	
 	
 	/**Constructor, passes arguments to super class and loads special values from config.
 	 * @param parent	The Room this Task belongs to
@@ -46,17 +47,17 @@ public class EntitySpawnTask extends RoomTask {
 		//TODO: maxCount noch einbauen -> bei jedem Spawning z�hlen, bei Tod runterz�hlen
 		grp.maxCount =				  conf.getInt(    path + "maxCount");
 		grp.isTarget = 				  conf.getBoolean(path + "isTarget");
-		
-		// Conversion of targetRegion to global coordinates:
-		// This conversion thus happens only once (more efficient)
-		Vector pos1_glob = parent.toGlobal(targetRegion.getPos1());
-		Vector pos2_glob = parent.toGlobal(targetRegion.getPos2());
-		targetRegion = new CuboidRegion(pos1_glob, pos2_glob);
 	}
 	
 	
 	@Override
 	public void run() {
+		// do conversion once:
+		if (!convertedToGlobal) {
+			targetRegion = new CuboidRegion(parent.toGlobal(targetRegion.getPos1()), parent.toGlobal(targetRegion.getPos2()));
+			convertedToGlobal = true;
+		}
+		
 		// spawn as many entities as given by count:
 		World world = parent.getPlugin().world;
 		for (int nr=0; nr<grp.count; nr++) { 

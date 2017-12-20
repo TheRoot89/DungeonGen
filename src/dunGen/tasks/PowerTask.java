@@ -3,7 +3,6 @@ package dunGen.tasks;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 
-import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.regions.CuboidRegion;
 
 import dunGen.Helper;
@@ -11,8 +10,9 @@ import dunGen.Room;
 
 public class PowerTask extends RoomTask {
 
-	private TaskWithCallback offTask;	// Internal Task to switch off the redstone again after some time given by onTime [%].
-	private double onTime;			    // percentage of period, where the redstone is active
+	private boolean convertedToGlobal = false;	// Flag whether targetRegion has been converted
+	private TaskWithCallback offTask  = null;			// Internal Task to switch off the redstone again after some time given by onTime [%].
+	private double onTime;			    		// percentage of period, where the redstone is active
 	
 	
 	/**Constructor, passes arguments to super class and loads special values from config.
@@ -26,16 +26,7 @@ public class PowerTask extends RoomTask {
 		
 		// loading values for this Task type:
 		String path = "tasks.task" + this.taskNr + ".";
-		onTime = conf.getDouble(path + "onTime", 0.0);
-		
-		// Initialize the callback task for switching off after a certain time:
-		offTask = new TaskWithCallback(this::depower);
-		
-		// Conversion of targetRegion to global coordinates:
-		// This conversion thus happens only once (more efficient)
-		Vector pos1_glob = parent.toGlobal(targetRegion.getPos1());
-		Vector pos2_glob = parent.toGlobal(targetRegion.getPos2());
-		targetRegion = new CuboidRegion(pos1_glob, pos2_glob);
+		onTime  = conf.getDouble(path + "onTime", 0.0);
 	}
 
 	
@@ -55,20 +46,39 @@ public class PowerTask extends RoomTask {
 	}
 	
 	
+	/**The activation for PowerTasks also triggers a deactivation if so configured.
+	 * No repetition if period == 0
+	 */
+	@Override
+	public void register() {
+		if (period == 0 || onTime == 1 || onTime == 0) {
+			runTaskLater(parent.getPlugin(), Math.round(delay*20));
+		} else {
+			runTaskTimer(parent.getPlugin(), Math.round(delay*20), Math.round(period*20));
+			// Also run the task for switching off:
+			offTask = new TaskWithCallback(this::depower);	
+			long endOfOn = Math.round(delay*20) + Math.round(period*onTime*20);
+			offTask.runTaskTimer(parent.getPlugin(), endOfOn, Math.round(period*20)); // calls depower()
+		}
+	}
+	
 	@Override
 	public void run() {
 		// This only runs once if period is zero
+		
+		// convert only once, after placement:
+		//TODO: do in RoomTask!?
+		if (!convertedToGlobal) {
+			targetRegion = new CuboidRegion(parent.toGlobal(targetRegion.getPos1()), parent.toGlobal(targetRegion.getPos2()));
+			convertedToGlobal = true;
+		}
+		
 		// Spawns air only if onTime == 0
 		// Redstone only if onTime == 1
 		// Redstone and Air after it if onTime between 0 and 1 and a period is present
 		if (onTime == 0)	
 			depower(null);
-		else {
+		else
 			empower();
-			if (onTime < 1 && period != 0) {
-				long onTicks = Math.round(period*onTime*20);
-				offTask.runTaskLater(parent.getPlugin(), onTicks); // calls depower()
-			}
-		}
 	}
 }

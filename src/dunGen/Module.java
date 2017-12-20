@@ -45,11 +45,12 @@ public abstract class Module implements Listener {
 	}
 	
 	
+	/** Describes the types a module may be of. */
 	public enum ModuleType {
-		BATTLEROOM,
 		ENTRY,
 		PASSAGEWAY,
-		PLATFORMROOM
+		PLATFORMROOM,
+		BATTLEROOM
 	}
 	
 	
@@ -270,13 +271,13 @@ public abstract class Module implements Listener {
         } catch (MaxChangedBlocksException ex) {
             ex.printStackTrace();
         }
+    	placed = true;
     	
     	// save volume:
     	modVolume = new CuboidRegion(toGlobal(new Vector(0,0,0)), toGlobal(size.subtract(new Vector(1,1,1)))); // -1 for each dim as (0,0,0) already counts
     	
     	// do stuff after placement
     	postPlacementActions();
-    	placed = true;
 	}
 	
 	
