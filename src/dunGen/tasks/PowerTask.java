@@ -11,9 +11,15 @@ import dunGen.Room;
 
 public class PowerTask extends RoomTask {
 
-	private double onTime;			 // percentage of period, where the redstone is active
-	private TaskWithCallback offTask;
+	private TaskWithCallback offTask;	// Internal Task to switch off the redstone again after some time given by onTime [%].
+	private double onTime;			    // percentage of period, where the redstone is active
 	
+	
+	/**Constructor, passes arguments to super class and loads special values from config.
+	 * @param parent	The Room this Task belongs to
+	 * @param conf		Given config file of this room has entries on tasks.
+	 * @param taskNr	Task number is needed to load keys correctly.
+	 */
 	public PowerTask(Room parent, FileConfiguration conf, int taskNr) {
 		super(parent, conf, taskNr);
 		this.type = TaskType.POWER;
@@ -33,6 +39,22 @@ public class PowerTask extends RoomTask {
 	}
 
 	
+	/**Sets the targetRegion to AIR, removing any redstone blocks there
+	 * @param v Void object to make this usable as method reference.
+	 * @return Void object to make this usable as method reference.
+	 */
+	private Void depower(Void v) {
+		Helper.fillVolume(parent.getPlugin().world, targetRegion.getPos1(), targetRegion.getPos2(), Material.AIR);
+		return null;
+	}
+
+	
+	/** Basically creates redstone blocks in the targetRegion. */
+	private void empower() {
+		Helper.fillVolume(parent.getPlugin().world, targetRegion.getPos1(), targetRegion.getPos2(), Material.REDSTONE_BLOCK);
+	}
+	
+	
 	@Override
 	public void run() {
 		// This only runs once if period is zero
@@ -49,15 +71,4 @@ public class PowerTask extends RoomTask {
 			}
 		}
 	}
-
-	private void empower() {
-		Helper.fillVolume(parent.getPlugin().world, targetRegion.getPos1(), targetRegion.getPos2(), Material.REDSTONE_BLOCK);
-	}
-	
-	// Special void formulation to be useable as callback:
-	private Void depower(Void v) {
-		Helper.fillVolume(parent.getPlugin().world, targetRegion.getPos1(), targetRegion.getPos2(), Material.AIR);
-		return null;
-	}
-	
 }

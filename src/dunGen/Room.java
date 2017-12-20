@@ -4,11 +4,9 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.bukkit.BukkitUtil;
 
 import dunGen.DunGen.State;
 import dunGen.Helper.Direc;
@@ -25,19 +23,23 @@ import dunGen.tasks.RoomTask;
  */
 public abstract class Room extends Module {
 	
-	// loaded from config:
-	private List<RoomTask> tasks;
-	private Vector powerBlockLoc;
-	int onTime = 0;
-	int offTime = 0;
 	
-	// work variables:
-	protected List<Entity>      trackedEnemies;
-	protected TaskWithCallback 	checkTask;
-	private   TaskWithCallback 	empowerTask;
-	private   TaskWithCallback 	depowerTask;
+	
+	// ################### Member variables ###################
+	protected 	TaskWithCallback 	checkTask;		// the Task used to check whether the room is solved, only calls checkRoomDone()
+	private 	List<RoomTask> 		tasks;			// The list of tasks this room is configured with.
+	protected 	List<Entity>      	trackedEnemies; // The list of enemies to track, only needed by BattleRooms. Move this?
 	
 
+	
+	// ###################### Member functions #######################
+	
+	/**Constructor takes same arguments as a Module and forwards these. Then loads config.
+	 * @param parent	The parent Plugin for member access
+	 * @param name 		The name of this module, as well as .schematic and .yml files
+	 * @param targetL	The location of the entry as global vector (lower left free(air or door) block)
+	 * @param towardsD	Direction the dungeon is facing (inwards)
+	 */
 	public Room(DunGen parent, String name, Vector targetL, Direc towardsD) {
 		super(parent, name, targetL, towardsD);
 		loadConfig();
@@ -45,14 +47,25 @@ public abstract class Room extends Module {
 	}
 
 	
+	/**Adds an entity to be tracked as target (victory condition of BattleRooms).
+	 * @param e	The entity to be tracked.
+	 */
+	public void addTrackedEntity(Entity e) {
+		trackedEnemies.add(e);
+	}
+	
+	
 	/**
 	 * This member function will be called by Room periodically using a TaskWithCallback.
+	 * Will callback to DunGen::roomClear() if successful.
 	 * @param v A Void object that will not be used. Only necessary to use the method reference here.
-	 * @return  Enter return null; in your Implementation. Only needed for method reference implementation.
+	 * @return  Enter "return null;" in your Implementation. Void is only needed for method reference implementation.
 	 */
 	public abstract Void checkRoomDone(Void v);
-	
-	
+
+	/**Calls the Module::loadConfig() for basic values. Then loads the properties special for Rooms.
+	 * For Room, this means initializing the Task objects.
+	 * Checks are not needed any more due to initial yml checks.*/
 	@Override
 	public void loadConfig() {
 		super.loadConfig();
@@ -80,76 +93,33 @@ public abstract class Room extends Module {
 			tasks.add(newTask);
 			taskNr++;
 		}
-		
-		// redstone stuff (if set in config):
-		org.bukkit.util.Vector temp= conf.getVector("powerBlockLoc");
-		if (temp != null)
-			powerBlockLoc = toGlobal(BukkitUtil.toVector(temp));
-		else
-			powerBlockLoc = null;
-		
-		onTime = conf.getInt("onTimeTicks");
-		offTime = conf.getInt("offTimeTicks");
 	}
-
-
+	
+	
 	@Override
-	public final void postPlacementActions() {
+	public void postPlacementActions() {
 		// nothing atm
 	}
-
-
+	
+	
 	@Override
 	public void register() {
-		// victory condition check:
+		// victory condition check, using reference method implementation:
 		checkTask = new TaskWithCallback(this::checkRoomDone);
 		checkTask.runTaskTimer(parent, 50, 50);// 20 ticks = 1 sec -> 50 is a good two seconds in between each execution
 		
-		// activate tasks:
+		// activate room tasks:
 		for (RoomTask task : tasks) {
 			task.register();
 		}
-		
-		// redstone periodic activation:
-		if (powerBlockLoc != null && onTime != 0 && offTime != 0) {
-			empowerTask = new TaskWithCallback(this::empower);
-			empowerTask.runTaskTimer(parent, 0, onTime+offTime);
-			
-			depowerTask = new TaskWithCallback(this::depower);
-			depowerTask.runTaskTimer(parent, onTime, onTime+offTime);
-		}
 	}
 
-
-	public void addTrackedEntity(Entity e) {
-		trackedEnemies.add(e);
-	}
-	
 	
 	@Override
 	public void unregister() {
+		checkTask.cancel();
 		for (RoomTask task : tasks) {
 			task.cancel();
 		}
-	}
-	
-	
-	/** Basically creates a redstone block at the powerBlockLoc location
-	 * @param v Void object to make this usable as method reference.
-	 * @return Void object to make this usable as method reference.
-	 */
-	public Void empower(Void v) {
-		parent.world.getBlockAt(powerBlockLoc.getBlockX(),powerBlockLoc.getBlockY(),powerBlockLoc.getBlockZ()).setType(Material.REDSTONE_BLOCK);
-		return null;
-	}
-
-	
-	/**Sets the powerBlockLoc Location to AIR, removing any redstone block there
-	 * @param v Void object to make this usable as method reference.
-	 * @return Void object to make this usable as method reference.
-	 */
-	public Void depower(Void v) {
-		parent.world.getBlockAt(powerBlockLoc.getBlockX(),powerBlockLoc.getBlockY(),powerBlockLoc.getBlockZ()).setType(Material.AIR);
-		return null;
 	}
 }

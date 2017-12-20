@@ -15,8 +15,25 @@ import dunGen.Room;
 
 public class EntitySpawnTask extends RoomTask {
 
-	EntityGroup grp;
+	/**
+	 * Struct-like internal class representing an enemy group in a room (with default values)
+	 */
+	public class EntityGroup {
+		public int count = 0;
+		public boolean isTarget = false;
+		public int maxCount = 10;
+		public EntityType type = EntityType.ZOMBIE;
+	}
 	
+	// ################## Members: ######################
+	
+	EntityGroup grp;	// The group of enemies to be spawned with this Task
+	
+	/**Constructor, passes arguments to super class and loads special values from config.
+	 * @param parent	The Room this Task belongs to
+	 * @param conf		Given config file of this room has entries on tasks.
+	 * @param taskNr	Task number is needed to load keys correctly.
+	 */
 	public EntitySpawnTask(Room parent, FileConfiguration conf, int taskNr) {
 		super(parent, conf, taskNr);
 		this.type = TaskType.ENTITYSPAWN;
@@ -36,8 +53,6 @@ public class EntitySpawnTask extends RoomTask {
 		Vector pos2_glob = parent.toGlobal(targetRegion.getPos2());
 		targetRegion = new CuboidRegion(pos1_glob, pos2_glob);
 	}
-
-	
 	
 	
 	@Override
@@ -51,16 +66,5 @@ public class EntitySpawnTask extends RoomTask {
 			Entity thisEnemy = world.spawnEntity(spawnL, grp.type);		// spawn and get pointer to track it
 			if (grp.isTarget) parent.addTrackedEntity(thisEnemy); 		// add to List of tracked entities for BattleRooms to monitor
 		}
-	}
-	
-	
-	/**
-	 * Struct-like internal class representing an enemy group in a room (with default values)
-	 */
-	public class EntityGroup {
-		public EntityType type = EntityType.ZOMBIE;
-		public int count = 0;
-		public int maxCount = 10;
-		public boolean isTarget = false;
 	}
 }

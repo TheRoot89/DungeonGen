@@ -1,95 +1,122 @@
 package dunGen;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.zip.GZIPInputStream;
 
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
-import org.bukkit.plugin.java.JavaPlugin;
 
-import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.bukkit.BukkitWorld;
-import com.sk89q.worldedit.bukkit.WorldEditPlugin;
-import com.sk89q.worldedit.extent.clipboard.Clipboard;
-import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
-import com.sk89q.worldedit.extent.clipboard.io.SchematicReader;
-import com.sk89q.worldedit.function.operation.Operation;
-import com.sk89q.worldedit.function.operation.Operations;
-import com.sk89q.worldedit.math.transform.AffineTransform;
-import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.regions.CuboidRegion;
-import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.schematic.SchematicFormat;
-import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.DataException;
-import com.sk89q.worldedit.world.registry.LegacyWorldData;
-import com.sk89q.worldedit.world.registry.WorldData;
 
 import dunGen.DunGen.State;
 import dunGen.Helper.Direc;
 
+/**A base class representing a physical model in minecraft. It is loaded from a schematic file and placed according to
+ * the information given there. 
+ */
+@SuppressWarnings("deprecation")
 public abstract class Module implements Listener {
+
 	
-	
-	//////////////////////// Properties ///////////////////////////
-	// Loaded from config:
-	public ModuleType type;
-	protected Connector entry;
-	protected Connector exit;
-	
-	// set in constructor:
-	protected String name;				// (file) name of this module
-	protected String description;		// in-game name of this module
-	protected String fileName;			// name of the schematic
-	public    FileConfiguration conf;	// file config the discr. of this module is saved in
-	protected DunGen parent;		    // the DunGen plugin (pointer)
-	protected int turnedBy;				// e.g. 90° from EAST to SOUTH
-	protected Vector origin;			// where the entryLoc shall be placed in global coord
-	
-	// set during placement:
-	public CuboidClipboard cc=null;		// the clipboard with it's own coordinates before placement
-	public CuboidRegion modVolume;		// the volume occupied by this module
-	
-	/////////////////// Inner class as struct: ////////////////////////
+	/**Wraps the info on entry and exit of this module, e.g. direction and dimensions. */
 	class Connector{
-		public Vector placementLoc = null;	// (x,y,z) = (forward, up, right). rel. pos within this module, which will correspond to the given origin, once placed
+		public Direc afterPasteDirec;		// direction after placement (init direc is rotated)
 											// typ. this will be entryLoc, but it is possible be set differently after the constructor, before placement
 		public Vector doorLoc = null;		// where the actual door is located
-		public int width;					// free space to the right
-		public int height;					// free space upwards
-		public Direc initDirec; 			// initial direction this connector is facing (entries must be EAST!)
-		public Direc afterPasteDirec;		// direction after placement (init direc is rotated)
-												// for entries: needed direc of the module after placement
+		// for entries: needed direc of the module after placement
 												// for exits: the direc the exit faces after placement
 		public Material doorMaterial;		// Material of the door being generated or falls down
-		public Vector redstonePos;			// Pos where redstone needs to spawn to close the door or disappear for opening
+		public int height;					// free space upwards
+		public Direc initDirec; 			// initial direction this connector is facing (entries must be EAST!)
+		public Vector placementLoc = null;	// (x,y,z) = (forward, up, right). rel. pos within this module, which will correspond to the given origin, once placed
+												public Vector redstonePos;			// Pos where redstone needs to spawn to close the door or disappear for opening
+		public int width;					// free space to the right
 	}
 	
 	
-	//////////////////////// Methods ////////////////////////////////////
+	public enum ModuleType {
+		BATTLEROOM,
+		ENTRY,
+		PASSAGEWAY,
+		PLATFORMROOM
+	}
 	
-	// These methods are abstract and have to be implemented (often empty) by subclasses:
-	public abstract void prePlacementActions();		// stuff done while not yet placed, but obejct and clipboad exist
-	public abstract void postPlacementActions();	// stuff done automatically and immediatelly after placement
-	public abstract void register();				// activation of (victory)condition surveillance by a module
-	public abstract void unregister();				// deactivation of above
 	
 	
-	/**
-	 * Contructs the new module object and initializes it by reading its yml file.
-	 * 
+	// ##################### Member variables #############################
+	
+	// set in constructor:
+	public    	FileConfiguration 	conf;			// file config the discr. of this module is saved in
+	protected 	String 				name;			// short name, also name of the yml file
+	protected 	Vector 				origin;			// will coincide will the placementLoc of the entry Connector
+	protected 	DunGen 				parent;			// the DunGen plugin (pointer)
+	// Loaded from config:
+	protected 	String 				description;	// in-game name of this module
+	protected 	Connector 			entry;
+	protected 	Connector 			exit;
+	protected 	String 				fileName;		// name of the schematic
+	public 	  	ModuleType 			type;
+	// set during placement:
+	public    	CuboidRegion 		modVolume;		// the volume occupied by this module
+	protected 	int 				turnedBy;		// e.g. 90° from EAST to SOUTH
+	// Working variables:
+	public    	CuboidClipboard 	cc     = null;	// the clipboard with it's own coordinates before placement
+	private   	boolean 			placed = false;
+	
+	
+	
+	// ########################### Member functions ########################
+	
+	/**Static method to get a modules config alone, returns null if failed.
+	 * The loading is tested during the initial yml test and should therefore work during DunGen runtime.
+	 * @param parent 	The parent plugin
+	 * @param name 		The modules name for witch the config should be loaded (file <name>.yml)
+	 * @return			The config object. Returns null if errors occured and sets plugin state to ERROR.
+	 */
+	public static YamlConfiguration getConfig(DunGen parent, String name) {
+		File confFile = new File(parent.getDataFolder(),name+".yml");
+		if (!confFile.exists()) {
+			parent.setStateAndNotify(State.ERROR, "Config file for module " + name + " could not be found!");
+			return null;
+		}
+		
+		YamlConfiguration conf = new YamlConfiguration();
+		try {
+			conf.load(confFile);
+		}catch (IOException | InvalidConfigurationException e) {
+			parent.setStateAndNotify(State.ERROR, "Loading of config file for module " + name + " failed:");
+			e.printStackTrace();
+			return null;
+		}
+		// everything ok, if code reached here.
+		parent.getLogger().info("YML file for module " + name + " loaded.");
+		return conf;
+	}
+	
+	
+	/**Static method to get a moduel type before constructor has been executed.
+	 * Config loading is tested during initial yml test and is not catched here.
+	 * @param parent	The parent plugin, needed for config loading.
+	 * @param name		The name of the module.
+	 * @return			The ModuleType enum with the value for this name.
+	 */
+	public static ModuleType getType(DunGen parent, String name) {
+		return ModuleType.values()[getConfig(parent, name).getInt("type")]; // valid Enum from int
+	}
+	
+	
+	/**Contructs the new module object and initializes it by reading its <name>.yml file.
 	 * @param parent	The parent Plugin for member access
 	 * @param name 		The name of this module, as well as .schematic and .yml files
 	 * @param targetL	The location of the entry as global vector (lower left free(air or door) block)
@@ -105,45 +132,30 @@ public abstract class Module implements Listener {
 		this.entry.afterPasteDirec = towardsD;
 		this.turnedBy = towardsD.degree()-entry.initDirec.degree();
 		
-		// check and load config file:
+		// load config file, loading tested during initial yml test so should work:
 		conf = getConfig(parent, name);
-		if (conf == null) parent.setStateAndNotify(State.ERROR, "Module " + name + ": Config could not be loaded!");
 	}
 	
 	
-	// static method to get a moduel type before constructor has been executed
-	public static ModuleType getType(DunGen parent, String name) {
-		YamlConfiguration conf = getConfig(parent, name);
-		if (conf != null)
-			return ModuleType.values()[conf.getInt("type")]; // valid Enum from int
-		else
-			return null;
+	/**Fills the bounding box occupied by this module with air.
+	 * To be implemented: actual restoring of the destroyed landscape. This would need one clipboard per module.
+	 */
+	public void delete() {
+		Helper.fillVolume(parent.world, modVolume.getPos1(), modVolume.getPos2(), Material.AIR);
 	}
 	
 	
-	// static method to get a modules config alone, returns null if failed
-	public static YamlConfiguration getConfig(DunGen parent, String name) {
-		File confFile = new File(parent.getDataFolder(),name+".yml");
-		if (!confFile.exists()) {
-			parent.getLogger().severe("Config file for module " + name + " could not be found!");
-			return null;
-		}
-		YamlConfiguration conf = new YamlConfiguration();
-		try {
-			conf.load(confFile);
-		}catch (IOException | InvalidConfigurationException e) {
-			parent.getLogger().severe("Loading of config file for module " + name + " failed!");
-			e.printStackTrace();
-			return null;
-		}
-		// everything ok, if code reached here.
-		parent.getLogger().info("YML file for module " + name + " loaded.");
-		return conf;
+	/** Return the the next block after the exit (where the next module global origin should be placed) */
+	public Vector getNextEntryPos() {
+		return toGlobal(exit.placementLoc).add(exit.afterPasteDirec.toUnityVec());
 	}
-
+	
+	
+	/**Returns the plugin.*/ 
 	public DunGen getPlugin() {
 		return parent;
 	}
+
 	
 	/** Loads all basic properties common for every module.
 	 * The initial yml check makes sure all properties are already in there.
@@ -165,7 +177,11 @@ public abstract class Module implements Listener {
 	}
 	
 	
-	@SuppressWarnings("deprecation")
+	/**Places the module by loading it from its associated .schematic file.
+	 * Does shifting and rotation according to the values given during object construction and conf loading.
+	 * Also invokes the prePlacementActions() and postPlacementActions() accordingly.
+	 * The used CuboidClipboard is saved for later use.
+	 */
 	public void place() {
 		
 		/*
@@ -260,49 +276,56 @@ public abstract class Module implements Listener {
     	
     	// do stuff after placement
     	postPlacementActions();
+    	placed = true;
 	}
 	
 	
-	/**
-	 * Fills the bounding box occupied by this module with air.
-	 * Idea: actual restoring of the destroyed landscape
-	 */
-	public void delete() {
-		Helper.fillVolume(parent.world, modVolume.getPos1(), modVolume.getPos2(), Material.AIR);
-	}
+	/**Stuff done automatically and immediatelly after placement is to be specified here. */
+	public abstract void postPlacementActions();
 	
 	
-	/** Converts the module's relative coordinates to global points (only after placement!)
+	/**Stuff done while not yet placed, but obejct and clipboad exist. */
+	public abstract void prePlacementActions();
+	
+	
+	/**Activation of listeners or scheduled tasks. */
+	public abstract void register();
+
+
+	/** Converts the module's relative coordinates to global points (possible only after placement!)
 	 * @param relativePt A relative position, measured from the module origin, facing EAST.
-	 * @return A global position, according to where and in which rotation this module was placed.
+	 * @return 			 A global position, according to where and in which rotation this module was placed, null if called before placement.
 	 */
 	public Vector toGlobal(Vector relativePt) {
-		Vector relPlusOff = relativePt.subtract(entry.placementLoc);
-		// rotate according to rotation of clipboard:
-		Vector v_glob = Direc.rotatedBy(relPlusOff, turnedBy);
-		return v_glob.add(origin);
+		if (placed) {
+			Vector relPlusOff = relativePt.subtract(entry.placementLoc);
+			Vector v_glob = Direc.rotatedBy(relPlusOff, turnedBy);       // rotate according to rotation of clipboard
+			return v_glob.add(origin);
+		}else {
+			parent.setStateAndNotify(State.ERROR, "Module::toGlobal was called before placement!");
+			return null; // will crash the plugin, above error message for debug
+		}
 	}
-
 	
+	
+	/** Converts global world coordinates to the relative coordinate frame of this module, only valid after placement!
+	 * @param globalPt	A global world position.
+	 * @return			A relative position, measured from the module origin, facing EAST. Calculated according to placement and rotation.
+	 */
 	public Vector toRelative(Vector globalPt) {
-		Vector globMinusOrig = globalPt.subtract(origin);
-		// rotate back according to rotation of clipboard:
-		Vector v_rel = new Vector(globMinusOrig);
-		Direc.rotatedBy(v_rel, -turnedBy);
-		return v_rel.add(entry.placementLoc);	
+		if (placed) {
+			Vector globMinusOrig = globalPt.subtract(origin);
+			// rotate back according to rotation of clipboard:
+			Vector v_rel = new Vector(globMinusOrig);
+			Direc.rotatedBy(v_rel, -turnedBy);
+			return v_rel.add(entry.placementLoc);	
+		}else {
+			parent.setStateAndNotify(State.ERROR, "Module::toRelative was called before placement!");
+			return null; // will crash the plugin, above error message for debug
+		}
 	}
 	
-	// Return the the next block after the exit (where the next module global origin should be placed)
-	public Vector getNextEntryPos() {
-		return toGlobal(exit.placementLoc).add(exit.afterPasteDirec.toUnityVec());
-	}
 	
-	//////////////// Enums: ////////////////////
-	public enum ModuleType {
-		ENTRY,
-		PASSAGEWAY,
-		PLATFORMROOM,
-		BATTLEROOM
-	}
-	
+	/**Deactivation of listeners and scheduled tasks */
+	public abstract void unregister();
 }

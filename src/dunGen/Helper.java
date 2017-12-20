@@ -2,31 +2,28 @@ package dunGen;
 
 import java.util.Random;
 
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.regions.CuboidRegion;
-import com.sk89q.worldedit.regions.Region;
 
+/** Wrapps different convenience functions. */
 public class Helper {
 	
 	public enum Direc {
-		NORTH (180),
-		WEST (90),
 		SOUTH (0),
+		WEST (90),
+		NORTH (180),
 		EAST (270);
 		
-		private int degree;
-
-		Direc(int degree){
-			this.degree = degree;
-		}
+		private int degree;	// holds the degree associated with this direction.
 		
+		/**Factory to get a Direction from a degree. Does the rounding.
+		 * @param deg	The degree you look at.
+		 * @return		The direction you look at.
+		 */
 		public static Direc fromDeg(float deg) {
 			deg = (deg+360) % 360;
 			if (deg < 45) {
@@ -41,8 +38,7 @@ public class Helper {
 				return Direc.SOUTH;
 			}
 		}
-		
-		public int degree() {return degree;}
+
 		
 		/**
 		 * Rotates a vector by a certain degree. Only steps of 90° are allowed!
@@ -73,30 +69,41 @@ public class Helper {
 			return ret;
 		}
 		
+		
+		/**Constructor, saving the degree. Called implicitely by the enum values.
+		 * @param degree
+		 */
+		Direc(int degree){
+			this.degree = degree;
+		}
+		
+		/**Getter */
+		public int degree() {return degree;}
+		
+		/**Return the unity vector associated with this direction.
+		 * Used to go one block in that direction.*/
 		public Vector toUnityVec() {
 			return new Vector(-Helper.sind(degree),0,Helper.cosd(degree));
 		}
-		
-	}
+	}	
 	
 	
 	
-	
-	
-	public static Direc getPlayerDirec(Player player) {
-		float playerYaw = player.getLocation().getYaw();
-		return Direc.fromDeg(playerYaw);
-	}
-	
-	public static double sind(int deg) {
-		return Math.sin(Math.toRadians(deg));
-	}
-	
+	/**Cosine function taking degrees.
+	 * @param deg	a degree in int.
+	 * @return 		a double.
+	 */
 	public static double cosd(int deg) {
 		return Math.cos(Math.toRadians(deg));
 	}
 	
-	// Fills the volum between v1 and v2 in world w with Material m
+
+	/**Fills the volum between v1 and v2 in world w with Material m
+	 * @param w		The worls were this is to be generated.
+	 * @param v1	One volume corner.
+	 * @param v2	The other corner.
+	 * @param m		The block type to use.
+	 */
 	public static void fillVolume(World w, Vector v1, Vector v2, Material m) {
 		for (int x = Math.min(v1.getBlockX(), v2.getBlockX()); x <= Math.max(v1.getBlockX(), v2.getBlockX()); x++)
 		for (int y = Math.min(v1.getBlockY(), v2.getBlockY()); y <= Math.max(v1.getBlockY(), v2.getBlockY()); y++)
@@ -104,6 +111,21 @@ public class Helper {
 			w.getBlockAt(x, y, z).setType(m);
 	}
 	
+	
+	/**Get the Direc enum for a player.
+	 * @param player
+	 * @return			The Direc, rounded.
+	 */
+	public static Direc getPlayerDirec(Player player) {
+		float playerYaw = player.getLocation().getYaw();
+		return Direc.fromDeg(playerYaw);
+	}
+	
+	
+	/**Get a random position (Vector) from a target region. Dos not use the DunGen seed!
+	 * @param r 	The region.
+	 * @return		The vector.
+	 */
 	public static Vector getRandVector(CuboidRegion r) {
 		// will be a half point off to be in center of a block (block vs. world coordinates!) meh
 		Random rand = new Random();
@@ -114,6 +136,15 @@ public class Helper {
 		targetV = targetV.setY(minP.getBlockY() + rand.nextInt(maxP.getBlockY() - minP.getBlockY() + 1));
 		targetV = targetV.setZ(minP.getBlockZ() + rand.nextInt(maxP.getBlockZ() - minP.getBlockZ() + 1));
 		return targetV;
+	}
+	
+	
+	/**Sine function taking degrees.
+	 * @param deg	a degree in int.
+	 * @return 		a double.
+	 */
+	public static double sind(int deg) {
+		return Math.sin(Math.toRadians(deg));
 	}
 	
 }
