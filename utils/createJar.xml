@@ -10,12 +10,12 @@
 	    </fileset>
 	</path>
 	<target name="createJar" description="Create a jar for the DunGen project">
-		<mkdir dir="${projectHome}/classes"/>
-		<javac srcdir="${projectHome}/src/" destdir="${projectHome}/classes" includeantruntime="false">
+		<mkdir dir="${projectHome}/.classes"/>
+		<javac srcdir="${projectHome}/src/" destdir="${projectHome}/.classes" includeantruntime="false">
 
 			<classpath refid="build-classpath"/>
 		</javac>
-		<jar destfile="${projectHome}/Server_files/plugins/DunGen-0.2.jar" basedir="${projectHome}/classes">
+		<jar destfile="${projectHome}/Server_files/plugins/DunGen-0.2.jar" basedir="${projectHome}/.classes">
 		    <zipfileset dir="${projectHome}/src" includes="config.yml"/>
 			<zipfileset dir="${projectHome}/src" includes="plugin.yml"/>
 		</jar>
