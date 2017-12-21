@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="DunGen.createJar" default="createJar">
+	<property name="projectHome" location="./.." />
+	<path id="build-classpath">
+	    <fileset dir="${projectHome}/Server_files">
+	        <include name="*.jar"/>
+	    </fileset>
+	    <fileset dir="${projectHome}/Server_files/plugins">
+	       <include name="WorldEdit.jar"/>
+	    </fileset>
+	</path>
+	<target name="createJar" description="Create a jar for the DunGen project">
+		<mkdir dir="${projectHome}/classes"/>
+		<javac srcdir="${projectHome}/src/" destdir="${projectHome}/classes" includeantruntime="false">
+
+			<classpath refid="build-classpath"/>
+		</javac>
+		<jar destfile="${projectHome}/Server_files/plugins/DunGen-0.2.jar" basedir="${projectHome}/classes">
+		    <zipfileset dir="${projectHome}/src" includes="config.yml"/>
+			<zipfileset dir="${projectHome}/src" includes="plugin.yml"/>
+		</jar>
+		<copy file="${projectHome}/Server_files/plugins/DunGen-0.2.jar" tofile="C:/Users/Toni/Desktop/Minecraft_Modding/plugins/DunGen-0.2.jar" overwrite="true"/>
+		<copy todir="C:/Users/Toni/Desktop/Minecraft_Modding/plugins/DunGen" overwrite="true">
+		    <fileset dir="${projectHome}/Server_files/plugins/DunGen"/>
+		</copy>
+	</target>
+</project>

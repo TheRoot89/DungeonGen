@@ -56,7 +56,7 @@ public class PlatformRoom extends Room {
 	
 	@Override
 	public void prePlacementActions() {
-		//Evtl. Scripte und Timer anregen die irgendwelche dinge tun, die genaue Variante könnte in Config stehen?
+		// nothing atm
 	}
 
 

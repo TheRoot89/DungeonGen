@@ -70,7 +70,7 @@ public abstract class Module implements Listener {
 	public 	  	ModuleType 			type;
 	// set during placement:
 	public    	CuboidRegion 		modVolume;		// the volume occupied by this module
-	protected 	int 				turnedBy;		// e.g. 90° from EAST to SOUTH
+	protected 	int 				turnedBy;		// e.g. 90 degrees from EAST to SOUTH
 	// Working variables:
 	public    	CuboidClipboard 	cc     = null;	// the clipboard with it's own coordinates before placement
 	private   	boolean 			placed = false;

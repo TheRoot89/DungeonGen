@@ -28,6 +28,7 @@ import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
 import dunGen.Helper.Direc;
 import dunGen.Module.ModuleType;
+import net.md_5.bungee.api.ChatColor;
 
 
 public final class DunGen extends JavaPlugin implements Listener{
@@ -44,10 +45,10 @@ public final class DunGen extends JavaPlugin implements Listener{
 	 * The state variable of the plugin is set via the setState[...]() functions.
 	 */
 	public enum State {
-		ERROR,				 // no dungeon was started yet
-		NOT_STARTED,					 // entry generated but not started yet
-		RUNNING,					 // running fully
-		STARTUP;						 // something happened :/
+		NOT_STARTED,		// no dungeon was started yet
+		STARTUP,			// entry generated but not started yet
+		RUNNING,			// running fully
+		ERROR;				// something happened :/
 		
 		public String statusMessage; // an additional message can be stored
 	}
@@ -529,10 +530,11 @@ public final class DunGen extends JavaPlugin implements Listener{
 	 * @param state		The state to be set.
 	 * @param message	The message to be written to console, e.g. an error message.
 	 */
-	public void setStateAndNotify(State state, String message) {
+	public void setStateAndNotify(State state, String message) { 
 		setStateSilenty(state,message);
 		if (this.state == State.ERROR)
-			getLogger().severe(this.state.statusMessage);
+			//getLogger().severe(this.state.statusMessage);
+			getServer().getConsoleSender().sendMessage(ChatColor.RED + "[DunGen] " + this.state.statusMessage);
 		else
 			getLogger().info(this.state.statusMessage);
 	}

@@ -6,3 +6,4 @@ bin/
 .classpath
 .metadata
 sync.ffs_db
+/classes/

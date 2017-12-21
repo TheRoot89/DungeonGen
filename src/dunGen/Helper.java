@@ -41,7 +41,7 @@ public class Helper {
 
 		
 		/**
-		 * Rotates a vector by a certain degree. Only steps of 90° are allowed!
+		 * Rotates a vector by a certain degree. Only steps of 90 degrees are allowed!
 		 * @param vec	The vector object (reference!) to be changed.
 		 * @param deg	
 		 */
