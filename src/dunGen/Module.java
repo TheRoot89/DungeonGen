@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -131,7 +132,7 @@ public abstract class Module implements Listener {
 		this.parent = parent;
 		this.origin = new Vector(targetL);
 		this.entry.afterPasteDirec = towardsD;
-		this.turnedBy = towardsD.degree()-entry.initDirec.degree();
+		this.turnedBy = (towardsD.degree()-entry.initDirec.degree()+360)%360;
 		
 		// load config file, loading tested during initial yml test so should work:
 		conf = getConfig(parent, name);
@@ -143,6 +144,21 @@ public abstract class Module implements Listener {
 	 */
 	public void delete() {
 		Helper.fillVolume(parent.world, modVolume.getPos1(), modVolume.getPos2(), Material.AIR);
+	}
+	
+	
+	/**Fills the volum between the relative coords v1 and v2 with Material m
+	 * @param v1	One volume corner, relative.
+	 * @param v2	The other corner, relative.
+	 * @param m		The block type to use.
+	 */
+	public void fillVolumeRelative(Vector v1, Vector v2, Material m) {
+		v1 = toGlobal(v1);
+		v2 = toGlobal(v2);
+		for (int x = Math.min(v1.getBlockX(), v2.getBlockX()); x <= Math.max(v1.getBlockX(), v2.getBlockX()); x++)
+		for (int y = Math.min(v1.getBlockY(), v2.getBlockY()); y <= Math.max(v1.getBlockY(), v2.getBlockY()); y++)
+		for (int z = Math.min(v1.getBlockZ(), v2.getBlockZ()); z <= Math.max(v1.getBlockZ(), v2.getBlockZ()); z++)
+			parent.world.getBlockAt(x, y, z).setType(m);
 	}
 	
 	
@@ -278,6 +294,46 @@ public abstract class Module implements Listener {
     	
     	// do stuff after placement
     	postPlacementActions();
+	}
+	
+	
+	/**Places the given material where the plan is true, starting from the given relative origin within this module.
+	 * The plan and origin are rotated beforehand, to avoid conversion toGlobal for each block!
+	 * @param origin	A relative coordinate specifying the minimum Point of the given build plan
+	 * @param plan		A grid of boolean values. Material is set if true at that position.
+	 * @param m			The Material to be placed.
+	 * @param height	How high the plan should be duplicated. (stacked up)
+	 */
+	public void placeBuildPlan2D(Vector origin, boolean[][] plan, Material m, int height) {
+		plan = Helper.rotateBoolMatrixClockw(plan, turnedBy); //clockwise turning as is defined in mc for sky directions
+		// The origin has to be at another corner of the matrix now:
+		origin = toGlobal(origin);
+		switch (turnedBy) {
+		case 0:
+			break;
+		case 90:
+			origin = origin.add(-(plan.length-1), 0, 0);
+			break;
+		case 180:
+			origin = origin.add(-(plan.length-1),0,-(plan[0].length-1));
+			break;
+		case 270:
+			origin = origin.add(0, 0, -(plan[0].length-1));
+			break;
+		default:
+			parent.setStateAndNotify(State.ERROR, "Module: turnedBy is out of range: " + turnedBy + ". Plan is not placed.");
+			return;
+		}
+		
+		// now we have a building plan matrix looking east, with the origin in the lower left. Easy:
+		int x = origin.getBlockX();
+		for (int row=0; row < plan.length; row++, x++) {
+			int z = origin.getBlockZ();
+			for (int col=0; col< plan[0].length; col++, z++)
+				for (int y = origin.getBlockY(); y < (origin.getBlockY()+height); y++)
+					if (plan[row][col]) parent.world.getBlockAt(x,y,z).setType(m);	
+		}
+			
 	}
 	
 	

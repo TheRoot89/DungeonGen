@@ -11,7 +11,7 @@
 	</path>
 	<target name="createJar" description="Create a jar for the DunGen project">
 		<mkdir dir="${projectHome}/.classes"/>
-		<javac srcdir="${projectHome}/src/" destdir="${projectHome}/.classes" includeantruntime="false">
+		<javac srcdir="${projectHome}/src/" destdir="${projectHome}/.classes" includeantruntime="false" debug="true" debuglevel="lines,vars,source">
 
 			<classpath refid="build-classpath"/>
 		</javac>
