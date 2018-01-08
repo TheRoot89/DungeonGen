@@ -133,6 +133,24 @@ public class MazeTask extends RoomTask {
 			for (int bpZ=0; bpZ < (width+wallWidth);  bpZ++)
 				buildPlan[bpX][bpZ] = false;
 		
+		// Debug output:
+		/*
+		String s = "\n";
+		for (int r=buildPlan.length-1; r>=0; r--) {
+			for (int c=0; c < buildPlan[0].length; c++) {
+				if (buildPlan[r][c])	s += "#";
+				else					s += " ";
+			}
+			s += "\n";
+		}
+		parent.getPlugin().getLogger().info(s);
+		*/
+		
+		// Debug buildplan: only one block in lower left
+		//buildPlan = new boolean[height+wallWidth][width+wallWidth];
+		//buildPlan[0][0] = true;
+		
+		
 		// 3. Have it built:
 		parent.placeBuildPlan2D(targetRegion.getMinimumPoint(), buildPlan, mazeMaterial, wallHeight);
 		

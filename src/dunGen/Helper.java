@@ -158,7 +158,7 @@ public class Helper {
 			ret = new boolean[N][M];
 		    for (int r = 0; r < M; r++) {
 		        for (int c = 0; c < N; c++) {
-		            ret[c][M-1-r] = mat[r][c];
+		            ret[N-1-c][r] = mat[r][c];
 		        }
 		    }
 		    return ret;
@@ -174,7 +174,7 @@ public class Helper {
 			ret = new boolean[N][M];
 		    for (int r = 0; r < M; r++) {
 		        for (int c = 0; c < N; c++) {
-		            ret[N-1-c][r] = mat[r][c];
+		            ret[c][M-1-r] = mat[r][c];
 		        }
 		    }
 		    return ret;

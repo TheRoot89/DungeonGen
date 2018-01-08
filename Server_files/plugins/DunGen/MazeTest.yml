@@ -50,7 +50,7 @@ exit:
 # Zielgebiet, dass die Spieler erreichen muessen:
 targetRegCorner1:
   ==: Vector
-  x: 22.0
+  x: 21.0
   y: 1.0
   z: 13.0
 targetRegCorner2:
@@ -97,4 +97,22 @@ tasks:
     wallHeight: 3.0
     mazeMaterial: SMOOTH_BRICK
     
-    
+  task2:
+    type: ENTITYSPAWN   # type of this task, ENTITYSPAWN, BLOCKSPWAN, EMPOWER or DEPOWER
+    delay: 0.5          # delay to start this task [s]
+    period: 0.0        # periodicity of this task [s]
+    # Region dieses Tasks, beide Punkte gleich wenn ein Punkt:
+    regionCorner1:
+      ==: Vector
+      x: 2.0
+      y: 1.0
+      z: 1.0
+    regionCorner2:
+      ==: Vector
+      x: 21.0
+      y: 1.0
+      z: 20.0 
+    entityType: SKELETON
+    count: 6        # number of entities to spawn
+    maxCount: 20    # maximum number of these entities alive concurently if spawned periodically
+    isTarget: false # whether all of these have to be dead at the same time to succeed.
