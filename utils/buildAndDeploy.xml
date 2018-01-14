@@ -37,7 +37,7 @@
 	
 	<target name="buildJarJenkins" description="Create a jar for the DunGen project from Jenkins.">
 		<mkdir dir="${projectHome}/classes"/>
-		<javac srcdir="${projectHome}/src/" destdir="${projectHome}/.classes" includeantruntime="false" debug="true" debuglevel="lines,vars,source">
+		<javac srcdir="${projectHome}/src/" destdir="${projectHome}/classes" includeantruntime="false" debug="true" debuglevel="lines,vars,source">
 			<classpath refid="build-classpath"/>
 		</javac>
 		<mkdir dir="${projectHome}/bin"/>
