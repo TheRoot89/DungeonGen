@@ -12,6 +12,7 @@ passagewayModules:
 - PassageFireStraight
 - PassageMiningStraight
 roomModules:
+- MazeTest
 - ColumnHall
 - IceCave
 - ShallowWater

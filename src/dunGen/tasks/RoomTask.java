@@ -15,7 +15,8 @@ public abstract class RoomTask extends BukkitRunnable {
 	public enum TaskType {
 		BLOCKSPAWN,
 		ENTITYSPAWN,
-		POWER;
+		POWER,
+		MAZE;
 	}
 	
 	

@@ -24,6 +24,9 @@ public class EntitySpawnTask extends RoomTask {
 		public EntityType type = EntityType.ZOMBIE;
 	}
 	
+	// ################# Settings: #####################
+	private final int MAXSPAWNPOSITIONTRIES = 100;
+	
 	// ################## Members: ######################
 	
 	private boolean 	convertedToGlobal = false;	// Flag whether targetRegion has been converted
@@ -61,8 +64,21 @@ public class EntitySpawnTask extends RoomTask {
 		// spawn as many entities as given by count:
 		World world = parent.getPlugin().world;
 		for (int nr=0; nr<grp.count; nr++) { 
-			// use an individual random location, defined by the region of this task:
-			Location spawnL = BukkitUtil.toLocation(world, Helper.getRandVector(targetRegion));
+			
+			// use an individual random location, defined by the region of this task.
+			// try for a given number of times to find a position not blocked. Give warning if not possible
+			int tryNr = 1;
+			Location spawnL = new Location(world, 0, 0, 0);
+			while (tryNr < MAXSPAWNPOSITIONTRIES) {
+				spawnL = BukkitUtil.toLocation(world, Helper.getRandVector(targetRegion));
+				if (world.getBlockAt(spawnL).isEmpty()) break;
+			}
+			if (tryNr == MAXSPAWNPOSITIONTRIES) {
+				parent.getPlugin().getLogger().warning("Entity could not be spawned: No free blocks within target region!");
+				continue;
+			}
+			
+			// Position is free if code reached here, so spawn:
 			spawnL = spawnL.add(new org.bukkit.util.Vector(0.5,0,0.5)); // full qualified name again, meh// 0.5 added for world coord!
 			Entity thisEnemy = world.spawnEntity(spawnL, grp.type);		// spawn and get pointer to track it
 			if (grp.isTarget) parent.addTrackedEntity(thisEnemy); 		// add to List of tracked entities for BattleRooms to monitor

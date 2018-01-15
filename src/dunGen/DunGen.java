@@ -370,6 +370,7 @@ public final class DunGen extends JavaPlugin implements Listener{
 	/**Shutdown operations, called by the server. */
 	@Override
     public void onDisable() {
+		stopDungeon();
     	//saveConfig(); if changeable in-game
     }
 	

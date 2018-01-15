@@ -145,7 +145,7 @@ tasks:
       z: 1.0
     
   task3:
-    type: Power
+    type: POWER
     delay: 1.0
     period: 0.0
     regionCorner1:
@@ -163,4 +163,29 @@ tasks:
     # Will spawn a redstone block for 'onTime' part of the period. If no period the redstone will only be spawned once.
     # OnTime of 0 will spawn AIR insted of Redstone to switch OFF instead!
     onTime: 0.5   # [%], no onTime if 0, always on if 1
+    
+    
+  task4:
+    type: MAZE
+    delay: 0.0
+    period: 0.0
+    regionCorner1:
+      ==: Vector
+      x: 2.0
+      y: 1.0
+      z: 1.0
+    regionCorner2:
+      ==: Vector
+      x: 21.0
+      y: 1.0
+      z: 20.0
+    
+    # Maze only:
+    # Will generate a Maze in the target area. The outer Wall needs to be present, with gaps for entry and exit!
+    # The total area to be mazed needs to satisfy  length = n*(wayWidth+wallWidth)-wallWidth for both dimensions.
+    # Define the width of walls and passageways in blocks:
+    wayWidth: 2.0       
+    wallWidth: 1.0
+    wallHeight: 3.0
+    mazeMaterial: SMOOTH_BRICK
     
