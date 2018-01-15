@@ -14,6 +14,7 @@ import dunGen.tasks.TaskWithCallback;
 import dunGen.tasks.RoomTask.TaskType;
 import dunGen.tasks.BlockSpawnTask;
 import dunGen.tasks.EntitySpawnTask;
+import dunGen.tasks.MazeTask;
 import dunGen.tasks.PowerTask;
 import dunGen.tasks.RoomTask;
 
@@ -85,6 +86,9 @@ public abstract class Room extends Module {
 				break;
 			case POWER:
 				newTask = new PowerTask(this, conf, taskNr);
+				break;
+			case MAZE:
+				newTask = new MazeTask(this, conf, taskNr);
 				break;
 			default:
 				parent.setStateAndNotify(State.ERROR, "Task type could not be loaded for room: " + this.name + ". Skipping Task.");
