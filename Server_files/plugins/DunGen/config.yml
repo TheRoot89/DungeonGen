@@ -18,5 +18,7 @@ roomModules:
 - ShallowWater
 - SkeletonBridge
 - testRoom
-- ThermeErding
+#- ThermeErding
 - bridgeTest
+- MagmaCave
+- Crater
