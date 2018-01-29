@@ -72,6 +72,7 @@ public class EntitySpawnTask extends RoomTask {
 			while (tryNr < MAXSPAWNPOSITIONTRIES) {
 				spawnL = BukkitUtil.toLocation(world, Helper.getRandVector(targetRegion));
 				if (world.getBlockAt(spawnL).isEmpty()) break;
+				tryNr++;
 			}
 			if (tryNr == MAXSPAWNPOSITIONTRIES) {
 				parent.getPlugin().getLogger().warning("Entity could not be spawned: No free blocks within target region!");

@@ -59,7 +59,7 @@ exit:
 tasks:
   task1:
     type: ENTITYSPAWN   # type of this task, ENTITYSPAWN, BLOCKSPWAN, EMPOWER or DEPOWER
-    delay: 3.0          # delay to start this task [s]
+    delay: 6.0          # delay to start this task [s]
     period: 6.0        # periodicity of this task [s]
     # Region dieses Tasks, beide Punkte gleich wenn ein Punkt:
     regionCorner1:
@@ -82,19 +82,19 @@ tasks:
 
   task2:
     type: ENTITYSPAWN   # type of this task, ENTITYSPAWN, BLOCKSPWAN, EMPOWER or DEPOWER
-    delay: 0.0          # delay to start this task [s]
+    delay: 1.0          # delay to start this task [s]
     period: 0.0        # periodicity of this task [s]
     # Region dieses Tasks, beide Punkte gleich wenn ein Punkt:
     regionCorner1:
       ==: Vector
-      x: 7.0
+      x: 6.0
       y: 4.0  
-      z: 6.0
+      z: 5.0
     regionCorner2:
       ==: Vector
-      x: 7.0
-      y: 19.0
-      z: 6.0
+      x: 8.0
+      y: 21.0
+      z: 7.0
     # EntitySpawn only:
     # Spawns the entity type periodically and randomly in the target region in the given number.
     # Will not increase beyond the maximum number allowed.
@@ -106,19 +106,19 @@ tasks:
 
   task3:
     type: ENTITYSPAWN   # type of this task, ENTITYSPAWN, BLOCKSPWAN, EMPOWER or DEPOWER
-    delay: 0.0          # delay to start this task [s]
+    delay: 1.0          # delay to start this task [s]
     period: 0.0        # periodicity of this task [s]
     # Region dieses Tasks, beide Punkte gleich wenn ein Punkt:
     regionCorner1:
       ==: Vector
-      x: 7.0
+      x: 6.0
       y: 4.0  
-      z: 6.0
+      z: 5.0
     regionCorner2:
       ==: Vector
-      x: 7.0
-      y: 19.0
-      z: 6.0
+      x: 8.0
+      y: 21.0
+      z: 7.0
     # EntitySpawn only:
     # Spawns the entity type periodically and randomly in the target region in the given number.
     # Will not increase beyond the maximum number allowed.
@@ -130,7 +130,7 @@ tasks:
     
   task4:
     type: Power
-    delay: 0.0
+    delay: 5.0
     period: 20.0
     regionCorner1:
       ==: Vector
