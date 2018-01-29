@@ -40,6 +40,7 @@ public class PlatformRoom extends Room {
 			if (targetReg.contains(ppos)) {
 				checkTask.cancel();
 				parent.roomClear();
+				break;
 			}
 		}
 		return null;
