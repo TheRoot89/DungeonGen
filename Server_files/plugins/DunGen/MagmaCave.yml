@@ -1,0 +1,80 @@
+# description of this dungeon room as in "Loading XX":
+description: a hot place
+# name of the schematic file used by this room (without .schematic):
+schematic: MagmaCave
+# Type of this room:  0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
+type: 3
+
+
+entry:
+  # Pos of entry lower left "air" block, counted from the copy operation's first position:
+  # Size of entry 'hole' fixed to 2x2 at the moment
+  # Always looking east: X: forward, Y: up, Z: to the right
+  placementLoc:
+    ==: Vector
+    x: 0.0
+    y: 7.0
+    z: 10.0
+  # Where the door blocks should be generated (lower left air block)
+  doorLoc:
+    ==: Vector
+    x: 0.0
+    y: 7.0
+    z: 10.0
+  # dimensions of entry gate, always 2 at the moment:
+  width: 2
+  height: 2
+  
+
+exit:
+  # Direc: South=0, East=270, North=180, West=90:
+  initDirec: 270
+  # Pos of exit lower left "air" block, counted from the copy operation's first position
+  # lower left in the direction looking 'out' of the module from the inside
+  placementLoc:
+    ==: Vector
+    x: 20.0
+    y: 7.0
+    z: 4.0
+  # Where the door blocks should be generated (lower left air block)
+  doorLoc:
+    ==: Vector
+    x: 20.0
+    y: 7.0
+    z: 4.0
+  # dimensions of exit gate, always 2 at the moment:
+  width: 2
+  height: 2
+  
+
+
+# Rooms only: tasks to be carried out after placement:
+tasks:
+  task1:
+    type: ENTITYSPAWN   # type of this task, ENTITYSPAWN, BLOCKSPWAN, EMPOWER or DEPOWER
+    delay: 1.0          # delay to start this task [s]
+    period: 0.0        # periodicity of this task [s]
+    # Region dieses Tasks, beide Punkte gleich wenn ein Punkt:
+    regionCorner1:
+      ==: Vector
+      x: 15.0
+      y: 2.0
+      z: 3.0
+    regionCorner2:
+      ==: Vector
+      x: 4.0
+      y: 2.0
+      z: 13.0 
+       
+    # EntitySpawn only:
+    # Spawns the entity type periodically and randomly in the target region in the given number.
+    # Will not increase beyond the maximum number allowed.
+    entityType: MAGMA_CUBE
+    count: 7        # number of entities to spawn
+    maxCount: 20    # maximum number of these entities alive concurently if spawned periodically
+    isTarget: true  # whether all of these have to be dead at the same time to succeed.
+    
+
+      
+
+    
