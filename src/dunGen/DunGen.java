@@ -589,6 +589,13 @@ public final class DunGen extends JavaPlugin implements Listener{
 		
 		activePlayers = new LinkedList<>(getServer().getOnlinePlayers());
 		
+		//filter for players in the entry building:
+		for(Player p: activePlayers) {
+			com.sk89q.worldedit.Vector playerPos = BukkitUtil.toVector(p.getLocation().toVector());
+			if (!entry.modVolume.contains(playerPos))
+				activePlayers.remove(p);
+		}
+		
 		// Backing up player modes to restore upon dungeon stop
 		playersSnapshotAtStart = new ArrayList<GameMode>();// backup copy of gamemode
 		for (int i=0; i<activePlayers.size(); i++) {

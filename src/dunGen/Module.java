@@ -41,7 +41,7 @@ public abstract class Module implements Listener {
 		public int height;					// free space upwards
 		public Direc initDirec; 			// initial direction this connector is facing (entries must be EAST!)
 		public Vector placementLoc = null;	// (x,y,z) = (forward, up, right). rel. pos within this module, which will correspond to the given origin, once placed
-												public Vector redstonePos;			// Pos where redstone needs to spawn to close the door or disappear for opening
+		public Vector redstonePos;			// Pos where redstone needs to spawn to close the door or disappear for opening
 		public int width;					// free space to the right
 	}
 	
