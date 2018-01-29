@@ -35,6 +35,26 @@ public abstract class Room extends Module {
 	
 	// ###################### Member functions #######################
 	
+	/* (non-Javadoc)
+	 * @see dunGen.Module#delete()
+	 */
+	@Override
+	public void delete() {
+		unregister();
+		super.delete();
+	}
+
+
+	/* (non-Javadoc)
+	 * @see dunGen.Module#prePlacementActions()
+	 */
+	@Override
+	public void prePlacementActions() {
+		// TODO Auto-generated method stub
+		
+	}
+
+
 	/**Constructor takes same arguments as a Module and forwards these. Then loads config.
 	 * @param parent	The parent Plugin for member access
 	 * @param name 		The name of this module, as well as .schematic and .yml files

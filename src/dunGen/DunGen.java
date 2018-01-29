@@ -199,6 +199,7 @@ public final class DunGen extends JavaPlugin implements Listener{
 			curPassway1.delete();
 		
 		// go one step further with our dungeon triplet and delete old room:
+		// This also unregisters pending tasks of the old room.
 		curPassway1 = curPassway2;
 		if (curRoom != null)
 			curRoom.delete();
