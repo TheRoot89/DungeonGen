@@ -28,6 +28,7 @@ import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
 import dunGen.Helper.Direc;
 import dunGen.Module.ModuleType;
+import dunGen.utils.Util_BlockName;
 import net.md_5.bungee.api.ChatColor;
 
 
@@ -63,6 +64,7 @@ public final class DunGen extends JavaPlugin implements Listener{
 	private Random 			randGen 		= new Random(); // RNG object.
 	public  World 		   	world   	 	= null;			// the world this plugin is started in
 	public  WorldEditPlugin worldEdit;						// the worldEdit plugin pointer used for saving/loading schematics
+	private Util_BlockName blockNameUtility;				// a reference to the blockName utility command executer
 	// Settings, loaded from config:
 	private List<String> 	entryModules;					// The lists of module names per module type
 	private List<String> 	passagewayModules;
@@ -387,8 +389,9 @@ public final class DunGen extends JavaPlugin implements Listener{
         }
         worldEdit = (WorldEditPlugin) plugin;
 		
-        // Set executors (test feature for later code sorting):
-        //this.getCommand("test").setExecutor(new DunGenCommandExecutor(this));
+        // Set executors to wrap features:
+        this.blockNameUtility = new Util_BlockName(this);
+        this.getCommand("BlockName").setExecutor(blockNameUtility);
         
         // setup directory:
         dir = getDataFolder();

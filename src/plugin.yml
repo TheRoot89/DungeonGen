@@ -13,3 +13,6 @@ commands:
    start:
       description: Generates a new dungeon in front of the player.
       usage: /<command>
+   BlockName:
+      description: Utility function displaying the currently targeted block Enum name.
+      usage: /<command>
