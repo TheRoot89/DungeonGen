@@ -61,6 +61,7 @@ tasks:
     type: ENTITYSPAWN   # type of this task, ENTITYSPAWN, BLOCKSPWAN, EMPOWER or DEPOWER
     delay: 6.0          # delay to start this task [s]
     period: 6.0        # periodicity of this task [s]
+    executionCount: 100
     # Region dieses Tasks, beide Punkte gleich wenn ein Punkt:
     regionCorner1:
       ==: Vector
@@ -84,6 +85,7 @@ tasks:
     type: ENTITYSPAWN   # type of this task, ENTITYSPAWN, BLOCKSPWAN, EMPOWER or DEPOWER
     delay: 1.0          # delay to start this task [s]
     period: 0.0        # periodicity of this task [s]
+    executionCount: 1
     # Region dieses Tasks, beide Punkte gleich wenn ein Punkt:
     regionCorner1:
       ==: Vector
@@ -108,6 +110,7 @@ tasks:
     type: ENTITYSPAWN   # type of this task, ENTITYSPAWN, BLOCKSPWAN, EMPOWER or DEPOWER
     delay: 1.0          # delay to start this task [s]
     period: 0.0        # periodicity of this task [s]
+    executionCount: 1
     # Region dieses Tasks, beide Punkte gleich wenn ein Punkt:
     regionCorner1:
       ==: Vector
@@ -132,6 +135,7 @@ tasks:
     type: Power
     delay: 5.0
     period: 20.0
+    executionCount: 999
     regionCorner1:
       ==: Vector
       x: 7.0
