@@ -101,8 +101,8 @@ public abstract class Module implements Listener {
 			e.printStackTrace();
 			return null;
 		}
-		// everything ok, if code reached here.
-		parent.getLogger().info("YML file for module " + name + " loaded.");
+		// everything ok, if code reached here. Enable for debug if needed:
+		//parent.getLogger().info("YML file for module " + name + " loaded.");
 		return conf;
 	}
 	
@@ -114,7 +114,7 @@ public abstract class Module implements Listener {
 	 * @return			The ModuleType enum with the value for this name.
 	 */
 	public static ModuleType getType(DunGen parent, String name) {
-		return ModuleType.values()[getConfig(parent, name).getInt("type")]; // valid Enum from int
+		return ModuleType.valueOf(getConfig(parent, name).getString("type").toUpperCase()); // get valid Enum from string
 	}
 	
 	
@@ -181,7 +181,7 @@ public abstract class Module implements Listener {
 	public void loadConfig() {
 		description			= conf.getString("description");
 		fileName 			= conf.getString("schematic") + ".schematic";
-		type 				= ModuleType.values()[conf.getInt("type")]; // valid Enum from int
+		type 				= ModuleType.valueOf(getConfig(parent, name).getString("type").toUpperCase()); // valid Enum from string
 		entry.placementLoc 	= BukkitUtil.toVector(conf.getVector("entry.placementLoc"));
 		entry.doorLoc 		= BukkitUtil.toVector(conf.getVector("entry.doorLoc"));
 		entry.width  		= conf.getInt("entry.width");

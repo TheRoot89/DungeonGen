@@ -2,8 +2,8 @@
 description: Template
 # name of the schematic file used by this room (without .schematic):
 schematic: entry
-# Type of this room:  0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
-type: 0
+# Type of this room: ENTRY, PASSAGEWAY, PLATFORMROOM, BATTLEROOM
+type: ENTRY
 
 
 entry:
