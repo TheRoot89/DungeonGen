@@ -80,5 +80,8 @@ public class PowerTask extends RoomTask {
 			depower(null);
 		else
 			empower();
+		
+		// parent run has to be called for counter!
+		super.run();
 	}
 }

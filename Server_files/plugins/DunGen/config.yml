@@ -12,14 +12,14 @@ passagewayModules:
 - PassageFireStraight
 - PassageMiningStraight
 roomModules:
-- MazeTest
-- ColumnHall
-- IceCave
-- ShallowWater
-- SkeletonBridge
-- testRoom
-- ThermeErding
+#- MazeTest
+#- ColumnHall
+#- IceCave
+#- ShallowWater
+#- SkeletonBridge
+#- testRoom
+#- ThermeErding
 - bridgeTest
-- MagmaCave
-- Crater
-- DarkMaze
+#- MagmaCave
+#- Crater
+#- DarkMaze

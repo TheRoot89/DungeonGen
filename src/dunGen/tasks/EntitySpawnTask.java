@@ -84,5 +84,8 @@ public class EntitySpawnTask extends RoomTask {
 			Entity thisEnemy = world.spawnEntity(spawnL, grp.type);		// spawn and get pointer to track it
 			if (grp.isTarget) parent.addTrackedEntity(thisEnemy); 		// add to List of tracked entities for BattleRooms to monitor
 		}
+		
+		// parent run has to be called for counter!
+		super.run();
 	}
 }

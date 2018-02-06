@@ -38,7 +38,7 @@ public class PlatformRoom extends Room {
 		for (Player p : parent.activePlayers) { // for loop with iterator over collection in short syntax
 			Vector ppos = BukkitUtil.toVector(p.getLocation()).floor(); // round downwards as player coords and block coords off by 0.5
 			if (targetReg.contains(ppos)) {
-				checkTask.cancel();
+				unregister();
 				parent.roomClear();
 				break;
 			}
@@ -60,12 +60,7 @@ public class PlatformRoom extends Room {
 		// nothing atm
 	}
 
-
-	@Override
-	public void register() {
-		super.register();
-	}
-
+	
 	
 	@Override
 	public void postPlacementActions() {
