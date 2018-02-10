@@ -4,17 +4,24 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.Material;
+
 //########################## Not used yet! #############################
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import dunGen.DunGen;
+import dunGen.DunGen.State;
 import dunGen.Module;
 import dunGen.Passageway;
+import dunGen.Passageway.DoorType;
+import dunGen.tasks.RoomTask.TaskType;
 import dunGen.Module.ModuleType;
 
 
@@ -28,6 +35,10 @@ public class ConfigChecker implements CommandExecutor {
 	}
 	
 	private final DunGen plugin;
+	// working variables:
+	private String curModuleName;
+	private YamlConfiguration curConf;
+	private String errTxt;				// current error text 
 	
 	public ConfigChecker(DunGen plugin) {
 		this.plugin = plugin;
@@ -37,121 +48,213 @@ public class ConfigChecker implements CommandExecutor {
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if (cmd.getName().equalsIgnoreCase("checkConfig")) {
-			if (!(sender instanceof Player)) {
-				sender.sendMessage(plugin.getName() + ": Starting YAML file check...");
-			} else {
-				Player player = (Player) sender;
-				player.sendMessage(plugin.getName() + ": Starting YAML file check...");
+			sender.sendMessage(plugin.getName() + ": Starting YAML file check...");
+			try {
+				checkModuleYmlFiles();
+				sender.sendMessage(plugin.getName() + ": Check ok!");
+			} catch (Exception e) {
+				plugin.setStateAndNotify(State.ERROR, "YAML check failed!");
+				e.printStackTrace();
 			}
-			
 			return true;
 		}
 		
 		return false;
 	}
 	
-	 public void checkModuleYmlFiles() throws ConfigException {
-	    	YamlConfiguration curConf;
-	    	String moduleName = "";
-	    	String errTxt = "";		// empty errTxt serves as Flag everything went well.
-	    	String key;				// contains temporary key names for convenience
-	    	
-	    	// ################# keys contained in "Module": ##################
-	    	List<String> inspectionList = new ArrayList<String>();
-	    	inspectionList.addAll(plugin.entryModules);
-	    	inspectionList.addAll(plugin.passagewayModules);
-	    	inspectionList.addAll(plugin.roomModules);
-			for (String curName : inspectionList) {
-				moduleName = curName; // cannot iterate using 'curName' directly, saves the name for the exception
-				curConf = Module.getConfig(plugin, moduleName);
-				if (curConf == null) {errTxt += "Config file missing: " + moduleName + ".yml\n"; continue;} // abort this file
-				
-				// Go through all the values, this consists of:
-				// 1. Check key existence
-				// 2. Check key read is not null
-				// 3. Check key value range, if applicable
-				// Each pass allows for the next step. Errors are added to a summed error text.
-				// Enums can only have a certain list of values, others can be freely set.
-				
-				key = "description";
-				if (!curConf.contains(key)) 				errTxt += "["+moduleName+".yml] Key missing: "+key + "\n";
-				else if (curConf.getString(key) == null)	errTxt += "["+moduleName+".yml] Key invalid: "+key + "\n";
-				
-				key = "schematic";
-				if (!curConf.contains(key)) 				errTxt += "["+moduleName+".yml] Key missing: "+key + "\n";
-				else if (curConf.getString(key) == null)	errTxt += "["+moduleName+".yml] Key invalid: "+key + "\n";
-				else {
-					File f = new File(plugin.dir,curConf.getString(key)+".schematic");
-					if (!f.exists()) 						errTxt += "["+moduleName+".yml] File does not exist: "+key + ".schematic\n";
-				};
-				
-				key = "type";
-				if (!curConf.contains(key)) 				errTxt += "["+moduleName+".yml] Key missing: "+key + "\n";
-				else if (curConf.getString(key) == null)	errTxt += "["+moduleName+".yml] Key invalid: "+key + "\n";
-				else if (ModuleType.valueOf(curConf.getString(key).toUpperCase()) == null) errTxt += "["+ moduleName +".yml] Key value invalid: "+key + "\n";
-				
-				
-				for(String parentKey: new String[] {"entry" , "exit"}) {
-					if (!curConf.contains(parentKey)) 			errTxt += "["+moduleName+".yml] Key missing: "+key + "\n";
-					else {
-						key = parentKey+".placementLoc";
-						if (!curConf.contains(key)) 			errTxt += "["+moduleName+".yml] Key missing: "+key + "\n";
-						else if (curConf.getVector(key) == null)errTxt += "["+moduleName+".yml] Key invalid: "+key + "\n";
-						
-						key = parentKey+".doorLoc";
-						if (!curConf.contains(key)) 			errTxt += "["+moduleName+".yml] Key missing: "+key + "\n";
-						else if (curConf.getVector(key) == null)errTxt += "["+moduleName+".yml] Key invalid: "+key + "\n";
-						
-						key = parentKey+".width";
-						if (!curConf.contains(key)) 			errTxt += "["+moduleName+".yml] Key missing: "+key + "\n";
-						else if (curConf.getInt(key) == 0)		errTxt += "["+moduleName+".yml] Key invalid: "+key + "\n";
-						
-						key = parentKey+".height";
-						if (!curConf.contains(key)) 			errTxt += "["+moduleName+".yml] Key missing: "+key + "\n";
-						else if (curConf.getInt(key) == 0)		errTxt += "["+moduleName+".yml] Key invalid: "+key + "\n";
+	private void addInvalidErrMsg(String key) {
+		errTxt += "["+ curModuleName +".yml] Key value invalid: "+key + "\n";
+	}
+	
+	private boolean configCheckAndSet() {
+		curConf = Module.getConfig(plugin, curModuleName);
+		if (curConf == null) {
+			errTxt += "Config file missing: " + curModuleName + ".yml\n";
+			return false;
+		} else return true;
+	}
+	
+	private boolean keyCheck(String key) {
+		if (!curConf.contains(key)) {
+			errTxt += "["+curModuleName+".yml] Key missing: "+key + "\n";
+			return false;
+		} else return true;
+	}
+	
+	private boolean stringCheck(String key) {
+		if (!keyCheck(key)) return false;
+		if ((curConf.getString(key) == null)) {
+			addInvalidErrMsg(key);
+			return false;
+		} else return true;
+	}
+	
+	private boolean vecCheck(String key) {
+		if (!keyCheck(key)) return false;
+		if (curConf.getVector(key) == null) {
+			addInvalidErrMsg(key);
+			return false;
+		} else return true;
+	}
+	
+	private boolean matCheck(String key) {
+		if (!keyCheck(key)) return false;
+		if (Material.getMaterial(curConf.getString(key)) == null) {
+			addInvalidErrMsg(key);
+			return false;
+		} else return true;
+	}
+	
+	
+	public void checkModuleYmlFiles() throws ConfigException {
+		curModuleName = "";
+		errTxt = "";		// empty errTxt serves as Flag everything went well.
+		String key;			// temporary key name
+
+		// ################# keys contained in "Module": ##################
+		List<String> inspectionList = new ArrayList<String>();
+		inspectionList.addAll(plugin.entryModules);
+		inspectionList.addAll(plugin.passagewayModules);
+		inspectionList.addAll(plugin.roomModules);
+		for (String curName : inspectionList) {
+			curModuleName = curName; // cannot iterate using 'curName' directly, saves the name for the exception
+			if (!configCheckAndSet()) continue; // abort this file
+
+			// Go through all the values, this consists of:
+			// 1. Check key existence
+			// 2. Check key read is not null
+			// 3. Check key value range, if applicable
+			// Each pass allows for the next step. Errors are added to a summed error text.
+			// Enums can only have a certain list of values, others can be freely set.
+			// Set and check methods are used to save on typing here.
+
+			stringCheck("description");
+
+			key = "schematic";
+			if (stringCheck(key)) {
+				File f = new File(plugin.dir,curConf.getString(key)+".schematic");
+				if (!f.exists()) errTxt += "["+curModuleName+".yml] File does not exist: "+key + ".schematic\n";
+			}
+
+			key = "type";
+			if (stringCheck(key) && ModuleType.valueOf(curConf.getString(key).toUpperCase()) == null) addInvalidErrMsg(key);				
+
+			for(String parentKey: new String[] {"entry" , "exit"}) {
+				if (keyCheck(parentKey)) {
+					vecCheck(parentKey+".placementLoc");
+					vecCheck(parentKey+".doorLoc"); 
+					key = parentKey+".width";
+					if (keyCheck(key) && (curConf.getInt(key) == 0)) addInvalidErrMsg(key);
+					key = parentKey+".height";
+					if (keyCheck(key) && (curConf.getInt(key) == 0)) addInvalidErrMsg(key);
+				}
+			}
+		} // END for loop over all modules
+
+		// ########### keys contained in "Passageway" or "Entry": #############
+		// (no differences at the moment, add new block if things are added to Entries alone)
+		inspectionList.clear();
+		inspectionList.addAll(plugin.entryModules);
+		inspectionList.addAll(plugin.passagewayModules);
+		for (String curName : inspectionList) {
+			curModuleName = curName; // cannot iterate using 'name' directly
+			if (!configCheckAndSet()) continue; // abort this file
+
+			vecCheck("respawnLoc");
+			key = "exit.initDirec";
+			if (keyCheck(key) && ((curConf.getInt(key) + 360)%90 != 0)) addInvalidErrMsg(key);
+
+			for(String parentKey: new String[] {"entry" , "exit"}) {
+				if (keyCheck(parentKey)) {
+					key = parentKey+".type";
+					if (stringCheck(key)) {
+						if (DoorType.valueOf(curConf.getString(key).toUpperCase()) == null)
+							addInvalidErrMsg(key);
+						else if ((DoorType.valueOf(curConf.getString(key).toUpperCase()) == DoorType.PISTON)) { // PISTON data check
+							vecCheck(parentKey+".redstoneLoc");
+						} else { //APPEARING and FALLING data check
+							matCheck(parentKey+".doorMaterial");
+						}
 					}
 				}
-			} // for loop over modules
-			
-			// ########### keys contained in "Passageway" or "Entry": #############
-			// (no differences at the moment, add new block if things are added to Entries alone)
-			inspectionList.clear();
-			inspectionList.addAll(plugin.entryModules);
-			inspectionList.addAll(plugin.passagewayModules);
-			for (String curName : inspectionList) {
-				moduleName = curName; // cannot iterate using 'name' directly
-				curConf = Module.getConfig(this, moduleName);
-				if (curConf == null) throw new ConfigException("Config file missing: " + moduleName + ".yml");
-				
-				if (!curConf.contains("entry.type")) 			{key = "entry.type"; break;}
-				if (Passageway.DoorType.values()[curConf.getInt("entry.type")] == Passageway.DoorType.PISTON) {
-					if (!curConf.contains("entry.redstoneLoc"))	{key = "entry.redstoneLoc"; break;}
-				}else { // APPEARING and FALLING
-					if (!curConf.contains("entry.doorMaterial")){key = "entry.doorMaterial"; break;}
-				}
-				if (!curConf.contains("exit.type")) 			{key = "exit.type"; break;}
-				if (Passageway.DoorType.values()[curConf.getInt("exit.type")] == Passageway.DoorType.PISTON) {
-					if (!curConf.contains("exit.redstoneLoc"))	{key = "exit.redstoneLoc"; break;}
-				}else { // APPEARING and FALLING
-					if (!curConf.contains("exit.doorMaterial"))	{key = "exit.doorMaterial"; break;}
-				}
-				if (!curConf.contains("respawnLoc"))			{key = "respawnLoc"; break;}
 			}
-			if (!key.equalsIgnoreCase("")) throw new ConfigException("Key missing: " + key + ", in " + moduleName);
-			
-			// ################## keys contained in "Room": ########################
-			for (String curName : roomModules) {
-				moduleName = curName; // cannot iterate using 'name' directly
-				curConf = Module.getConfig(this, moduleName);
-				if (curConf == null) throw new ConfigException("Config file missing: " + moduleName + ".yml");
-				
-				//TODO: Add room key checks here, when changing mechanism to "tasks"
-				//if (!curConf.contains("respawnLoc"))			{key = "respawnLoc"; break;}
+		} // END for loop over all entries + passageways
+
+
+		// ################## keys contained in "Room": ########################
+		for (String curName : plugin.roomModules) {
+			curModuleName = curName; // cannot iterate using 'name' directly
+			if (!configCheckAndSet()) continue; // abort this file
+
+			// Individual room types:
+			key = "type";
+			if (stringCheck(key) && ModuleType.valueOf(curConf.getString(key).toUpperCase()) == ModuleType.PLATFORMROOM) {
+				vecCheck("targetRegCorner1");
+				vecCheck("targetRegCorner2");
 			}
-			if (!key.equalsIgnoreCase("")) throw new ConfigException("Key missing: " + key + ", in " + moduleName);
-			
-			if (!errTxt.equalsIgnoreCase("")) throw new ConfigException("Not all configs are valid! Failed checks:\n" + errTxt);
-			// everything ok, if code reached here, returns no value
+
+			// Checking RoomTasks:
+			String parentKey = "tasks";
+			keyCheck(parentKey);
+			int taskNr = 1;
+
+			while (keyCheck(parentKey+".task"+taskNr)) {
+				String subKey = parentKey+".task"+taskNr;
+
+				keyCheck(subKey+".delay");
+				keyCheck(subKey+".period");
+				vecCheck(subKey+".regionCorner1");
+				vecCheck(subKey+".regionCorner2");
+
+				key = subKey+".type";
+				if (stringCheck(key) && (TaskType.valueOf(curConf.getString(key).toUpperCase()) == null)) {
+					addInvalidErrMsg(key);
+				} else {
+					TaskType type = TaskType.valueOf(curConf.getString(key).toUpperCase());
+					switch (type) {
+					case BLOCKSPAWN:
+						matCheck(subKey+".blockType");
+						vecCheck(subKey+".incrementVector");
+						break;
+
+					case ENTITYSPAWN:
+						key = subKey+".entityType";
+						if (stringCheck(key) && (EntityType.valueOf(curConf.getString(key)) == null)) addInvalidErrMsg(key);
+						key = subKey+".count";
+						if (keyCheck(key) && curConf.getInt(key) < 0) addInvalidErrMsg(key);
+						key = subKey+".maxCount";
+						if (keyCheck(key) && curConf.getInt(key) < 0) addInvalidErrMsg(key);
+						keyCheck(subKey+".isTarget");
+						break;
+
+					case MAZE:
+						key = subKey+".wayWidth";
+						if (keyCheck(key) && curConf.getInt(key) <= 0) addInvalidErrMsg(key);
+						key = subKey+".wallWidth";
+						if (keyCheck(key) && curConf.getInt(key) <= 0) addInvalidErrMsg(key);
+						key = subKey+".wallHeight";
+						if (keyCheck(key) && curConf.getInt(key) <= 0) addInvalidErrMsg(key);
+						matCheck(subKey+".mazeMaterial");
+						break;
+
+					case POWER:
+						key = subKey+".onTime";
+						if (keyCheck(key) && curConf.getDouble(key) < 0) addInvalidErrMsg(key);
+						break;
+
+					default:
+						addInvalidErrMsg(key); // key here points to ".type"
+					}
+				}
+
+				taskNr++;
+			} // END task checks
+		} // END room checks
+
+		// Final evaluation of accumulated messages:
+		if (!errTxt.equalsIgnoreCase("")) throw new ConfigException("Not all configs are valid! Failed checks:\n" + errTxt);
 	 }
+
+
 
 }

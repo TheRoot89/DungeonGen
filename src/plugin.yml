@@ -13,3 +13,6 @@ commands:
    start:
       description: Generates a new dungeon in front of the player.
       usage: /<command>
+   checkConfig:
+      description: Checks the module config .yml files for faults.
+      usage: /<command>

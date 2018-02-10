@@ -24,7 +24,7 @@ public class Passageway extends Module {
 	
 	
 	/** Describes how a door opens and closes. Switches code flow in the appropriate sections. */
-	protected enum DoorType{
+	public enum DoorType{
 		APPEARING,
 		FALLING,
 		PISTON;
@@ -76,7 +76,8 @@ public class Passageway extends Module {
 		respawnLoc = BukkitUtil.toVector(conf.getVector("respawnLoc"));
 		
 		// entry:
-		entryType  = DoorType.values()[conf.getInt(   "entry.type")];
+		entryType  = DoorType.valueOf(getConfig(parent, name).getString("entry.type").toUpperCase());
+		
 		switch (entryType) {
 		case APPEARING:
 		case FALLING:
@@ -89,7 +90,7 @@ public class Passageway extends Module {
 		}
 		
 		// exit:
-		exitType = DoorType.values()[conf.getInt("exit.type")];
+		exitType = DoorType.valueOf(getConfig(parent, name).getString("exit.type").toUpperCase());
 		switch (exitType) {
 		case APPEARING:
 		case FALLING:

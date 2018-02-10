@@ -184,8 +184,8 @@ tasks:
     # Will generate a Maze in the target area. The outer Wall needs to be present, with gaps for entry and exit!
     # The total area to be mazed needs to satisfy  length = n*(wayWidth+wallWidth)-wallWidth for both dimensions.
     # Define the width of walls and passageways in blocks:
-    wayWidth: 2.0       
-    wallWidth: 1.0
-    wallHeight: 3.0
+    wayWidth: 2
+    wallWidth: 1
+    wallHeight: 3
     mazeMaterial: SMOOTH_BRICK
     

@@ -335,22 +335,22 @@ public final class DunGen extends JavaPlugin implements Listener{
         // and load:
         try {
 			loadConfig();
+			getLogger().info("Loading successful.");
 		} catch (Exception e) {
 			setStateAndNotify(State.ERROR, "Loading of config failed:");
 			e.printStackTrace();
 			return;
 		}
-        getLogger().info("Loading successful.");
 
     	// YAML check if active:
     	if (initYmlCheck) {
-    		getLogger().info("Checking YAML files ...");
+    		getLogger().info("Starting YAML file check...");
     		try {
 				configChecker.checkModuleYmlFiles();
 				getLogger().info("Check ok.");
 			} catch (Exception e) {
-				e.printStackTrace();
 				setStateAndNotify(State.ERROR, "YAML check failed!");
+				e.printStackTrace();
     			return;
 			}
     	}	
