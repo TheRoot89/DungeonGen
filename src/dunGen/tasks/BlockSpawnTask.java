@@ -49,6 +49,9 @@ public class BlockSpawnTask extends RoomTask {
 			parent.getPlugin().getLogger().info("Shifting target region for room task failded!");
 			e.printStackTrace();
 		}
+		
+		// parent run has to be called for counter!
+		super.run();
 	}
 
 }

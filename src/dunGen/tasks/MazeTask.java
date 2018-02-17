@@ -189,6 +189,9 @@ public class MazeTask extends RoomTask {
 			}
 		}
 		*/
+		
+		// parent run has to be called for counter!
+		super.run();
 	}
 	
 	

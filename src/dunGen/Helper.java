@@ -143,7 +143,7 @@ public class Helper {
 	/**Rotates a matrix clockwise. Returns null if the degrees are not multiple of 90!
 	 * It works by copying over the values but doing this in reverse or rotated order.
 	 * @param mat		The matrix to be rotated
-	 * @param degrees	Valid are of course only multiples of 90!
+	 * @param degree	Valid are of course only multiples of 90!
 	 * @return			The rotated matrix, a copy.
 	 */
 	public static boolean[][] rotateBoolMatrixClockw(boolean[][] mat, int degree) {
