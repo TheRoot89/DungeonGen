@@ -12,7 +12,8 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 /** Wrapps different convenience functions. */
 public class Helper {
 	
-	// Direc describes the four global directions. The degree count rises clockwise: south -> west -> north -> east
+	/**Direc describes the four global directions.
+	 * The degree count rises clockwise: south (zero) to west (90) to north to east*/
 	public enum Direc {
 		SOUTH (0),
 		WEST (90),
@@ -75,6 +76,7 @@ public class Helper {
 		
 		/**Constructor, saving the degree. Called implicitely by the enum values.
 		 * @param degree	0, 90, 180 or 270
+		 * @see Helper.Direc
 		 */
 		Direc(int degree){
 			this.degree = degree;

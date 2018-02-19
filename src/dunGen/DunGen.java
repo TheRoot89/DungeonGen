@@ -56,7 +56,7 @@ public final class DunGen extends JavaPlugin implements Listener{
 	private Random 			randGen 		= new Random(); // RNG object.
 	public  World 		   	world   	 	= null;			// the world this plugin is started in
 	public  WorldEditPlugin worldEdit;						// the worldEdit plugin pointer used for saving/loading schematics
-	private ConfigChecker 	configChecker;
+	private ConfigChecker 	configChecker;					// Reference to the yml check utility instance (can receive commands)
 	// Settings, loaded from config:
 	public 	List<String> 	entryModules;					// The lists of module names per module type
 	public 	List<String> 	passagewayModules;
@@ -310,6 +310,7 @@ public final class DunGen extends JavaPlugin implements Listener{
         // Set executors (test feature for later code sorting):
         configChecker = new ConfigChecker(this);
         getCommand("checkConfig").setExecutor(configChecker);
+        
         
         // setup directory:
         dir = getDataFolder();
