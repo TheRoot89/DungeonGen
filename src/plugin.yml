@@ -16,3 +16,6 @@ commands:
    checkConfig:
       description: Checks the module config .yml files for faults.
       usage: /<command>
+   BlockName:
+      description: Displays the currently looked at block's name for enum use in coding.
+      usage: /<command>

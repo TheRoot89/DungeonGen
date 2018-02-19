@@ -28,6 +28,7 @@ import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import dunGen.Helper.Direc;
 import dunGen.Module.ModuleType;
 import dunGen.utils.ConfigChecker;
+import dunGen.utils.Util_BlockName;
 import net.md_5.bungee.api.ChatColor;
 
 
@@ -57,6 +58,7 @@ public final class DunGen extends JavaPlugin implements Listener{
 	public  World 		   	world   	 	= null;			// the world this plugin is started in
 	public  WorldEditPlugin worldEdit;						// the worldEdit plugin pointer used for saving/loading schematics
 	private ConfigChecker 	configChecker;					// Reference to the yml check utility instance (can receive commands)
+	private Util_BlockName  blockNameUtility;				// Reference to the block name utility instance
 	// Settings, loaded from config:
 	public 	List<String> 	entryModules;					// The lists of module names per module type
 	public 	List<String> 	passagewayModules;
@@ -308,6 +310,8 @@ public final class DunGen extends JavaPlugin implements Listener{
         worldEdit = (WorldEditPlugin) plugin;
 		
         // Set executors (test feature for later code sorting):
+        blockNameUtility = new Util_BlockName(this);
+        getCommand("BlockName").setExecutor(blockNameUtility);
         configChecker = new ConfigChecker(this);
         getCommand("checkConfig").setExecutor(configChecker);
         
