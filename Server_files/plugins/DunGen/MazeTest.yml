@@ -3,7 +3,7 @@ description: the test-o-maze
 # name of the schematic file used by this room (without .schematic):
 schematic: MazeTest
 # Type of this room:  0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
-type: 2
+type: PLATFORMROOM
 
 
 entry:

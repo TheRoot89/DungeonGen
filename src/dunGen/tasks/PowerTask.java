@@ -8,6 +8,9 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 import dunGen.Helper;
 import dunGen.Room;
 
+/**A task to toggle power at a specific location by providing a redstone block there.
+ * The on-time where the block is there may be given, where the rest of the period will have an air block at the given position.
+ */
 public class PowerTask extends RoomTask {
 
 	private boolean convertedToGlobal = false;	// Flag whether targetRegion has been converted

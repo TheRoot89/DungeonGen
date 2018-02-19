@@ -1,7 +1,7 @@
 description: Battle Test Room
 schematic: testRoom
 #0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
-type: 3
+type: BATTLEROOM
 
 
 entry:
@@ -24,7 +24,7 @@ entry:
   height: 2
   # type of the actual door opening and closing process: 
   # 0: appearing, 1: falling, 2: piston
-  type: 0
+  type: APPEARING
   # the material of the door blocks being generated, only for type 0: 'appearing'
   doorMaterial: cobblestone
 
@@ -50,7 +50,7 @@ exit:
   height: 2
   # type of the actual door opening and closing process: 
   # 0: appearing, 1: falling, 2: piston
-  type: 0
+  type: APPEARING
   # the material of the door blocks being generated, only for type 0: 'appearing'
   doorMaterial: cobblestone
 

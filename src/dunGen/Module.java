@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -162,13 +161,15 @@ public abstract class Module implements Listener {
 	}
 	
 	
-	/** Return the the next block after the exit (where the next module global origin should be placed) */
+	/** Gives the the next block after the exit of this module.
+	 * @return the global position vector, where the next modules global origin should be placed.
+	 */
 	public Vector getNextEntryPos() {
 		return toGlobal(exit.placementLoc).add(exit.afterPasteDirec.toUnityVec());
 	}
 	
 	
-	/**Returns the plugin.*/ 
+	/**@return the plugin this module belongs to*/
 	public DunGen getPlugin() {
 		return parent;
 	}

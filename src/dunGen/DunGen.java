@@ -11,7 +11,6 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -189,16 +188,16 @@ public final class DunGen extends JavaPlugin implements Listener{
 	
   
 	/**Gives the players starting gear, called during dungeon startup.
-   * @param p 	The player to give stuff to.
-   */
-  private void giveStartingGear(Player p) {
+     * @param p 	The player to give stuff to.
+     */
+	private void giveStartingGear(Player p) {
 		PlayerInventory i = p.getInventory();
 		i.clear();
 		i.addItem( new ItemStack(Material.STONE_SWORD, 	 1));
 		i.addItem( new ItemStack(Material.BOW, 			 1));
 		i.addItem( new ItemStack(Material.ARROW, 		 1));
 		i.addItem( new ItemStack(Material.MUSHROOM_SOUP, 1));
-		
+
 		i.setBoots(new ItemStack(Material.LEATHER_BOOTS, 1));
   }
   
@@ -297,7 +296,7 @@ public final class DunGen extends JavaPlugin implements Listener{
     }
 	
 	
-	/**Booting of the plugin, called by the server upon start. We set up directories, the config and do general checks.*/
+	/**Boots of the plugin, called by the server upon start. We set up directories, the config and do general checks.*/
 	@Override
     public void onEnable() {
 		// Check dependencies:
@@ -330,7 +329,7 @@ public final class DunGen extends JavaPlugin implements Listener{
             getLogger().info("config.yml not found, creating default.");
             saveDefaultConfig();
         } else {
-            getLogger().info("config.yml found, loading.");
+            getLogger().info("config.yml found, loading...");
         }
         // and load:
         try {
@@ -383,16 +382,17 @@ public final class DunGen extends JavaPlugin implements Listener{
     }
 
   
-  /**Handles actions to be taken upon respawn.
-   * Currently gives new starting gear.
-   */
-  @EventHandler(priority = EventPriority.MONITOR)
+	/**Handles actions to be taken upon respawn.
+	 * Currently gives new starting gear.
+	 * @param event The event given to this handler by the event manager.
+	 */
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerRespawn(PlayerRespawnEvent event) {
-	    //Player p = event.getPlayer();
-	    if (state == State.RUNNING) {
-	    	giveStartingGear(event.getPlayer());
-	    	event.getPlayer().updateInventory();
-	    }
+		//Player p = event.getPlayer();
+		if (state == State.RUNNING) {
+			giveStartingGear(event.getPlayer());
+			event.getPlayer().updateInventory();
+		}
 	}
 	
   
@@ -455,7 +455,8 @@ public final class DunGen extends JavaPlugin implements Listener{
 	 * @param message	The message to be written to console, e.g. an error message.
 	 */
 	public void setStateAndNotify(State state, String message) { 
-		setStateSilenty(state,message);
+		this.state = state;
+		this.state.statusMessage = message;
 		if (this.state == State.ERROR)
 			//getLogger().severe(this.state.statusMessage);
 			getServer().getConsoleSender().sendMessage(ChatColor.RED + "[DunGen] " + this.state.statusMessage);
@@ -473,7 +474,8 @@ public final class DunGen extends JavaPlugin implements Listener{
 	
 	
 	/**Overloaded set state function with the given message. Does not print to console.
-	 * @param state The state to set.
+	 * @param state 	The state to set.
+	 * @param message	The message to set but not instantly print.
 	 */
 	private void setStateSilenty(State state, String message) {
 		this.state = state;
@@ -573,5 +575,6 @@ public final class DunGen extends JavaPlugin implements Listener{
 
 		resetActivePlayers();
 	}
+	
 	
 }

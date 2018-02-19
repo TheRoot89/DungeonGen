@@ -2,7 +2,7 @@
 description: Skeleton Bridge
 schematic: SkeletonBridge
 #0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
-type: 3
+type: BATTLEROOM
 
 entry:
 # Pos of entry lower left "air" block, counted from the copy operation's first position:

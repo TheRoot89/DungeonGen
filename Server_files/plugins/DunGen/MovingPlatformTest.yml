@@ -3,7 +3,7 @@ description: the test of a super cool platform...
 # name of the schematic file used by this room (without .schematic):
 schematic: MovingPlatformTest
 # Type of this room:  0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
-type: 2
+type: PLATFORMROOM
 
 
 entry:
