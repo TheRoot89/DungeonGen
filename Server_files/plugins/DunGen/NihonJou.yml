@@ -2,7 +2,7 @@
 description: Derelict Japanese Castle
 schematic: NihonJou
 # Type of this room:  0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
-type: 0
+type: ENTRY
 
 # Description of the entry
 entry:
@@ -25,7 +25,7 @@ entry:
   height: 2
   # type of the actual door opening and closing process: 
   # 0: appearing, 1: falling, 2: piston
-  type: 0
+  type: APPEARING
   # the material of the door blocks being generated
   doorMaterial: smooth_brick
   # locations for redstone to open mechanical doors, as many as needed
@@ -58,7 +58,7 @@ exit:
   height: 2
   # type of the actual door opening and closing process: 
   # 0: appearing, 1: falling, 2: piston
-  type: 0
+  type: APPEARING
   # the material of the door blocks being generated
   doorMaterial: smooth_brick
 

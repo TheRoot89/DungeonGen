@@ -15,10 +15,16 @@ public class Maze_RecursBacktr {
 	private static MazeWall[][] walls;		// a matrix = maze map of MazeWall structs, describing the walls we have here
 	private static boolean[][]  connected;	// a matrix = maze map saving which cells of the maze have already been connected to the whole
 	private static int[][]      distToEntry;// a matric = maze map showing how far cells are to the entry -> exit can be placed with min distance
-	
+	//TODO calculate maze distToEntry
 	
 	//################### Methods: ######################
 	
+	/**Applies the recursive backtracking algorithm to generate a maze map (specific data structure).
+	 * This function initializes the recursive process.
+	 * @param height	height in maze cells (maze hallway + nothern and eastern walls)
+	 * @param width		width in maze cells
+	 * @return			a matrix of maze cells, giving the existence of northern and eastern walls each.
+	 */
 	public static MazeWall[][] genMaze(int height, int width) {
 		// Initialization:
 		w = width;

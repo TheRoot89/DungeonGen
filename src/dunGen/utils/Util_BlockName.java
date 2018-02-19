@@ -7,11 +7,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 
-/** Receives commands to start and stop the utility. */
+/** Utility able to receive mc commands. Shows the name of a block looked at.*/
 public class Util_BlockName implements CommandExecutor {
 	
-	private JavaPlugin plugin;
+	private JavaPlugin plugin;		// the reference to the main plugin, for player access.
 	
+	/**The utility has to be instantiated to receive commands form the server.
+	 * @param plugin the reference to the main plugin, for player access.*/
 	public Util_BlockName(JavaPlugin plugin) {
 		this.plugin = plugin;
 	}

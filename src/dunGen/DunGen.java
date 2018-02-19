@@ -11,7 +11,6 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -28,18 +27,11 @@ import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
 import dunGen.Helper.Direc;
 import dunGen.Module.ModuleType;
-import dunGen.utils.Util_BlockName;
+import dunGen.utils.ConfigChecker;
 import net.md_5.bungee.api.ChatColor;
 
 
 public final class DunGen extends JavaPlugin implements Listener{
-	
-	
-	/**Exception thrown if something during yml config loading failed. Contains an error message.*/
-	class ConfigException extends Exception{
-		private static final long serialVersionUID = 1L; // serializeable, suppresses warning
-		public ConfigException(String message) {super(message);} // allows a message to be used, getMessage() gets it back.
-	}
 	
 	
 	/**Represents the current plugin status. A message may be associated, especially with the ERROR state.
@@ -64,12 +56,12 @@ public final class DunGen extends JavaPlugin implements Listener{
 	private Random 			randGen 		= new Random(); // RNG object.
 	public  World 		   	world   	 	= null;			// the world this plugin is started in
 	public  WorldEditPlugin worldEdit;						// the worldEdit plugin pointer used for saving/loading schematics
-	private Util_BlockName blockNameUtility;				// a reference to the blockName utility command executer
+	private ConfigChecker 	configChecker;					// Reference to the yml check utility instance (can receive commands)
 	// Settings, loaded from config:
-	private List<String> 	entryModules;					// The lists of module names per module type
-	private List<String> 	passagewayModules;
-	private List<String> 	roomModules;
-	private boolean 	 	initYmlCheck 	= false;		// Flag to test YAML files on startup, set in config
+	public 	List<String> 	entryModules;					// The lists of module names per module type
+	public 	List<String> 	passagewayModules;
+	public 	List<String> 	roomModules;
+	private boolean 	 	initYmlCheck 	= false;		// Flag to test YAML files on startup, loaded from config file, else false
 	private long 			seed;							// Seed for random generation.
 	// working variables and references:
 	private Passageway 		curPassway1 	= null;			// References to the current module triplet.
@@ -87,81 +79,7 @@ public final class DunGen extends JavaPlugin implements Listener{
     /**Checks the yml existence and keys for all module names listed in config.yml.
      * This way, the keys don't have to be checked in every loadConfig() function throuhout the plugin.
      * */
-    private void checkModuleYmlFiles() throws ConfigException{
-    	YamlConfiguration curConf;
-    	String moduleName = "";
-
-    	// Check for keys, if clauses check special room keys. If a checks fails, an exception with the current key
-    	// is thrown.
-    	String key = ""; // empty key serves as flag everything went well
-    	
-    	// ################# keys contained in "Module": ##################
-    	List<String> inspectionList = new ArrayList<String>();
-    	inspectionList.addAll(entryModules);
-    	inspectionList.addAll(passagewayModules);
-    	inspectionList.addAll(roomModules);
-		for (String curName : inspectionList) {
-			moduleName = curName; // cannot iterate using 'name' directly, saves the name for the exception
-			curConf = Module.getConfig(this, moduleName);
-			if (curConf == null) throw new ConfigException("Config file missing: " + moduleName + ".yml");
-			
-			if (!curConf.contains("description")) 		{key = "description"; break;}
-			if (!curConf.contains("schematic")) 		{key = "schematic"; break;}
-			if (!curConf.contains("type")) 				{key = "type"; break;}
-				// entry
-			if (!curConf.contains("entry"))				{key = "entry"; break;}	
-			if (!curConf.contains("entry.placementLoc")){key = "entry.placementLoc"; break;}	
-			if (!curConf.contains("entry.doorLoc")) 	{key = "entry.doorLoc"; break;}	
-			if (!curConf.contains("entry.width")) 		{key = "entry.width"; break;}
-			if (!curConf.contains("entry.height")) 		{key = "entry.height"; break;}
-				// exit
-			if (!curConf.contains("exit"))				{key = "exit"; break;}	
-			if (!curConf.contains("exit.placementLoc")) {key = "exit.placementLoc"; break;}	
-			if (!curConf.contains("exit.doorLoc")) 		{key = "exit.doorLoc"; break;}	
-			if (!curConf.contains("exit.width")) 		{key = "exit.width"; break;}
-			if (!curConf.contains("exit.height")) 		{key = "exit.height"; break;}
-		}	
-		if (!key.equalsIgnoreCase("")) throw new ConfigException("Key missing: " + key + ", in " + moduleName);	
-			
-		// ########### keys contained in "Passageway" or "Entry": #############
-		// (no differences at the moment, add new block if things are added to Entries alone)
-		inspectionList.clear();
-		inspectionList.addAll(entryModules);
-		inspectionList.addAll(passagewayModules);
-		for (String curName : inspectionList) {
-			moduleName = curName; // cannot iterate using 'name' directly
-			curConf = Module.getConfig(this, moduleName);
-			if (curConf == null) throw new ConfigException("Config file missing: " + moduleName + ".yml");
-			
-			if (!curConf.contains("entry.type")) 			{key = "entry.type"; break;}
-			if (Passageway.DoorType.values()[curConf.getInt("entry.type")] == Passageway.DoorType.PISTON) {
-				if (!curConf.contains("entry.redstoneLoc"))	{key = "entry.redstoneLoc"; break;}
-			}else { // APPEARING and FALLING
-				if (!curConf.contains("entry.doorMaterial")){key = "entry.doorMaterial"; break;}
-			}
-			if (!curConf.contains("exit.type")) 			{key = "exit.type"; break;}
-			if (Passageway.DoorType.values()[curConf.getInt("exit.type")] == Passageway.DoorType.PISTON) {
-				if (!curConf.contains("exit.redstoneLoc"))	{key = "exit.redstoneLoc"; break;}
-			}else { // APPEARING and FALLING
-				if (!curConf.contains("exit.doorMaterial"))	{key = "exit.doorMaterial"; break;}
-			}
-			if (!curConf.contains("respawnLoc"))			{key = "respawnLoc"; break;}
-		}
-		if (!key.equalsIgnoreCase("")) throw new ConfigException("Key missing: " + key + ", in " + moduleName);
-		
-		// ################## keys contained in "Room": ########################
-		for (String curName : roomModules) {
-			moduleName = curName; // cannot iterate using 'name' directly
-			curConf = Module.getConfig(this, moduleName);
-			if (curConf == null) throw new ConfigException("Config file missing: " + moduleName + ".yml");
-			
-			//TODO: Add room key checks here, when changing mechanism to "tasks"
-			//if (!curConf.contains("respawnLoc"))			{key = "respawnLoc"; break;}
-		}
-		if (!key.equalsIgnoreCase("")) throw new ConfigException("Key missing: " + key + ", in " + moduleName);
-		
-		// everything ok, if code reached here, returns no value
-	}
+   
 
     
 	/**
@@ -258,7 +176,7 @@ public final class DunGen extends JavaPlugin implements Listener{
 	
 	/**Loads the standard configuration file of the plugin, config.yml. Also checks the module lists contain entries.*/
 	@SuppressWarnings("unchecked") // cast from yml loaded list is ok
-	private void loadConfig() throws ConfigException{
+	private void loadConfig() {
     	entryModules 		= (List<String>) getConfig().getList(	"entryModules",		new ArrayList<String>());
     	passagewayModules 	= (List<String>) getConfig().getList(	"passagewayModules",new ArrayList<String>());
     	roomModules			= (List<String>) getConfig().getList(	"roomModules",		new ArrayList<String>());
@@ -270,16 +188,16 @@ public final class DunGen extends JavaPlugin implements Listener{
 	
   
 	/**Gives the players starting gear, called during dungeon startup.
-   * @param p 	The player to give stuff to.
-   */
-  private void giveStartingGear(Player p) {
+     * @param p 	The player to give stuff to.
+     */
+	private void giveStartingGear(Player p) {
 		PlayerInventory i = p.getInventory();
 		i.clear();
 		i.addItem( new ItemStack(Material.STONE_SWORD, 	 1));
 		i.addItem( new ItemStack(Material.BOW, 			 1));
 		i.addItem( new ItemStack(Material.ARROW, 		 1));
 		i.addItem( new ItemStack(Material.MUSHROOM_SOUP, 1));
-		
+
 		i.setBoots(new ItemStack(Material.LEATHER_BOOTS, 1));
   }
   
@@ -378,7 +296,7 @@ public final class DunGen extends JavaPlugin implements Listener{
     }
 	
 	
-	/**Booting of the plugin, called by the server upon start. We set up directories, the config and do general checks.*/
+	/**Boots of the plugin, called by the server upon start. We set up directories, the config and do general checks.*/
 	@Override
     public void onEnable() {
 		// Check dependencies:
@@ -389,9 +307,10 @@ public final class DunGen extends JavaPlugin implements Listener{
         }
         worldEdit = (WorldEditPlugin) plugin;
 		
-        // Set executors to wrap features:
-        this.blockNameUtility = new Util_BlockName(this);
-        this.getCommand("BlockName").setExecutor(blockNameUtility);
+        // Set executors (test feature for later code sorting):
+        configChecker = new ConfigChecker(this);
+        getCommand("checkConfig").setExecutor(configChecker);
+        
         
         // setup directory:
         dir = getDataFolder();
@@ -411,27 +330,27 @@ public final class DunGen extends JavaPlugin implements Listener{
             getLogger().info("config.yml not found, creating default.");
             saveDefaultConfig();
         } else {
-            getLogger().info("config.yml found, loading.");
+            getLogger().info("config.yml found, loading...");
         }
         // and load:
         try {
 			loadConfig();
+			getLogger().info("Loading successful.");
 		} catch (Exception e) {
 			setStateAndNotify(State.ERROR, "Loading of config failed:");
 			e.printStackTrace();
 			return;
 		}
-        getLogger().info("Loading successful.");
 
     	// YAML check if active:
     	if (initYmlCheck) {
-    		getLogger().info("Checking YAML files ...");
+    		getLogger().info("Starting YAML file check...");
     		try {
-				checkModuleYmlFiles();
+				configChecker.checkModuleYmlFiles();
 				getLogger().info("Check ok.");
 			} catch (Exception e) {
-				e.printStackTrace();
 				setStateAndNotify(State.ERROR, "YAML check failed!");
+				e.printStackTrace();
     			return;
 			}
     	}	
@@ -464,16 +383,17 @@ public final class DunGen extends JavaPlugin implements Listener{
     }
 
   
-  /**Handles actions to be taken upon respawn.
-   * Currently gives new starting gear.
-   */
-  @EventHandler(priority = EventPriority.MONITOR)
+	/**Handles actions to be taken upon respawn.
+	 * Currently gives new starting gear.
+	 * @param event The event given to this handler by the event manager.
+	 */
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerRespawn(PlayerRespawnEvent event) {
-	    //Player p = event.getPlayer();
-	    if (state == State.RUNNING) {
-	    	giveStartingGear(event.getPlayer());
-	    	event.getPlayer().updateInventory();
-	    }
+		//Player p = event.getPlayer();
+		if (state == State.RUNNING) {
+			giveStartingGear(event.getPlayer());
+			event.getPlayer().updateInventory();
+		}
 	}
 	
   
@@ -536,7 +456,8 @@ public final class DunGen extends JavaPlugin implements Listener{
 	 * @param message	The message to be written to console, e.g. an error message.
 	 */
 	public void setStateAndNotify(State state, String message) { 
-		setStateSilenty(state,message);
+		this.state = state;
+		this.state.statusMessage = message;
 		if (this.state == State.ERROR)
 			//getLogger().severe(this.state.statusMessage);
 			getServer().getConsoleSender().sendMessage(ChatColor.RED + "[DunGen] " + this.state.statusMessage);
@@ -554,7 +475,8 @@ public final class DunGen extends JavaPlugin implements Listener{
 	
 	
 	/**Overloaded set state function with the given message. Does not print to console.
-	 * @param state The state to set.
+	 * @param state 	The state to set.
+	 * @param message	The message to set but not instantly print.
 	 */
 	private void setStateSilenty(State state, String message) {
 		this.state = state;
@@ -654,5 +576,6 @@ public final class DunGen extends JavaPlugin implements Listener{
 
 		resetActivePlayers();
 	}
+	
 	
 }

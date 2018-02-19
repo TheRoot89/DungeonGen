@@ -7,16 +7,13 @@ import java.util.Locale;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.event.entity.EntityTargetEvent.TargetReason;
-
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.bukkit.BukkitUtil;
 
 import dunGen.Room;
 import dunGen.utils.MazeWall;
 import dunGen.utils.Maze_RecursBacktr;
 
-/**
+/**A Task to generate a maze in a given area. The area has to exactly fit the maze inside!
+ * The number n of maze cells in one dimension fulfills: length_in_blocks = n*(wayWidth + wallWidth) - wallWidth
  */
 public class MazeTask extends RoomTask {
 

@@ -8,6 +8,10 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 
 import dunGen.Room;
 
+/**The task superclass, implementing the general task properties, such as delay, period etc.
+ * This is inherited by tasks actually doing something in run() and loading meaningfull
+ * additional data from the config.
+ */
 public class RoomTask extends BukkitRunnable {
 	
 

@@ -12,7 +12,8 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 /** Wrapps different convenience functions. */
 public class Helper {
 	
-	// Direc describes the four global directions. The degree count rises clockwise: south -> west -> north -> east
+	/**Direc describes the four global directions.
+	 * The degree count rises clockwise: south (zero) to west (90) to north to east*/
 	public enum Direc {
 		SOUTH (0),
 		WEST (90),
@@ -44,7 +45,9 @@ public class Helper {
 		/**
 		 * Rotates a vector by a certain degree. Only steps of 90 degrees are allowed!
 		 * @param vec	The vector object (reference!) to be changed.
-		 * @param deg	
+		 * @param deg	The degrees the vector should be rotated by, in steps of 90°!
+		 * @return		The rotated vector. The original vector if the input degrees were invalid.
+		 * 				A message is printed to System.out in that case.
 		 */
 		public static Vector rotatedBy(Vector vec, int deg) {
 			//System.out.println("Vec to turn:" + vec.toString());
@@ -73,16 +76,20 @@ public class Helper {
 		
 		/**Constructor, saving the degree. Called implicitely by the enum values.
 		 * @param degree	0, 90, 180 or 270
+		 * @see Helper.Direc
 		 */
 		Direc(int degree){
 			this.degree = degree;
 		}
 		
-		/**Getter */
+		/**Getter
+		 * @return the degrees associated with this direction.
+		 */
 		public int degree() {return degree;}
 		
-		/**Return the unity vector associated with this direction.
-		 * Used to go one block in that direction.*/
+		/**For example used to go one block in this direction.
+		 * @return the unity vector associated with this direction.
+		 */
 		public Vector toUnityVec() {
 			return new Vector(-Helper.sind(degree),0,Helper.cosd(degree));
 		}
@@ -106,15 +113,19 @@ public class Helper {
 	 * @param m		The block type to use.
 	 */
 	public static void fillVolume(World w, Vector v1, Vector v2, Material m) {
-		for (int x = Math.min(v1.getBlockX(), v2.getBlockX()); x <= Math.max(v1.getBlockX(), v2.getBlockX()); x++)
-		for (int y = Math.min(v1.getBlockY(), v2.getBlockY()); y <= Math.max(v1.getBlockY(), v2.getBlockY()); y++)
-		for (int z = Math.min(v1.getBlockZ(), v2.getBlockZ()); z <= Math.max(v1.getBlockZ(), v2.getBlockZ()); z++)
+		int x = 0,y = 0,z = 0;
+		for (x = Math.min(v1.getBlockX(), v2.getBlockX()); x <= Math.max(v1.getBlockX(), v2.getBlockX()); x++)
+		for (y = Math.min(v1.getBlockY(), v2.getBlockY()); y <= Math.max(v1.getBlockY(), v2.getBlockY()); y++)
+		for (z = Math.min(v1.getBlockZ(), v2.getBlockZ()); z <= Math.max(v1.getBlockZ(), v2.getBlockZ()); z++) {
 			w.getBlockAt(x, y, z).setType(m);
+		}
+		// Trigger block update to not miss redstone being set or stuff should start falling etc.
+		w.getBlockAt(x, y, z).getState().update(true, true);	
 	}
 	
 	
 	/**Get the Direc enum for a player.
-	 * @param player
+	 * @param player	The player whos heading shall be read out.
 	 * @return			The Direc, rounded.
 	 */
 	public static Direc getPlayerDirec(Player player) {

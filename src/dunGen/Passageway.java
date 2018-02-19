@@ -24,7 +24,7 @@ public class Passageway extends Module {
 	
 	
 	/** Describes how a door opens and closes. Switches code flow in the appropriate sections. */
-	protected enum DoorType{
+	public enum DoorType{
 		APPEARING,
 		FALLING,
 		PISTON;
@@ -51,9 +51,9 @@ public class Passageway extends Module {
 	
 	/**Convenience function to generate a wall of a certain block material. Gets the world from parent to do so.
 	 * @param relLowerLeft	Relative coordinate of the lower left of the wall to be generated.
-	 * @param height
-	 * @param width
-	 * @param material		Material = Block type to be generated
+	 * @param height		The height of the wall.
+	 * @param width			The width of the wall.
+	 * @param material		Material = Block type to be generated.
 	 */
 	private void genWall(Vector relLowerLeft, int height, int width, Material material) {
 		Vector curV;
@@ -76,7 +76,8 @@ public class Passageway extends Module {
 		respawnLoc = BukkitUtil.toVector(conf.getVector("respawnLoc"));
 		
 		// entry:
-		entryType  = DoorType.values()[conf.getInt(   "entry.type")];
+		entryType  = DoorType.valueOf(getConfig(parent, name).getString("entry.type").toUpperCase());
+		
 		switch (entryType) {
 		case APPEARING:
 		case FALLING:
@@ -89,7 +90,7 @@ public class Passageway extends Module {
 		}
 		
 		// exit:
-		exitType = DoorType.values()[conf.getInt("exit.type")];
+		exitType = DoorType.valueOf(getConfig(parent, name).getString("exit.type").toUpperCase());
 		switch (exitType) {
 		case APPEARING:
 		case FALLING:
@@ -105,7 +106,7 @@ public class Passageway extends Module {
 	
 	/**Event handler for a player pressing the button of this Passageway. Will callback to DunGen to generate the next DunGen part.
 	 * Also moves all other players to this Passageway.
-	 * @param event
+	 * @param event	The event to be handled, given by the event system.
 	 */
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onNextRoomButtonPress(PlayerInteractEvent event) {

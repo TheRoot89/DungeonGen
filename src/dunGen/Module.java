@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -101,8 +100,8 @@ public abstract class Module implements Listener {
 			e.printStackTrace();
 			return null;
 		}
-		// everything ok, if code reached here.
-		parent.getLogger().info("YML file for module " + name + " loaded.");
+		// everything ok, if code reached here. Enable for debug if needed:
+		//parent.getLogger().info("YML file for module " + name + " loaded.");
 		return conf;
 	}
 	
@@ -114,7 +113,7 @@ public abstract class Module implements Listener {
 	 * @return			The ModuleType enum with the value for this name.
 	 */
 	public static ModuleType getType(DunGen parent, String name) {
-		return ModuleType.values()[getConfig(parent, name).getInt("type")]; // valid Enum from int
+		return ModuleType.valueOf(getConfig(parent, name).getString("type").toUpperCase()); // get valid Enum from string
 	}
 	
 	
@@ -162,13 +161,15 @@ public abstract class Module implements Listener {
 	}
 	
 	
-	/** Return the the next block after the exit (where the next module global origin should be placed) */
+	/** Gives the the next block after the exit of this module.
+	 * @return the global position vector, where the next modules global origin should be placed.
+	 */
 	public Vector getNextEntryPos() {
 		return toGlobal(exit.placementLoc).add(exit.afterPasteDirec.toUnityVec());
 	}
 	
 	
-	/**Returns the plugin.*/ 
+	/**@return the plugin this module belongs to*/
 	public DunGen getPlugin() {
 		return parent;
 	}
@@ -181,7 +182,7 @@ public abstract class Module implements Listener {
 	public void loadConfig() {
 		description			= conf.getString("description");
 		fileName 			= conf.getString("schematic") + ".schematic";
-		type 				= ModuleType.values()[conf.getInt("type")]; // valid Enum from int
+		type 				= ModuleType.valueOf(getConfig(parent, name).getString("type").toUpperCase()); // valid Enum from string
 		entry.placementLoc 	= BukkitUtil.toVector(conf.getVector("entry.placementLoc"));
 		entry.doorLoc 		= BukkitUtil.toVector(conf.getVector("entry.doorLoc"));
 		entry.width  		= conf.getInt("entry.width");

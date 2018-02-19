@@ -12,6 +12,8 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 import dunGen.Helper;
 import dunGen.Room;
 
+/**A task to spawn arbitrary entities in a room. It is solved if all spawned entities are killed.
+ */
 public class EntitySpawnTask extends RoomTask {
 
 	/**

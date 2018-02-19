@@ -3,7 +3,7 @@ description: falling stuff passageway test
 # name of the schematic file used by this room (without .schematic):
 schematic: passWayFallingTest
 # Type of this room:  0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
-type: 1
+type: PASSAGEWAY
 
 # Description of the entry
 entry:
@@ -26,7 +26,7 @@ entry:
   height: 3
   # type of the actual door opening and closing process: 
   # 0: appearing, 1: falling, 2: piston
-  type: 1
+  type: FALLING
   # the material of the door blocks being generated, only for type '0' and '1', Check API whether this exists!
   doorMaterial: gravel
       
@@ -52,7 +52,7 @@ exit:
   height: 3
   # type of the actual door opening and closing process: 
   # 0: appearing, 1: falling, 2: piston
-  type: 1
+  type: FALLING
   # the material of the door blocks being generated, only for type '0' and '1', Check API whether this exists!
   doorMaterial: gravel
 

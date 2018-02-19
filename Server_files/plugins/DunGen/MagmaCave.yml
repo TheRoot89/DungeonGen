@@ -3,7 +3,7 @@ description: a hot place
 # name of the schematic file used by this room (without .schematic):
 schematic: MagmaCave
 # Type of this room:  0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
-type: 3
+type: BATTLEROOM
 
 
 entry:

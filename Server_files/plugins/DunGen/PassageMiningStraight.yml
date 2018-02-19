@@ -3,7 +3,7 @@ description: Old mining basecamp
 # name of the schematic file used by this room (without .schematic):
 schematic: PassageMiningStraight
 # Type of this room:  0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
-type: 1
+type: PASSAGEWAY
 
 
 entry:
@@ -26,7 +26,7 @@ entry:
   height: 2
   # type of the actual door opening and closing process: 
   # 0: appearing, 1: falling, 2: piston
-  type: 0
+  type: APPEARING
   # the material of the door blocks being generated, only for type 0: 'appearing'
   doorMaterial: smooth_brick
 
@@ -51,7 +51,7 @@ exit:
   height: 2
   # type of the actual door opening and closing process: 
   # 0: appearing, 1: falling, 2: piston
-  type: 0
+  type: APPEARING
   # the material of the door blocks being generated, only for type 0: 'appearing'
   doorMaterial: smooth_brick
 
