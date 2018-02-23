@@ -6,20 +6,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 
 import com.sk89q.worldedit.bukkit.BukkitUtil;
@@ -32,7 +30,7 @@ import dunGen.utils.Util_BlockName;
 import net.md_5.bungee.api.ChatColor;
 
 
-public final class DunGen extends JavaPlugin implements Listener{
+public final class DunGen extends JavaPlugin{
 	
 	
 	/**Represents the current plugin status. A message may be associated, especially with the ERROR state.
@@ -51,20 +49,26 @@ public final class DunGen extends JavaPlugin implements Listener{
 	
 	// ########################## Member variables ############################
 	
-	// Held fixed references and information:
+	// Held fixed references (components) and information:
+	private Util_BlockName  blockNameUtility;				// Reference to the block name utility instance
 	private String  		confFileName 	= "config.yml";	// file this plugin saves its settings in	
+	private ConfigChecker 	configChecker;					// Reference to the yml check utility instance (can receive commands)
 	public  File   			dir;							// directory of this plugin
+	private InGameListener	inGameListener;					// Reference on the in-game listener handling events during play
 	private Random 			randGen 		= new Random(); // RNG object.
+	private Scoreboard		scoreboard;						// Reference to the plugins scoreboard
+	private ScoreListener 	scoreListener;					// Reference on the in-game score listener handling events that give/reduce points.
 	public  World 		   	world   	 	= null;			// the world this plugin is started in
 	public  WorldEditPlugin worldEdit;						// the worldEdit plugin pointer used for saving/loading schematics
-	private ConfigChecker 	configChecker;					// Reference to the yml check utility instance (can receive commands)
-	private Util_BlockName  blockNameUtility;				// Reference to the block name utility instance
+	
 	// Settings, loaded from config:
 	public 	List<String> 	entryModules;					// The lists of module names per module type
 	public 	List<String> 	passagewayModules;
 	public 	List<String> 	roomModules;
-	private boolean 	 	initYmlCheck 	= false;		// Flag to test YAML files on startup, loaded from config file, else false
+	private boolean			friendFireEnabled 	= false;	// Setting for friendly fire
+	private boolean 	 	initYmlCheck 		= false;	// Flag to test YAML files on startup, loaded from config file, else false
 	private long 			seed;							// Seed for random generation.
+	
 	// working variables and references:
 	private Passageway 		curPassway1 	= null;			// References to the current module triplet.
 	private Passageway 		curPassway2 	= null;			//
@@ -73,6 +77,7 @@ public final class DunGen extends JavaPlugin implements Listener{
 	public  List<? extends 	Player> activePlayers;			// List of players playing.
 	public  List<GameMode> 	playersSnapshotAtStart;			// Backup of player GameModes for restoration.
 	public 	State 			state = State.NOT_STARTED; 		// state variable marks status of the plugin. Not started initially.
+	private Team 			team;							// Reference to the current team 
 
 	
 	
@@ -179,30 +184,16 @@ public final class DunGen extends JavaPlugin implements Listener{
 	/**Loads the standard configuration file of the plugin, config.yml. Also checks the module lists contain entries.*/
 	@SuppressWarnings("unchecked") // cast from yml loaded list is ok
 	private void loadConfig() {
-    	entryModules 		= (List<String>) getConfig().getList(	"entryModules",		new ArrayList<String>());
-    	passagewayModules 	= (List<String>) getConfig().getList(	"passagewayModules",new ArrayList<String>());
-    	roomModules			= (List<String>) getConfig().getList(	"roomModules",		new ArrayList<String>());
-    	initYmlCheck 		= 				 getConfig().getBoolean("initYmlCheck", 	true);
+    	entryModules 		= (List<String>) getConfig().getList(	"entryModules",			new ArrayList<String>());
+    	passagewayModules 	= (List<String>) getConfig().getList(	"passagewayModules",	new ArrayList<String>());
+    	roomModules			= (List<String>) getConfig().getList(	"roomModules",			new ArrayList<String>());
+    	initYmlCheck 		= 				 getConfig().getBoolean("initYmlCheck", 		true);
+    	friendFireEnabled	= 				 getConfig().getBoolean("friendlyFireEnabled", 	false);
     	
     	if (entryModules.isEmpty() || passagewayModules.isEmpty() || roomModules.isEmpty())
     		setStateAndNotify(State.ERROR, "No names given in config for some module types needed!");
 	}
 	
-  
-	/**Gives the players starting gear, called during dungeon startup.
-     * @param p 	The player to give stuff to.
-     */
-	private void giveStartingGear(Player p) {
-		PlayerInventory i = p.getInventory();
-		i.clear();
-		i.addItem( new ItemStack(Material.STONE_SWORD, 	 1));
-		i.addItem( new ItemStack(Material.BOW, 			 1));
-		i.addItem( new ItemStack(Material.ARROW, 		 1));
-		i.addItem( new ItemStack(Material.MUSHROOM_SOUP, 1));
-
-		i.setBoots(new ItemStack(Material.LEATHER_BOOTS, 1));
-  }
-  
   
 	/**Checks command strings and acts upon found commands. Called by the server.*/
 	@Override
@@ -328,6 +319,11 @@ public final class DunGen extends JavaPlugin implements Listener{
         seed = randGen.nextLong();
         randGen.setSeed(seed);
         
+        // initialize some members:
+        scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+        inGameListener = new InGameListener(this);
+        scoreListener = new ScoreListener(this);
+        
         // setup the configuration:
         File configFile = new File(dir, confFileName);
         if (!configFile.exists()) {
@@ -387,18 +383,7 @@ public final class DunGen extends JavaPlugin implements Listener{
     }
 
   
-	/**Handles actions to be taken upon respawn.
-	 * Currently gives new starting gear.
-	 * @param event The event given to this handler by the event manager.
-	 */
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void onPlayerRespawn(PlayerRespawnEvent event) {
-		//Player p = event.getPlayer();
-		if (state == State.RUNNING) {
-			giveStartingGear(event.getPlayer());
-			event.getPlayer().updateInventory();
-		}
-	}
+
 	
   
 	/**This should be called when the plugin is in ERROR state to reset it to a hopefully working state. */
@@ -437,6 +422,7 @@ public final class DunGen extends JavaPlugin implements Listener{
 		for (int i=0; i< activePlayers.size(); i++) {
 			if (activePlayers.get(i).isValid())
 				activePlayers.get(i).setGameMode(playersSnapshotAtStart.get(i));
+			scoreboard.resetScores(activePlayers.get(i).getName());
 		}
 		activePlayers.clear();
 		playersSnapshotAtStart.clear();
@@ -514,37 +500,56 @@ public final class DunGen extends JavaPlugin implements Listener{
 	  * Takes appropriate startup actions and then sets the state to RUNNING.
 	  */
 	private void startup() {
-		getServer().getPluginManager().registerEvents(this, this);
-		
+		// set up player list
 		activePlayers = new LinkedList<>(getServer().getOnlinePlayers());
-		
-		//filter for players in the entry building:
-		for(Player p: activePlayers) {
+		for(Player p: activePlayers) {//filter for players in the entry building module
 			com.sk89q.worldedit.Vector playerPos = BukkitUtil.toVector(p.getLocation().toVector());
 			if (!entry.modVolume.contains(playerPos))
 				activePlayers.remove(p);
 		}
 		
-		// Backing up player modes to restore upon dungeon stop
-		playersSnapshotAtStart = new ArrayList<GameMode>();// backup copy of gamemode
+		// set up team and scoreboard
+		team = scoreboard.registerNewTeam("DunGen Party");
+		// team.setPrefix("[DunGen]"); //Adding prefixes (shows up in player list before the player's name, supports ChatColors)
+		for(Player p: activePlayers) {
+			team.addEntry(p.getName());					// add to the current team
+			scoreboard.resetScores(p.getName());; 		// reset score
+			p.setScoreboard(scoreboard);
+		}
+		team.addEntry("Total"); 	// This is the entry to the scoreboard to count the total points
+		Objective killObj = scoreboard.registerNewObjective("Kills:", "totalKillCount");
+		killObj.setDisplaySlot(DisplaySlot.PLAYER_LIST);
+		Objective scoreObj = scoreboard.registerNewObjective("Score:", "dummy");
+		scoreObj.setDisplaySlot(DisplaySlot.SIDEBAR);
+		scoreListener.setScoreObjective(scoreObj); 		// set the custom score objetive to our listener
+	    team.setCanSeeFriendlyInvisibles(true);			//Making invisible players on the same team have a transparent body
+	    team.setAllowFriendlyFire(friendFireEnabled);	//Making it so players can't hurt others on the same team
+	    
+		// Backing up:
+		// player modes to restore upon dungeon stop:
+		playersSnapshotAtStart = new ArrayList<GameMode>();// backup copy
 		for (int i=0; i<activePlayers.size(); i++) {
 			playersSnapshotAtStart.add(activePlayers.get(i).getGameMode());
 		}
 		
+		// Setting new state of players, incl. gear
 		for (Player p : activePlayers) {
 			p.setFoodLevel(18);
 			p.setGameMode(GameMode.ADVENTURE);
 			p.sendMessage("Your mode was set to adventure...");
-			
-			giveStartingGear(p);
-
+			inGameListener.giveStartingGear(p);
 		}
+		
+		// Starting listener(s):
+		inGameListener.register();
+		scoreListener.register();
 		
 		state = State.RUNNING;
 	}
 	
 	
-	/**Stops the dungeon in any state, resetting the players and modules. Will also try to reset the plugin if it is in error state. */
+	/**Stops the dungeon in any state, resetting the players and modules.
+	 * Will also try to reset the plugin if it is in error state. */
 	private void stopDungeon() {
 		// state 0 is catched during the command call
 		switch (state) {
@@ -561,6 +566,9 @@ public final class DunGen extends JavaPlugin implements Listener{
 			break;
 			
 		case RUNNING:					// all the modules exist, how about entry?
+			inGameListener.unregister();
+			scoreListener.unregister();
+			
 			curPassway1.unregister();
 			curPassway1.delete();
 			curPassway1 = null;
@@ -577,7 +585,7 @@ public final class DunGen extends JavaPlugin implements Listener{
 			reset();
 			break;
 		}
-
+		
 		resetActivePlayers();
 	}
 	
