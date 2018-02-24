@@ -246,13 +246,21 @@ public final class DunGen extends JavaPlugin{
 			
 			switch (state) {
 			case NOT_STARTED:
-			case STARTUP:
 				if (sender instanceof Player) {
 					Player p = (Player) sender;
 					p.sendMessage("Dungeon was not started yet!");
 				}else {
 					getLogger().info("Dungeon was not started yet!");
 				}
+				break;
+			case STARTUP:
+				if (sender instanceof Player) {
+					Player p = (Player) sender;
+					p.sendMessage("Stopping startup phase.");
+				}else {
+					getLogger().info("Stopping startup phase.");
+				}
+				stopDungeon();
 				break;
 			case RUNNING:
 				for (Player p : activePlayers) {
@@ -565,7 +573,7 @@ public final class DunGen extends JavaPlugin{
 			state = State.NOT_STARTED;
 			break;
 			
-		case RUNNING:					// all the modules exist, how about entry?
+		case RUNNING:					// all the modules exist, maybe still the entry as well
 			inGameListener.unregister();
 			scoreListener.unregister();
 			
@@ -578,6 +586,12 @@ public final class DunGen extends JavaPlugin{
 			curPassway2.unregister();
 			curPassway2.delete();
 			curPassway2 = null;
+			if (entry != null) {
+				entry.unregister();
+				entry.delete();
+				entry = null;
+			}
+			
 			state = State.NOT_STARTED;
 			break;
 
