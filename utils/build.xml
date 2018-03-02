@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="DunGen.createJar" default="buildJar">
+	
+	<property name="Version" value="0.2" />
+	
+	<property name="projectHome" location="./.." />
+	
+	<path id="build-classpath">
+	    <fileset dir="${projectHome}/Server_files">
+	        <include name="*.jar"/>
+	    </fileset>
+	    <fileset dir="${projectHome}/Server_files/plugins">
+	       <include name="WorldEdit.jar"/>
+	    </fileset>
+	</path>
+	
+	
+	<target name="buildJar" description="Create a jar for the DunGen project, debug level.">
+		<mkdir dir="${projectHome}/.classes"/>
+		<javac srcdir="${projectHome}/src/" destdir="${projectHome}/.classes" includeantruntime="false" debug="true" debuglevel="lines,vars,source">
+			<classpath refid="build-classpath"/>
+		</javac>
+		<jar destfile="${projectHome}/Server_files/plugins/DunGen-${Version}.jar" basedir="${projectHome}/.classes">
+		    <zipfileset dir="${projectHome}/src" includes="config.yml"/>
+			<zipfileset dir="${projectHome}/src" includes="plugin.yml"/>
+		</jar>
+	</target>
+	
+	
+	<target name="deployJarAndFiles" description="Copy jar and Server_files to the local MC server." depends="buildJar">
+		<copy file="${projectHome}/Server_files/plugins/DunGen-${Version}.jar" tofile="C:/Users/Toni/Desktop/Minecraft_Modding/plugins/DunGen-${Version}.jar" overwrite="true"/>
+		<copy todir="C:/Users/Toni/Desktop/Minecraft_Modding/plugins/DunGen" overwrite="true">
+			<fileset dir="${projectHome}/Server_files/plugins/DunGen"/>
+		</copy>
+	</target>
+	
+	
+	<target name="buildJarJenkins" description="Create a jar for the DunGen project from Jenkins.">
+		<mkdir dir="${projectHome}/classes"/>
+		<javac srcdir="${projectHome}/src/" destdir="${projectHome}/classes" includeantruntime="true">
+			<classpath refid="build-classpath"/>
+		</javac>
+		<mkdir dir="${projectHome}/bin"/>
+		<jar destfile="${projectHome}/bin/DunGen-${Version}.jar" basedir="${projectHome}/classes">
+		    <zipfileset dir="${projectHome}/src" includes="config.yml"/>
+			<zipfileset dir="${projectHome}/src" includes="plugin.yml"/>
+		</jar>
+	</target>
+	
+	
+</project>

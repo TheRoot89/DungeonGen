@@ -15,7 +15,6 @@ public class Maze_RecursBacktr {
 	private static MazeWall[][] walls;		// a matrix = maze map of MazeWall structs, describing the walls we have here
 	private static boolean[][]  connected;	// a matrix = maze map saving which cells of the maze have already been connected to the whole
 	private static int[][]      distToEntry;// a matric = maze map showing how far cells are to the entry -> exit can be placed with min distance
-	//TODO calculate maze distToEntry
 	
 	//################### Methods: ######################
 	
@@ -26,77 +25,109 @@ public class Maze_RecursBacktr {
 	 * @return			a matrix of maze cells, giving the existence of northern and eastern walls each.
 	 */
 	public static MazeWall[][] genMaze(int height, int width) {
-		// Initialization:
+		// Initialization, using mc coordinate system:
 		w = width;
 		h = height;
-		walls = new MazeWall[height][width];
+		walls = new MazeWall[h][w];
 		for(int r=0; r<walls.length;r++)
 			for(int c=0; c<walls[0].length;c++)
 				walls[r][c] = new MazeWall();// as can be seen above, all values are 'true' = walls exist
-		connected = new boolean[height][width];	// all values are 'false' initially
-		int x = rand.nextInt(width);
-		int y = rand.nextInt(height);
+		connected = new boolean[h][w];	// all values are 'false' initially
+		int x = rand.nextInt(height);
+		int z = rand.nextInt(width);
 		
 		// Recursion start:
-		addCell2Maze(x, y);
+		addCell2Maze(x, z);
 		
 		return walls;
 	}
 	
 	
+	/**Calculates for each maze cell the distance to the given entry point. Call only AFTER a maze was generated!
+	 * This allows to estimate how difficult it is to reach each cell of the maze, including the exit cell.
+	 * @param maze
+	 * @param entryCell
+	 * @return
+	 */
+	public static int[][] getDistToEntry(MazeWall[][] maze, int entryCell){
+		// Init, using mc coordinate system:
+		h = maze.length;
+		w = maze[0].length;
+		distToEntry = new int[h][w];
+		int z = entryCell;
+		int x = 0; // as we always start at the southern wall here
+		
+		// Recursion start:
+		addCell2Path(x, z, 1); // the first cell has distance '1' from the entry
+		
+		return distToEntry;
+	}
+	
+
 	/**Add this cell to the maze (make it connected). This cell will recursively try to add other cells randomly.
 	 * Abort condition is, if all directions were tried.
 	 * @param x The cell x coordinate within the maze.
 	 * @param y The cell y coordinate within the maze.
 	 */
-	private static void addCell2Maze(int x, int y) {
-		connected[x][y] = true;
+	private static void addCell2Maze(int x, int z) {
+		connected[x][z] = true;
 		
 		Direc[] direcs = {Direc.NORTH, Direc.EAST, Direc.SOUTH, Direc.WEST};
 		shuffleArray(direcs);
 		
 		int newX;
-		int newY;
+		int newZ;
 		for (Direc d : direcs) { 	// short syntax to interate over array without counter
-			newX = x - (int)Helper.sind(d.degree()); // The associations of MC Direcs to degrees does not fit to mathematical degrees!
-			newY = y - (int)Helper.cosd(d.degree());
+			newX = x - (int)Helper.cosd(d.degree()); // The associations of MC Direcs to degrees does not fit to mathematical degrees!
+			newZ = z - (int)Helper.sind(d.degree()); // A picture helps most with this, see Direc definition (F3 on Direc)
 			// also add if not added yet and in scope:
-			if (newX >= 0 && newX < w &&  newY >= 0 && newY < h && !connected[newX][newY]) {
+			if (newX >= 0 && newX < h &&  newZ >= 0 && newZ < w && !connected[newX][newZ]) {
 				// carve a passage: grid always saves north and east walls:
 				switch (d) {
 				case NORTH:
-					walls[y][x].north = false;
+					walls[x][z].north = false;
 					break;
 				case SOUTH:
-					walls[y-1][x].north = false;
+					walls[x-1][z].north = false;
 					break;
 				case EAST:
-					walls[y][x].east = false;
+					walls[x][z].east = false;
 					break;
 				case WEST:
-					walls[y][x-1].east = false;
+					walls[x][z-1].east = false;
 					break;
 				}
-				addCell2Maze(newX, newY);
+				addCell2Maze(newX, newZ);
 			}
 		}
 		
 		// recursion ends here after all directions have been tried.
 	}
 	
-
-	/**Calculates for each maze cell the distance to the given entry point. Call only AFTER a maze was generated!
-	 * This allows to estimate how difficult it is to reach each cell of the maze, including the exit cell.
-	 * @param entryX	The cell from which distances are to be calculated, x direction
-	 * @param entryY	The cell from which distances are to be calculated, y direction
+	
+	/**
+	 * @param x
+	 * @param z
+	 * @param newDist
 	 */
-	public static void calcDistToEntry(int entryX, int entryY) {
-		distToEntry = new int[w][h];	// all values are 0 initially
-		// TODO eval
+	private static void addCell2Path(int x, int z, int newDist) {
+		distToEntry[x][z] = newDist;// mark this cell with the distance travelled, also marks whether visited already
+		int nextDist = newDist+1;
+		// Iterate over the neighboring cells:
+		for (int newX : new Integer[] {x-1,x+1}) {
+			// also add if in scope and not added yet or we found a shorter route:
+			if (newX >= 0 && newX < h &&  z >= 0 && z < w && (distToEntry[newX][z] == 0 || distToEntry[newX][z] > nextDist) )
+				addCell2Path(newX, z, nextDist);
+		}
+		for (int newZ : new Integer[] {z-1,z+1}) {
+			if (x >= 0 && x < h &&  newZ >= 0 && newZ < w && (distToEntry[x][newZ] == 0 || distToEntry[x][newZ] > nextDist) )
+				addCell2Path(x, newZ, nextDist);
+		}
+		// recursion ends here after all directions have been tried.
 	}
 	
 	
-	/**Implements a Fisher–Yates shuffle of a given array. Changing the passed object here without return.
+	/**Implements a Fisher–Yates shuffle of a given array. Changing the passed object here without return. (call by reference)
 	 * @param array   An array of Directions
 	 */
 	private static void shuffleArray(Direc[] array) {

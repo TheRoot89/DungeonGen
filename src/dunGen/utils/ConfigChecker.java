@@ -11,6 +11,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.EntityType;
 
+import com.sk89q.worldedit.bukkit.BukkitUtil;
+import com.sk89q.worldedit.regions.CuboidRegion;
+import com.sk89q.worldedit.regions.Region;
+
 import dunGen.DunGen;
 import dunGen.DunGen.State;
 import dunGen.Module;
@@ -250,6 +254,12 @@ public class ConfigChecker implements CommandExecutor {
 							key = subKey+".wallHeight";
 							if (keyCheck(key) && curConf.getInt(key) <= 0) addInvalidErrMsg(key);
 							matCheck(subKey+".mazeMaterial");
+							key = subKey+".carveBestExit";
+							if (keyCheck(key)) {
+								if (curConf.getInt(key) < 0 || curConf.getInt(key) > 31) addInvalidErrMsg(key);
+								// key is valid, check dependent key for this maze option:
+								else if (curConf.getInt(key) != 0) keyCheck(subKey+".entryCell");
+							}
 							break;
 
 						case POWER:

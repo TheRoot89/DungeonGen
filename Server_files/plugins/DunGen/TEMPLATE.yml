@@ -192,4 +192,8 @@ tasks:
     wallWidth: 1
     wallHeight: 3
     mazeMaterial: SMOOTH_BRICK
+    carveBestExit: 0  # the exit can be carved trough the outer wall automatically. It carves as far as wallWidth
+                      # 5-Bit Bitfield for outher walls allowed to be carved: [floor hole(16) left(8) upfront(4) right(2) start(1)] -> sum, 0 switches off
+    # only needed if carveBestExit is on:
+    entryCell: 2   # The maze cell number of the entry, has to be counted from left to right, looking into the maze from the entry!
     
