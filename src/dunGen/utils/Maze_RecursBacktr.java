@@ -50,11 +50,12 @@ public class Maze_RecursBacktr {
 	 * @return
 	 */
 	public static int[][] getDistToEntry(MazeWall[][] maze, int entryCell){
-		// Init, using mc coordinate system:
+		// Init, using mc coordinate system and static variables to access during the process:
+		walls = maze;
 		h = maze.length;
 		w = maze[0].length;
 		distToEntry = new int[h][w];
-		int z = entryCell;
+		int z = entryCell-1; // counting starts from 0
 		int x = 0; // as we always start at the southern wall here
 		
 		// Recursion start:
@@ -114,14 +115,33 @@ public class Maze_RecursBacktr {
 		distToEntry[x][z] = newDist;// mark this cell with the distance travelled, also marks whether visited already
 		int nextDist = newDist+1;
 		// Iterate over the neighboring cells:
-		for (int newX : new Integer[] {x-1,x+1}) {
-			// also add if in scope and not added yet or we found a shorter route:
-			if (newX >= 0 && newX < h &&  z >= 0 && z < w && (distToEntry[newX][z] == 0 || distToEntry[newX][z] > nextDist) )
-				addCell2Path(newX, z, nextDist);
+		// North:
+		int newX = x+1;
+		if ( !walls[x][z].north && 
+			 newX >= 0 && newX < h &&	
+			 (distToEntry[newX][z] == 0 || distToEntry[newX][z] > nextDist) ) {
+			addCell2Path(newX, z, nextDist);
 		}
-		for (int newZ : new Integer[] {z-1,z+1}) {
-			if (x >= 0 && x < h &&  newZ >= 0 && newZ < w && (distToEntry[x][newZ] == 0 || distToEntry[x][newZ] > nextDist) )
-				addCell2Path(x, newZ, nextDist);
+		// East:
+		int newZ = z+1;
+		if ( !walls[x][z].east && 
+			 newZ >= 0 && newZ < w &&	
+			 (distToEntry[x][newZ] == 0 || distToEntry[x][newZ] > nextDist) ) {
+			addCell2Path(x, newZ, nextDist);
+		}
+		// South:
+		newX = x-1;
+		if ( newX >= 0 && newX < h &&
+			 !walls[newX][z].north && 
+			 (distToEntry[newX][z] == 0 || distToEntry[newX][z] > nextDist) ) {
+			addCell2Path(newX, z, nextDist);
+		}
+		// West:
+		newZ = z-1;
+		if ( newZ >= 0 && newZ < w &&	
+			 !walls[x][newZ].east && 
+			 (distToEntry[x][newZ] == 0 || distToEntry[x][newZ] > nextDist) ) {
+			addCell2Path(x, newZ, nextDist);
 		}
 		// recursion ends here after all directions have been tried.
 	}

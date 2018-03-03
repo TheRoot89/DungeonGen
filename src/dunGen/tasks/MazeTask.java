@@ -183,7 +183,7 @@ public class MazeTask extends RoomTask {
 			int bestCellX = 0;
 			int bestCellZ = 0;
 			Direc exitDirec = Direc.WEST; //just initial value if 0/0 were the result
-			if (bitfield >= 16) { // any cell is ok as florr hole is activated
+			if (bitfield >= 16) { // any cell is ok as floor hole is activated
 				for (int cellX = 0; cellX < height_MazeCells; cellX++) {
 					for (int cellZ = 0; cellZ < width_MazeCells; cellZ++) {
 						if (distToEntry[cellX][cellZ] > highestDist) {
