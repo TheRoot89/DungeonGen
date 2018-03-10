@@ -160,6 +160,7 @@ public class MazeTask extends RoomTask {
 			distToEntry = Maze_RecursBacktr.getDistToEntry(mazeWalls, entryCell);
 			
 			// Debug output:
+			/*
 			s = "Dist to entry:\n";
 			for (int r=distToEntry.length-1; r>=0; r--) {
 				for (int c=0; c < distToEntry[0].length; c++) {
@@ -174,7 +175,7 @@ public class MazeTask extends RoomTask {
 				s += "\n";
 			}
 			parent.getPlugin().getLogger().info(s);
-			
+			*/
 			
 			// check allowed sides and the dists of every cell there to get the longest one:
 			// 5-Bit Bitfield for outher walls allowed to be carved: [floor hole(16) left(8) upfront(4) right(2) start(1)] -> sum, 0 switches off
