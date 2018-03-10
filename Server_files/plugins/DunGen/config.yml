@@ -19,8 +19,10 @@ roomModules:
 - SkeletonBridge
 - testRoom
 - ThermeErding
-#- bridgeTest
+- bridgeTest
 - MagmaCave
 - Crater
 - DarkMaze
 - MovingPlatformTest
+- AdaptiveMazeTest
+- HoleMazeTest

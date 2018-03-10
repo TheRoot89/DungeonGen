@@ -305,7 +305,7 @@ public abstract class Module implements Listener {
 	 * @param m			The Material to be placed.
 	 * @param height	How high the plan should be duplicated. (stacked up)
 	 */
-	public void placeBuildPlan2D(Vector origin, boolean[][] plan, Material m, int height) {
+	public void placeBuildPlan2D(Vector origin, boolean[][] plan, Material m, int height, boolean overwriteAir) {
 		plan = Helper.rotateBoolMatrixClockw(plan, turnedBy); //clockwise turning as is defined in mc for sky directions
 		// The origin has to be at another corner of the matrix now:
 		origin = toGlobal(origin);
@@ -332,7 +332,8 @@ public abstract class Module implements Listener {
 			int z = origin.getBlockZ();
 			for (int col=0; col< plan[0].length; col++, z++)
 				for (int y = origin.getBlockY(); y < (origin.getBlockY()+height); y++)
-					if (plan[row][col]) parent.world.getBlockAt(x,y,z).setType(m);	
+					if (plan[row][col]) parent.world.getBlockAt(x,y,z).setType(m);
+					else if (overwriteAir) parent.world.getBlockAt(x,y,z).setType(Material.AIR);
 		}
 			
 	}

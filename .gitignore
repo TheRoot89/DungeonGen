@@ -5,3 +5,4 @@ bin/
 .metadata
 sync.ffs_db
 .classes/
+/classes/

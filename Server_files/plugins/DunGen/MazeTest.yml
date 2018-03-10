@@ -97,6 +97,7 @@ tasks:
     wallWidth: 1.0
     wallHeight: 3.0
     mazeMaterial: SMOOTH_BRICK
+    carveBestExit: 0
     
   task2:
     type: ENTITYSPAWN   # type of this task, ENTITYSPAWN, BLOCKSPWAN, EMPOWER or DEPOWER

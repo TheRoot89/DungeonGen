@@ -8,6 +8,9 @@ import java.util.Locale;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import com.sk89q.worldedit.Vector;
+
+import dunGen.Helper.Direc;
 import dunGen.Room;
 import dunGen.utils.MazeWall;
 import dunGen.utils.Maze_RecursBacktr;
@@ -17,6 +20,9 @@ import dunGen.utils.Maze_RecursBacktr;
  */
 public class MazeTask extends RoomTask {
 
+	private int			 carveBestExit;
+	private int			 entryCell;
+	private int[][]		 distToEntry;
 	private MazeWall[][] mazeWalls;
 	private Material 	 mazeMaterial;
 	//private Vector   	 mazeEntry;
@@ -34,9 +40,12 @@ public class MazeTask extends RoomTask {
 		mazeMaterial = Material.getMaterial(conf.getString(path + "mazeMaterial").toUpperCase(Locale.ENGLISH)); // this is a lookup 'string' -> 'enum value'
 		//mazeEntry =   BukkitUtil.toVector(conf.getVector(path + "entry"));
 		//mazeExit  =   BukkitUtil.toVector(conf.getVector(path + "exit"));
-		wayWidth  =	  conf.getInt(path + "wayWidth");
-		wallWidth =	  conf.getInt(path + "wallWidth");
-		wallHeight=	  conf.getInt(path + "wallHeight");
+		wayWidth  =	  	conf.getInt(path + "wayWidth");
+		wallWidth =	  	conf.getInt(path + "wallWidth");
+		wallHeight=	  	conf.getInt(path + "wallHeight");
+		carveBestExit = conf.getInt(path + "carveBestExit");
+		if (carveBestExit != 0)
+			entryCell = conf.getInt(path + "entryCell");
 	}
 
 
@@ -52,7 +61,11 @@ public class MazeTask extends RoomTask {
 		int height_MazeCells = (int)Math.floor(height_MazeCellsD);
 		
 		if (width_MazeCellsD != width_MazeCells || height_MazeCellsD != height_MazeCells ) {
-			//TODO give error or exception upwards
+			parent.getPlugin().getLogger().warning("Given maze dimensions don't fit! Aborting generation.");
+			parent.getPlugin().getLogger().warning("Width in blocks: " + width + "\n" +
+												   "Height in blocks: " + height + "\n" +
+												   "Cell width calculated: " + width_MazeCellsD + "\n" +
+												   "Cell height calculated: " + height_MazeCellsD);
 			return;
 		}
 		mazeWalls = Maze_RecursBacktr.genMaze(height_MazeCells, width_MazeCells);
@@ -120,74 +133,149 @@ public class MazeTask extends RoomTask {
 			}
 		}
 		
-		// if we only generate the inner walls, we do not need to specify the entry and exit ourselves, right?
-		// Skip the last row and column, as they are part of the outer wall-> set to false:
-		for (int bpX=0; bpX < (height+wallWidth); bpX++)	//eastern wall
-			for (int bpZ=width; bpZ < (width+wallWidth);  bpZ++)
-				buildPlan[bpX][bpZ] = false;
-		
-		for (int bpX=height; bpX < (height+wallWidth); bpX++)	//northern wall
-			for (int bpZ=0; bpZ < (width+wallWidth);  bpZ++)
-				buildPlan[bpX][bpZ] = false;
+		// we only generate the inner walls (so we do not need to specify the entry and exit ourselves if option not set)
+		// Skip the last row and column, as they are part of the outer wall-> trim by not copying
+		boolean[][] finalBuildPlan = new boolean[height][width];
+		for (int bpX=0; bpX < height; bpX++)
+			for (int bpZ=0; bpZ < width; bpZ++)
+				finalBuildPlan[bpX][bpZ] = buildPlan[bpX][bpZ];	
 		
 		// Debug output:
-		/*
-		String s = "\n";
-		for (int r=buildPlan.length-1; r>=0; r--) {
-			for (int c=0; c < buildPlan[0].length; c++) {
-				if (buildPlan[r][c])	s += "#";
+		String s = "Final build plan:\n";
+		for (int r=finalBuildPlan.length-1; r>=0; r--) {
+			for (int c=0; c < finalBuildPlan[0].length; c++) {
+				if (finalBuildPlan[r][c])	s += "#";
 				else					s += " ";
 			}
 			s += "\n";
 		}
 		parent.getPlugin().getLogger().info(s);
-		*/
 		
-		// Debug buildplan: only one block in lower left
-		//buildPlan = new boolean[height+wallWidth][width+wallWidth];
-		//buildPlan[0][0] = true;
+		// 3. Have it built: (overwriting with air, maybe have a setting for that)
+		parent.placeBuildPlan2D(targetRegion.getMinimumPoint(), finalBuildPlan, mazeMaterial, wallHeight, true);
 		
-		
-		// 3. Have it built:
-		parent.placeBuildPlan2D(targetRegion.getMinimumPoint(), buildPlan, mazeMaterial, wallHeight);
-		
-		
-		/*
-			// add gap where the entry should be:
-		Vector areaWallMinP = targetRegion.getMinimumPoint().subtract(1, 0, 1);
-		Vector areaWallMaxP = targetRegion.getMaximumPoint().add(1, 0, 1);
-		if (mazeEntry.getBlockZ() == areaWallMinP.getBlockZ()) {			// left wall has entry
-			//TO BE FILLED
+		// 4. Carve best exit if set
+		if (carveBestExit != 0) {
+			// get the dists of every cell to the entry cell:
+			distToEntry = Maze_RecursBacktr.getDistToEntry(mazeWalls, entryCell);
 			
-		}else if (mazeEntry.getBlockZ() == areaWallMaxP.getBlockZ()) {		// right wall has it
-			
-		}else {																// ok, must be top or bottom:
-			if (mazeEntry.getBlockX() == areaWallMinP.getBlockX()) {				// yeah, its bottom
-				
-			}else if (mazeEntry.getBlockX() == areaWallMaxP.getBlockX()) {			// else its top
-				
-			}else {																	// none fit -> we have an error!
-				// THROW ERROR
+			// Debug output:
+			/*
+			s = "Dist to entry:\n";
+			for (int r=distToEntry.length-1; r>=0; r--) {
+				for (int c=0; c < distToEntry[0].length; c++) {
+					int dist = distToEntry[r][c];
+					if (dist < 10) {
+						s =s + "|0" + dist;
+					}else {
+						s = s + "|" + dist;
+					}
+					
+				}
+				s += "\n";
 			}
-		}
-		
-			// add gap where the exit should be:
-		if (mazeExit.getBlockZ() == areaWallMinP.getBlockZ()) {				// left wall has exit
+			parent.getPlugin().getLogger().info(s);
+			*/
 			
-		}else if (mazeExit.getBlockZ() == areaWallMaxP.getBlockZ()) {		// right wall has it
-			
-		}else {																// ok, must be top or bottom:
-			if (mazeExit.getBlockX() == areaWallMinP.getBlockX()) {					// yeah, its bottom
-				
-			}else if (mazeExit.getBlockX() == areaWallMaxP.getBlockX()) {			// else its top
-				
-			}else {																	// none fit -> we have an error!
-				//THROW ERROR
+			// check allowed sides and the dists of every cell there to get the longest one:
+			// 5-Bit Bitfield for outher walls allowed to be carved: [floor hole(16) left(8) upfront(4) right(2) start(1)] -> sum, 0 switches off
+			int bitfield = carveBestExit;
+			int highestDist = 0;
+			int bestCellX = 0;
+			int bestCellZ = 0;
+			Direc exitDirec = Direc.WEST; //just initial value if 0/0 were the result
+			if (bitfield >= 16) { // any cell is ok as floor hole is activated
+				for (int cellX = 0; cellX < height_MazeCells; cellX++) {
+					for (int cellZ = 0; cellZ < width_MazeCells; cellZ++) {
+						if (distToEntry[cellX][cellZ] > highestDist) {
+							highestDist = distToEntry[cellX][cellZ];
+							bestCellX = cellX;
+							bestCellZ = cellZ;
+							exitDirec = null; // additional flag for "hole mode"
+						}
+						bitfield = 0; // deactivates further searches
+					}
+				}
 			}
-		}
-		*/
+			
+			if (bitfield >= 8) { // left wall is allowed to have exit, search:
+				for (int cellX = 0; cellX < height_MazeCells; cellX++)
+					if (distToEntry[cellX][0] > highestDist) {
+						highestDist = distToEntry[cellX][0];
+						bestCellX = cellX;
+						bestCellZ = 0;
+						exitDirec = Direc.WEST;
+					}
+				bitfield -= 8;
+			}
+			
+			if (bitfield >= 4) { // upfront wall is allowed to have exit, search:
+				for (int cellZ = 0; cellZ < width_MazeCells; cellZ++)
+					if (distToEntry[height_MazeCells-1][cellZ] > highestDist) {
+						highestDist = distToEntry[height_MazeCells-1][cellZ];
+						bestCellX = height_MazeCells-1;
+						bestCellZ = cellZ;
+						exitDirec = Direc.NORTH;
+					}
+				bitfield -= 4;
+			}
+			
+			if (bitfield >= 2) { // right wall is allowed to have exit, search:
+				for (int cellX = 0; cellX < height_MazeCells; cellX++)
+					if (distToEntry[cellX][width_MazeCells-1] > highestDist) {
+						highestDist = distToEntry[cellX][width_MazeCells-1];
+						bestCellX = cellX;
+						bestCellZ = width_MazeCells-1;
+						exitDirec = Direc.EAST;
+					}
+				bitfield -= 2;
+			}
+			
+			if (bitfield >= 1) { // start wall is allowed to have exit, search:
+				for (int cellZ = 0; cellZ < width_MazeCells; cellZ++)
+					if (distToEntry[0][cellZ] > highestDist) {
+						highestDist = distToEntry[0][cellZ];
+						bestCellX = 0;
+						bestCellZ = cellZ;
+						exitDirec = Direc.SOUTH;
+					}
+				bitfield -= 1;
+			}
+			
+			// now, the best exit and its direction were found (or 0/0 = lower left if something went wrong)
+			// carve a path as a small building plan that overwrites with air
+			// a picture is needed to see the coordinate relations below
+			Vector bpOrigin = targetRegion.getMinimumPoint(); //lower left point inside the outer walls
+			if (exitDirec != null) { // wall mode (a normal doorway)
+				switch (exitDirec) {
+				case WEST:
+					buildPlan = new boolean[wayWidth][wallWidth];
+					bpOrigin = bpOrigin.add(bestCellX*cellSize,0,-wallWidth);
+					break;
+				case NORTH:
+					buildPlan = new boolean[wallWidth][wayWidth];
+					bpOrigin = bpOrigin.add((bestCellX+1)*cellSize-wallWidth,0,bestCellZ*cellSize);
+					break;
+				case EAST:
+					buildPlan = new boolean[wayWidth][wallWidth];
+					bpOrigin = bpOrigin.add(bestCellX*cellSize,0,(bestCellZ+1)*cellSize-wallWidth);
+					break;
+				case SOUTH:
+					buildPlan = new boolean[wallWidth][wayWidth];
+					bpOrigin = bpOrigin.add(-wallWidth,0,bestCellZ*cellSize);
+					break;
+				}
+				parent.placeBuildPlan2D(bpOrigin, buildPlan, Material.AIR, wallHeight, true);
+			}else { //hole mode
+				buildPlan = new boolean[wayWidth][wayWidth];
+				bpOrigin = bpOrigin.add(bestCellX*cellSize,-1,bestCellZ*cellSize); //floor ->  y-1
+				parent.placeBuildPlan2D(bpOrigin, buildPlan, Material.AIR, 1, true);
+			}
+			
+		} // end if carve best exit
 		
-		// parent run has to be called for counter!
+		
+		// parent run() has to be called for counter!
 		super.run();
 	}
 	

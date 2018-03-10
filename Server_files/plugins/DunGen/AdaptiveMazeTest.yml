@@ -1,9 +1,9 @@
 # description of this dungeon room as in "Loading XX":
-description: a dark maze
+description: a hopefully hard maze, really
 # name of the schematic file used by this room (without .schematic):
-schematic: DarkMaze
-# Type of this room:  0: entry, 1: passageWay, 2: platformRoom, 3:battleRoom
-type: BATTLEROOM
+schematic: AdaptiveMazeTest
+# Type of this room: ENTRY, PASSAGEWAY, PLATFORMROOM, BATTLEROOM
+type: PLATFORMROOM
 
 
 entry:
@@ -13,19 +13,18 @@ entry:
   placementLoc:
     ==: Vector
     x: 0.0
-    y: 2.0
-    z: 10.0
+    y: 1.0
+    z: 20.0
   # Where the door blocks should be generated (lower left air block)
   doorLoc:
     ==: Vector
     x: 0.0
-    y: 2.0
-    z: 10.0
+    y: 1.0
+    z: 20.0
   # dimensions of entry gate, always 2 at the moment:
   width: 2
   height: 2
-  
-  
+
 exit:
   # Direc: South=0, East=270, North=180, West=90:
   initDirec: 270
@@ -33,19 +32,33 @@ exit:
   # lower left in the direction looking 'out' of the module from the inside
   placementLoc:
     ==: Vector
-    x: 23.0
-    y: 2.0
-    z: 13.0
+    x: 43.0
+    y: 1.0
+    z: 20.0
   # Where the door blocks should be generated (lower left air block)
   doorLoc:
     ==: Vector
-    x: 23.0
-    y: 2.0
-    z: 13.0
+    x: 43.0
+    y: 1.0
+    z: 20.0
   # dimensions of exit gate, always 2 at the moment:
   width: 2
   height: 2
- 
+
+
+
+# PlatformRooms only:
+# Zielgebiet, dass die Spieler erreichen muessen:
+targetRegCorner1:
+  ==: Vector
+  x: 42.0
+  y: 1.0
+  z: 37.0
+targetRegCorner2:
+  ==: Vector
+  x: 40.0
+  y: 2.0
+  z: 23.0
 
 
 # Rooms only: tasks to be carried out after placement:
@@ -53,78 +66,54 @@ tasks:
   task1:
     type: ENTITYSPAWN   # type of this task, ENTITYSPAWN, BLOCKSPWAN, EMPOWER or DEPOWER
     delay: 1.0          # delay to start this task [s]
-    period: 0.0        # periodicity of this task [s]
-    executionCount: 1
+    period: 20.0         # periodicity of this task [s]
+    executionCount: 20  # number of times this task shall be executed, has to be an integer
     # Region dieses Tasks, beide Punkte gleich wenn ein Punkt:
     regionCorner1:
       ==: Vector
-      x: 2.0
-      y: 2.0
-      z: 1.0
+      x: 1.0
+      y: 1.0
+      z: 4.0
     regionCorner2:
       ==: Vector
-      x: 21.0
-      y: 2.0
-      z: 20.0 
+      x: 38.0
+      y: 1.0
+      z: 37.0 
        
     # EntitySpawn only:
     # Spawns the entity type periodically and randomly in the target region in the given number.
     # Will not increase beyond the maximum number allowed.
-    entityType: ZOMBIE
-    count: 6        # number of entities to spawn
-    maxCount: 20    # maximum number of these entities alive concurently if spawned periodically
+    entityType: CREEPER
+    count: 1        # number of entities to spawn
+    maxCount: 15    # maximum number of these entities alive concurently if spawned periodically
     isTarget: true  # whether all of these have to be dead at the same time to succeed.
-    
     
   task2:
-    type: ENTITYSPAWN   # type of this task, ENTITYSPAWN, BLOCKSPWAN, EMPOWER or DEPOWER
-    delay: 1.0          # delay to start this task [s]
-    period: 0.0        # periodicity of this task [s]
-    executionCount: 1
-    # Region dieses Tasks, beide Punkte gleich wenn ein Punkt:
-    regionCorner1:
-      ==: Vector
-      x: 2.0
-      y: 2.0
-      z: 1.0
-    regionCorner2:
-      ==: Vector
-      x: 21.0
-      y: 2.0
-      z: 20.0 
-       
-    # EntitySpawn only:
-    # Spawns the entity type periodically and randomly in the target region in the given number.
-    # Will not increase beyond the maximum number allowed.
-    entityType: BAT
-    count: 3        # number of entities to spawn
-    maxCount: 20    # maximum number of these entities alive concurently if spawned periodically
-    isTarget: true  # whether all of these have to be dead at the same time to succeed.
-    
-    
-  task3:
     type: MAZE
     delay: 0.0
     period: 0.0
     executionCount: 1
     regionCorner1:
       ==: Vector
-      x: 2.0
+      x: 1.0
       y: 1.0
-      z: 1.0
+      z: 4.0
     regionCorner2:
       ==: Vector
-      x: 21.0
+      x: 38.0
       y: 1.0
-      z: 20.0
+      z: 37.0 
     
     # Maze only:
     # Will generate a Maze in the target area. The outer Wall needs to be present, with gaps for entry and exit!
     # The total area to be mazed needs to satisfy  length = n*(wayWidth+wallWidth)-wallWidth for both dimensions.
     # Define the width of walls and passageways in blocks:
-    wayWidth: 2.0       
-    wallWidth: 1.0
-    wallHeight: 4.0
-    mazeMaterial: SMOOTH_BRICK
-    carveBestExit: 0
+    wayWidth: 2
+    wallWidth: 2
+    wallHeight: 5
+    mazeMaterial: MAGMA
+    carveBestExit: 14  # the exit can be carved trough the outer wall automatically. It carves as far as wallWidth
+                      # 4-Bit Bitfield for outher walls allowed to be carved: [left(8) upfront(4) right(2) start(1)] -> sum, 0 switches off
+    # only needed if carveBestExit is on:
+    entryCell: 5   # The maze cell number of the entry, has to be counted from left to right, looking into the maze from the entry!
     
