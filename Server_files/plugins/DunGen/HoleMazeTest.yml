@@ -66,8 +66,8 @@ tasks:
   task1:
     type: ENTITYSPAWN   # type of this task, ENTITYSPAWN, BLOCKSPWAN, EMPOWER or DEPOWER
     delay: 1.0          # delay to start this task [s]
-    period: 0           # periodicity of this task [s]
-    executionCount: 1  # number of times this task shall be executed, has to be an integer
+    period: 20          # periodicity of this task [s]
+    executionCount: 5  # number of times this task shall be executed, has to be an integer
     # Region dieses Tasks, beide Punkte gleich wenn ein Punkt:
     regionCorner1:
       ==: Vector
@@ -84,7 +84,7 @@ tasks:
     # Spawns the entity type periodically and randomly in the target region in the given number.
     # Will not increase beyond the maximum number allowed.
     entityType: WITHER_SKELETON
-    count: 5        # number of entities to spawn
+    count: 2        # number of entities to spawn
     maxCount: 5    # maximum number of these entities alive concurently if spawned periodically
     isTarget: true  # whether all of these have to be dead at the same time to succeed.
     
