@@ -1,6 +1,47 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="javadoc">
+<project default="javadocWithUML">
     <target name="javadoc">
-        <javadoc access="private" author="true" classpath="../Server_files/spigot-1.12.2.jar;../Server_files/plugins/WorldEdit.jar" destdir="../docs" doctitle="DunGen documentation" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" packagenames="dunGen.tasks,dunGen" source="1.8" sourcepath="../src" splitindex="true" use="true" version="true"/>
+        <javadoc
+    		access="private" 
+        	author="true" 
+        	classpath="../Server_files/spigot-1.12.2.jar;../Server_files/plugins/WorldEdit.jar" 
+        	destdir="../docs" 
+        	doctitle="DunGen documentation" 
+        	nodeprecated="false" 
+        	nodeprecatedlist="false" 
+        	noindex="false" 
+        	nonavbar="false" 
+        	notree="false" 
+        	packagenames="dunGen.tasks,dunGen" 
+        	source="1.8" 
+        	sourcepath="../src" 
+        	splitindex="true" 
+        	use="true" 
+        	version="true"/>
     </target>
+	
+	
+	<target name="javadocWithUML" description="generates javadoc and also UML Diagram">
+		<javadoc doctitle="DunGen documentation" access="private" docletpath="../lib/UmlGraph.jar"  sourcepath="../src" packagenames="dunGen.tasks,dunGen,org.umlgraph.doclet" destdir="../docs" classpath="../Server_files/spigot-1.12.2.jar;../Server_files/plugins/WorldEdit.jar;../lib/UmlGraph.jar" >
+			<doclet name="org.umlgraph.doclet.UmlGraphDoc" path="../lib/UmlGraph.jar">
+				<param name="-all"/>
+				<param name="-hide" value="java.*" />
+				<!--<param name="-inferdep" />-->
+				<!--<param name="-inferrel" />-->
+				<!--<param name="-link" />-->
+			</doclet>
+		</javadoc>
+		<apply executable="dot" dest=".." parallel="false">
+			<arg value="-Tpng"/>
+			<arg value="-o"/>
+			<targetfile/>
+			<srcfile/>
+			<fileset dir=".." includes="*.dot"/>
+			<mapper type="glob" from="*.dot" to="*.png"/>
+		</apply>
+	</target>
+	
 </project>
+
+
+
