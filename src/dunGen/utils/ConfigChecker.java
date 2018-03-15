@@ -151,7 +151,8 @@ public class ConfigChecker implements CommandExecutor {
 
 				key = "schematic";
 				if (stringCheck(key)) {
-					File f = new File(plugin.dir,curConf.getString(key)+".schematic");
+					File f = new File(plugin.dir,"schematics");
+					f = new File(f,curConf.getString(key)+".schematic");
 					if (!f.exists()) errTxt += "["+curModuleName+".yml] File does not exist: "+key + ".schematic\n";
 				}
 

@@ -260,7 +260,8 @@ public abstract class Module implements Listener {
 		EditSession es;
     	try {
     	// load to clipboard:
-    	File schemFile = new File(parent.dir,fileName);
+    	File schemFile = new File(parent.dir,"schematics");
+    	schemFile = new File(schemFile,fileName);
     	es = new EditSession(new BukkitWorld(parent.world), 999999999);
     	es.enableQueue();
     	SchematicFormat schematic = SchematicFormat.getFormat(schemFile);
