@@ -309,7 +309,7 @@ public final class DunGen extends JavaPlugin implements Listener{
         }
         worldEdit = (WorldEditPlugin) plugin;
 		
-        // Set executors (test feature for later code sorting):
+        // Set executors (used to wrap away plugin parts with commands):
         blockNameUtility = new Util_BlockName(this);
         getCommand("BlockName").setExecutor(blockNameUtility);
         configChecker = new ConfigChecker(this);
