@@ -3,6 +3,7 @@ package mineCSweeper;
 import java.io.File;
 import java.util.logging.Logger;
 
+import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -10,21 +11,13 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
-import dunGen.DunGen.State;
+import mineCSweeper.MCSGameState;
 import dunGen.Helper.Direc;
 
 /**Represents a game of MineCraftSweeper. It accesses its own configuration in the hosting plugins folder
  * and is handed its own commands. It consists of a state machine and game board if spawned.
  * It implements a Listener to react to player interaction.*/
 public class MCSGame implements Listener {
-
-	// ########################## Member defines ############################
-	private enum MCSGameState {
-		NOT_STARTED,
-		STARTUP,
-		RUNNING,
-		ERROR;
-	}
 	
 	// ########################## Member variables ############################
 	private MCSGameState state;
@@ -41,13 +34,36 @@ public class MCSGame implements Listener {
 		// TODO initialize everything needed
 		this.plugin = plugin;
 		log = plugin.getLogger();
-
-
+		settings = MCSSettings.getSettingsHandler(plugin.getDataFolder());
+		if (!settings.isLoadedSuccessfully()) {
+			state = MCSGameState.newState(MCSGameState.ERROR, "Game initialization failed!");
+		}
 		
-		state = MCSGameState.NOT_STARTED;
+		state = MCSGameState.newState(MCSGameState.NOT_STARTED,"Game initialization successfull.");
 	}
 	
 
+	public void start(Location boardPose) {
+		switch (state) {
+		case ERROR:
+			//TODO, see diagrams
+			break;
+		case NOT_STARTED:
+			//start normally
+			board = new MCSBoard(boardPose);
+			board.placeEmpty();
+			break;
+		case STARTUP:
+			//TODO: generate new board at new position
+			break;
+		case RUNNING:
+			state.setMessage("The game is already running! Type 'restart' to start over.");
+		}
+		
+	}
+	
+	
+	
 	private void placeBoard(Vector targetCorner, Direc dir) {
 		// TODO stub
 	}
@@ -90,13 +106,10 @@ public class MCSGame implements Listener {
 	}
 	
 	public void onDisable() {
-		saveConfig();
+		settings.saveConfig();
 	}
 
-	public void start() {
-		// TODO Auto-generated method stub
-		
-	}
+
 
 	public void stop() {
 		// TODO Auto-generated method stub
@@ -115,6 +128,18 @@ public class MCSGame implements Listener {
 		return true;
 	}
 	
+	public MCSSettings getSettings() {
+		return settings;
+	}
 
+
+	public boolean isInErrorState() {
+		return (state == MCSGameState.ERROR);
+	}
+
+
+	public MCSGameState getState() {
+		return state;
+	}
 	
 }

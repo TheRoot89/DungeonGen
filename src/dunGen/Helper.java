@@ -93,6 +93,16 @@ public class Helper {
 		public Vector toUnityVec() {
 			return new Vector(-Helper.sind(degree),0,Helper.cosd(degree));
 		}
+		
+		public org.bukkit.util.Vector toBukkitUnityVec() {
+			return new org.bukkit.util.Vector(-Helper.sind(degree),0,Helper.cosd(degree));
+		}
+		
+		public org.bukkit.util.Vector toBukkitVec(int length) {
+			org.bukkit.util.Vector vec = toBukkitUnityVec();
+			vec = vec.multiply(length);
+			return vec;
+		}
 	}	
 	
 	

@@ -14,5 +14,8 @@ commands:
       description: Resets the current game
       usage: /<command>
    MCS_set:
-      description: Sets a game setting. Possible keys are width, height and nrBombs.
+      description: Sets a game setting. Possible keys are width, height and nrBombs. Shows current settings if no arguments are given.
       usage: /<command> <key> <value>
+   MCS_save:
+      description: Saves the current settings to the plugins config file, loaded during startup.
+      usage: /<command>

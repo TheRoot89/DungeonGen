@@ -4,15 +4,22 @@ package mineCSweeper;
 
 import java.io.File;
 
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import dunGen.Helper.Direc;
+
 /**Minecraft Plugin to host game of MineCSweeper. This enables testing and playing outside of DunGen.
  * The full game code shall be included in its own class, so the game can be added to any plugin.*/
 public class MCSPlugin extends JavaPlugin {
 
+	// ######################### Settings #####################################
+	final static int SPAWNDISTANCE = 2;
+	final static MsgLevel playerMessageLevel = MsgLevel.ERROR;
+	final static MsgLevel consoleMessageLevel = MsgLevel.DEBUG;
 	
 	// ########################## Member variables ############################
 	private MCSGame game 		= null;	// Reference to the actual object handling the game
@@ -30,36 +37,65 @@ public class MCSPlugin extends JavaPlugin {
 		}
 		Player player = (Player)sender;
 		
-		// check state:
-		if (game == null) {
-			player.sendMessage("The game was not initialized correctly! Trying to reset...");
+		// check status:
+		if (game.isInErrorState()) {
+			player.sendMessage("Game is in Error state: " + game.getState().getMessage());
+			player.sendMessage("Trying to reset...");
 			resetPlugin();
-			player.sendMessage("Plugin was reset. You may now try again.");
-			return false;
-		}
-		// React to defined commands:
-		if (command.getName().equalsIgnoreCase("MCS_start")) {
-			player.sendMessage("MineCraftSweeper started!");
-			game.start();
-			return true;
-		}else if (command.getName().equalsIgnoreCase("MCS_stop")) {
-			player.sendMessage("MineCraftSweeper stopped.");
-			game.stop();
-			return true;
-		}else if (command.getName().equalsIgnoreCase("MCS_restart")) {
-			player.sendMessage("MineCraftSweeper restarted.");
-			game.restart();
-			return true;
-		}else if (command.getName().equalsIgnoreCase("MCS_set")) {
-			boolean keyExists = game.setOptionIfKeyExists(args[0], args[1]);
-			if (!keyExists)
-				player.sendMessage("This setting keyword is unknown!");
+			player.sendMessage("Plugin was reset. You may now try again. View the concole error log if persistent.");
 			return true;
 		}
-		// Command was not found if reached here:
-		return false;
+		
+		return interpretCommand(command.getName(), player, args);
 	}
 
+	private boolean interpretCommand(String command, Player player, String[] args) {
+		if (command.equalsIgnoreCase("MCS_start")) {
+			Location playerPose = player.getLocation();
+			Direc playerDirec = Direc.fromDeg(playerPose.getYaw());
+			Location boardPose = playerPose.add(playerDirec.toBukkitVec(SPAWNDISTANCE));
+			game.start(boardPose);
+			return true;
+		}else if (command.equalsIgnoreCase("MCS_stop")) {
+			game.stop();
+			player.sendMessage("MineCraftSweeper stopped.");
+			return true;
+		}else if (command.equalsIgnoreCase("MCS_restart")) {
+			game.restart();
+			player.sendMessage("MineCraftSweeper restarted.");
+			return true;
+		}else if (command.equalsIgnoreCase("MCS_save")) {
+			player.sendMessage("Saving settings to " + game.getSettings().getSettingsFile().toString() + "...");
+			boolean result = game.getSettings().saveConfig();
+			if (result) {
+				player.sendMessage("Saved successfully.");
+			}else {
+				player.sendMessage("Failed!");
+			}
+			return true;
+		}else if (command.equalsIgnoreCase("MCS_set")) {
+			if (args.length < 2) {
+				player.sendMessage("No settings keyword given, displaying current settings:");
+				String[] settingsList = game.getSettings().getCurrentSettingsAsStringList();
+				for (String setting : settingsList) {
+					player.sendMessage(setting);
+				}
+				player.sendMessage("Usage:"); 
+				return false;
+			}
+			boolean keyExists = game.getSettings().setOption(args[0], args[1]);
+			if (!keyExists)
+				player.sendMessage("This setting is unknown! Type 'MCS_set' for a list of options.");
+			else
+				player.sendMessage("Set " + args[0] + "to " + args[1] + ".");
+			return true;
+		}
+		
+		// Command was not found if reached here:
+		player.sendMessage("Command not found!");
+		return false;
+	}
+	
 	
 	@Override
 	public void onDisable() {
@@ -83,6 +119,7 @@ public class MCSPlugin extends JavaPlugin {
 				return;
 			}
 		game = new MCSGame(this);
+		game.getState().registerMessageCallback(this::onStateMessage);;
 	}
 	
 	
@@ -90,6 +127,20 @@ public class MCSPlugin extends JavaPlugin {
 		if (game != null) game.onDisable();
 		initializePlugin();
 	}
+	
+	
+	private Void onStateMessage(MsgLevel level, String message) {
+		if (level.isAsSeriousAs(consoleMessageLevel)) {
+			//TODO with color n everything
+			getLogger().log
+		}
+		
+		if (level.isAsSeriousAs(playerMessageLevel)) {
+			//TODO
+		}
+		return null; // to comply with the java Function handlers, objects need to be returned
+	}
+	
 	
 	
 	
