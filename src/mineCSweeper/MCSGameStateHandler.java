@@ -8,7 +8,7 @@ import java.util.function.Function;
 
 
 
-public class MCSGameState {
+public class MCSGameStateHandler {
 	
 	private BiConsumer<MsgLevel,String> messageCallback = null;
 	private boolean messageCallbackIsSet = false;
@@ -16,7 +16,17 @@ public class MCSGameState {
 	private String lastMessage;
 	private MsgLevel lastMsgLevel;
 	
-	public MCSGameState(GameState state, MsgLevel level, String message) {
+	public static MCSGameStateHandler initializeNewGameState(BiConsumer<MsgLevel,String> messageCallback) {
+		MCSGameStateHandler gs = getNewlyInitializedGameState();
+		gs.publish();
+		return gs;
+	}
+	
+	public static MCSGameStateHandler getNewlyInitializedGameState() {
+		return new MCSGameStateHandler(GameState.NOT_STARTED, MsgLevel.INFO, "Game initialization successfull.");
+	}
+	
+	public MCSGameStateHandler(GameState state, MsgLevel level, String message) {
 		this.state = state;
 		this.lastMessage = message;
 		this.lastMsgLevel = level;
@@ -27,6 +37,12 @@ public class MCSGameState {
 		messageCallbackIsSet = true;
 	}
 	
+	public void publish() {
+		if (messageCallbackIsSet) {
+			messageCallback.accept(lastMsgLevel,lastMessage);
+		}
+	}
+	
 	public void setState(GameState newState) {
 		this.state = newState;
 		setMessage("State set to " + state.toString(), MsgLevel.DEBUG);
@@ -35,9 +51,7 @@ public class MCSGameState {
 	public void setMessage(String message, MsgLevel level) {
 		lastMessage = message;
 		lastMsgLevel = level;
-		if (messageCallbackIsSet) {
-			messageCallback.accept(level, message);
-		}
+		publish();
 	}
 	
 	public void setState(GameState newState, String message, MsgLevel level) {
@@ -50,11 +64,11 @@ public class MCSGameState {
 		setMessage(message,MsgLevel.ERROR);
 	}
 	
-	public void logError(String message) {
+	public void logErrorKeepState(String message) {
 		setMessage(message,MsgLevel.ERROR);
 	}
 	
-	public void logWarning(String message) {
+	public void logWarningKeepState(String message) {
 		setMessage(message,MsgLevel.WARNING);
 	}
 	

@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.logging.Logger;
 
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -11,7 +12,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
-import mineCSweeper.MCSGameState;
+import mineCSweeper.MCSGameStateHandler;
 import dunGen.Helper.Direc;
 
 /**Represents a game of MineCraftSweeper. It accesses its own configuration in the hosting plugins folder
@@ -19,46 +20,53 @@ import dunGen.Helper.Direc;
  * It implements a Listener to react to player interaction.*/
 public class MCSGame implements Listener {
 	
+	final static int SPAWNDISTANCE = 2; //TODO make a setting of this
+	
 	// ########################## Member variables ############################
-	private MCSGameState state;
+	private MCSGameStateHandler gameState;
 	
 	private JavaPlugin plugin;
-	private Vector boardPos;
 	private MCSBoard board;
 	private Direc boardDirec;
-	private Logger log;
 	private MCSSettings settings;
+	private Player player;
 	
 	// ############################ Member functions ############################
 	public MCSGame(JavaPlugin plugin) {
 		// TODO initialize everything needed
 		this.plugin = plugin;
-		log = plugin.getLogger();
-		settings = MCSSettings.getSettingsHandler(plugin.getDataFolder());
-		if (!settings.isLoadedSuccessfully()) {
-			state = MCSGameState.newState(MCSGameState.ERROR, "Game initialization failed!");
+		
+		try {
+			settings = MCSSettings.getSettingsHandler(plugin.getDataFolder());
+			gameState = MCSGameStateHandler.getNewlyInitializedGameState();
+		} catch (MCSException e) {
+			gameState.logErrorKeepState("Game settings initialization failed: " + e.getMessage());
 		}
 		
-		state = MCSGameState.newState(MCSGameState.NOT_STARTED,"Game initialization successfull.");
 	}
 	
 
-	public void start(Location boardPose) {
-		switch (state) {
+	public void start(Player player) {
+		switch (gameState.getState()) {
 		case ERROR:
 			//TODO, see diagrams
 			break;
 		case NOT_STARTED:
-			//start normally
+			//start normally: get pose of player, add him, and create the board
+			Location playerPose = player.getLocation();
+			Direc playerDirec = Direc.fromDeg(playerPose.getYaw());
+			Location boardPose = playerPose.add(playerDirec.toBukkitVec(SPAWNDISTANCE));
 			board = new MCSBoard(boardPose);
 			board.placeEmpty();
 			break;
 		case STARTUP:
 			//TODO: generate new board at new position
+			gameState.setMessage("Generating new board at new position", MsgLevel.INFO);
 			break;
 		case RUNNING:
-			state.setMessage("The game is already running! Type 'restart' to start over.");
+			gameState.setMessage("The game is already running! Type 'restart' to start over.", MsgLevel.WARNING);
 		}
+		
 		
 	}
 	
@@ -134,12 +142,12 @@ public class MCSGame implements Listener {
 
 
 	public boolean isInErrorState() {
-		return (state == MCSGameState.ERROR);
+		return (gameState == MCSGameStateHandler.ERROR);
 	}
 
 
-	public MCSGameState getState() {
-		return state;
+	public MCSGameStateHandler getState() {
+		return gameState;
 	}
 	
 }

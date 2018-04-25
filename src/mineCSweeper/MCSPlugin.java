@@ -11,13 +11,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import dunGen.Helper.Direc;
+import net.md_5.bungee.api.ChatColor;
 
 /**Minecraft Plugin to host game of MineCSweeper. This enables testing and playing outside of DunGen.
  * The full game code shall be included in its own class, so the game can be added to any plugin.*/
 public class MCSPlugin extends JavaPlugin {
 
 	// ######################### Settings #####################################
-	final static int SPAWNDISTANCE = 2;
 	final static MsgLevel playerMessageLevel = MsgLevel.ERROR;
 	final static MsgLevel consoleMessageLevel = MsgLevel.DEBUG;
 	
@@ -51,10 +51,7 @@ public class MCSPlugin extends JavaPlugin {
 
 	private boolean interpretCommand(String command, Player player, String[] args) {
 		if (command.equalsIgnoreCase("MCS_start")) {
-			Location playerPose = player.getLocation();
-			Direc playerDirec = Direc.fromDeg(playerPose.getYaw());
-			Location boardPose = playerPose.add(playerDirec.toBukkitVec(SPAWNDISTANCE));
-			game.start(boardPose);
+			game.start(player);
 			return true;
 		}else if (command.equalsIgnoreCase("MCS_stop")) {
 			game.stop();
@@ -130,13 +127,13 @@ public class MCSPlugin extends JavaPlugin {
 	
 	
 	private Void onStateMessage(MsgLevel level, String message) {
-		if (level.isAsSeriousAs(consoleMessageLevel)) {
+		if (level.isAtLeastAsSeriousAs(consoleMessageLevel)) {
 			//TODO with color n everything
-			getLogger().log
+			getServer().getConsoleSender().sendMessage(level.getChatColor() + "[DunGen] " + message);
 		}
 		
-		if (level.isAsSeriousAs(playerMessageLevel)) {
-			//TODO
+		if (level.isAtLeastAsSeriousAs(playerMessageLevel)) {
+			
 		}
 		return null; // to comply with the java Function handlers, objects need to be returned
 	}

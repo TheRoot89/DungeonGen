@@ -12,11 +12,10 @@ import org.bukkit.configuration.file.YamlConfiguration;
 public class MCSSettings {
 	private final static String configFile = "MCSConfig.yml";
 	private File settingsFile;
-	private boolean loadedSuccessfully;
 	private Hashtable<String, Integer> integerSettings;
 	private Hashtable<String, Boolean> booleanSettings;
 	
-	public static MCSSettings getSettingsHandler(File pluginDirectory ) {
+	public static MCSSettings getSettingsHandler(File pluginDirectory ) throws MCSException{
 		MCSSettings settings = new MCSSettings();
 		settings.integerSettings = new Hashtable<>();
 		settings.booleanSettings = new Hashtable<>();
@@ -31,14 +30,12 @@ public class MCSSettings {
 	        settings.settingsFile = new File(pluginDirectory, configFile);
 	        if (!settings.settingsFile.exists()) {
 	            settings.createConfig();
-	            settings.loadedSuccessfully = true;
 	        }else {
 	        	settings.loadConfig();
-	        	settings.loadedSuccessfully = true;
 	        }
 		} catch (Exception e) {
 			e.printStackTrace();
-			settings.loadedSuccessfully = false;
+			throw new MCSException(e.getMessage());
 		}
 		return settings;
 	
@@ -65,7 +62,6 @@ public class MCSSettings {
 			if (config.contains(key)) booleanSettings.put(key, config.getBoolean(key));
 		}
 	}
-
 	
 	
 	boolean saveConfig() { //visib. is "package" by declaring none in java
@@ -79,9 +75,6 @@ public class MCSSettings {
 		
 	}
 	
-	public boolean isLoadedSuccessfully() {
-		return loadedSuccessfully;
-	}
 	
 	public boolean hasOptionKey(String key) {
 		return (integerSettings.containsKey(key) || booleanSettings.containsKey(key));
