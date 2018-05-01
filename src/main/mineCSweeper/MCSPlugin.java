@@ -1,17 +1,9 @@
 package mineCSweeper;
 
-
-
 import java.io.File;
-
-import org.bukkit.Location;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import dunGen.Helper.Direc;
-import net.md_5.bungee.api.ChatColor;
 
 /**Minecraft Plugin to host game of MineCSweeper. This enables testing and playing outside of DunGen.
  * The full game code shall be included in its own class, so the game can be added to any plugin.*/
@@ -80,15 +72,19 @@ public class MCSPlugin extends JavaPlugin {
 				player.sendMessage("Usage:"); 
 				return false;
 			}
-			boolean keyExists = game.getSettings().setOption(args[0], args[1]);
-			if (!keyExists)
-				player.sendMessage("This setting is unknown! Type 'MCS_set' for a list of options.");
-			else
+			// Now we know we have enough arguments:
+			try {
+				game.getSettings().setOption(args[0], args[1]);
 				player.sendMessage("Set " + args[0] + "to " + args[1] + ".");
+			} catch (MCSException e) {
+				player.sendMessage("Error: " + e.getMessage());
+				player.sendMessage("Type 'MCS_set' for a list of options.");
+			}
 			return true;
 		}
 		
 		// Command was not found if reached here:
+		// Something must have gone wrong then, check your plugin.yml for consistency!
 		player.sendMessage("Command not found!");
 		return false;
 	}
@@ -96,7 +92,8 @@ public class MCSPlugin extends JavaPlugin {
 	
 	@Override
 	public void onDisable() {
-		if (game != null) game.onDisable();
+		if (game != null)
+			game.onDisable();
 	}
 
 	
@@ -121,19 +118,20 @@ public class MCSPlugin extends JavaPlugin {
 	
 	
 	public void resetPlugin() {
-		if (game != null) game.onDisable();
+		if (game != null)
+			game.onDisable();
 		initializePlugin();
 	}
 	
 	
 	private Void onStateMessage(MsgLevel level, String message) {
+		String formatedMessage = level.getChatColor() + "[MCS] " + message;
 		if (level.isAtLeastAsSeriousAs(consoleMessageLevel)) {
-			//TODO with color n everything
-			getServer().getConsoleSender().sendMessage(level.getChatColor() + "[DunGen] " + message);
+			getServer().getConsoleSender().sendMessage(formatedMessage);
 		}
 		
 		if (level.isAtLeastAsSeriousAs(playerMessageLevel)) {
-			
+			game.getPlayer().sendMessage(formatedMessage);
 		}
 		return null; // to comply with the java Function handlers, objects need to be returned
 	}

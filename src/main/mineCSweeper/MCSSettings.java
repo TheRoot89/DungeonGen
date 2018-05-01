@@ -12,19 +12,30 @@ import org.bukkit.configuration.file.YamlConfiguration;
 public class MCSSettings {
 	private final static String configFile = "MCSConfig.yml";
 	private File settingsFile;
-	private Hashtable<String, Integer> integerSettings;
-	private Hashtable<String, Boolean> booleanSettings;
+	private Hashtable<Key, Integer> integerSettings;
+	private Hashtable<Key, Boolean> booleanSettings;
+	
+	// All possible settings, add new setting here:
+	public enum Key{
+		BOMBCOUNT,
+		BOARDWIDTH,
+		BOARDHEIGHT,
+		BOARDSPAWNDIST,
+		SAFEBOMBFLAGS
+	}
+	
 	
 	public static MCSSettings getSettingsHandler(File pluginDirectory ) throws MCSException{
 		MCSSettings settings = new MCSSettings();
 		settings.integerSettings = new Hashtable<>();
 		settings.booleanSettings = new Hashtable<>();
 		
-		// ######### Default settings #########
-		settings.integerSettings.put("bombCount", 10);
-		settings.integerSettings.put("boardWidth", 10);
-		settings.integerSettings.put("boardHeight", 10);
-		settings.booleanSettings.put("safeBombFlags", false);
+		// ######### Default settings, init new settings here #########
+		settings.integerSettings.put(Key.BOMBCOUNT, 10);
+		settings.integerSettings.put(Key.BOARDWIDTH, 10);
+		settings.integerSettings.put(Key.BOARDHEIGHT, 10);
+		settings.integerSettings.put(Key.BOARDSPAWNDIST, 2);
+		settings.booleanSettings.put(Key.SAFEBOMBFLAGS, false);
 		
 		try {
 	        settings.settingsFile = new File(pluginDirectory, configFile);
@@ -43,11 +54,11 @@ public class MCSSettings {
 
 	private void createConfig() throws IOException {
 		FileConfiguration newConfig = new YamlConfiguration();
-		for (String key : integerSettings.keySet()) {
-			newConfig.set(key, integerSettings.get(key));
+		for (Key key : integerSettings.keySet()) {
+			newConfig.set(key.toString(), integerSettings.get(key));
 		}
-		for (String key : booleanSettings.keySet()) {
-			newConfig.set(key, booleanSettings.get(key));
+		for (Key key : booleanSettings.keySet()) {
+			newConfig.set(key.toString(), booleanSettings.get(key));
 		}
 		newConfig.save(settingsFile);
 	}
@@ -55,11 +66,13 @@ public class MCSSettings {
 	private void loadConfig() throws FileNotFoundException, IOException, InvalidConfigurationException {
 		FileConfiguration config = new YamlConfiguration();
 		config.load(settingsFile);
-		for (String key : integerSettings.keySet()) {
-			if (config.contains(key)) integerSettings.put(key, config.getInt(key));
+		for (Key key : integerSettings.keySet()) {
+			if (config.contains(key.toString()))
+				integerSettings.put(key, config.getInt(key.toString()));
 		}
-		for (String key : booleanSettings.keySet()) {
-			if (config.contains(key)) booleanSettings.put(key, config.getBoolean(key));
+		for (Key key : booleanSettings.keySet()) {
+			if (config.contains(key.toString()))
+				booleanSettings.put(key, config.getBoolean(key.toString()));
 		}
 	}
 	
@@ -76,20 +89,28 @@ public class MCSSettings {
 	}
 	
 	
-	public boolean hasOptionKey(String key) {
+	public boolean hasOptionKey(Key key) {
 		return (integerSettings.containsKey(key) || booleanSettings.containsKey(key));
 	}
 	
-	public boolean setOption(String key, String value) {
+	public void setOption(String keyAsString, String value) throws MCSException{
+		// Parse key string:
+		keyAsString = keyAsString.toUpperCase();
+		Key key;
+		try {
+			key = Key.valueOf(keyAsString);
+		} catch (IllegalArgumentException e) {
+			throw new MCSException("No such option key: " + keyAsString);
+		}
 		
 		// Handle integer type options:
 		if (integerSettings.containsKey(key)) {
 			try {
 				Integer intValue = Integer.parseInt(value);
 				integerSettings.put(key, intValue);
-				return true;
+				return;
 			}catch (NumberFormatException e) {
-				// TODO: handle exception
+				throw new MCSException(e.getMessage());
 			}
 		}
 		
@@ -104,21 +125,21 @@ public class MCSSettings {
 				boolValue = Boolean.parseBoolean(value);
 				booleanSettings.put(key, boolValue);
 			}
-			return true;
+			return;
 		}
 		
-		return false;
+		throw new MCSException("TILT: Unknown Options should have been handled above!");
 	}
 
 	public String[] getCurrentSettingsAsStringList() {
 		String[] settingsList = new String[integerSettings.size() + booleanSettings.size()];
 		int i = 0;
-		for (String key : integerSettings.keySet()) {
-			settingsList[i] = key + ": " + integerSettings.get(key).toString();
+		for (Key key : integerSettings.keySet()) {
+			settingsList[i] = key.toString() + ": " + integerSettings.get(key).toString();
 			i++;
 		}
-		for (String key : booleanSettings.keySet()) {
-			settingsList[i] = key + ": " + booleanSettings.get(key).toString();
+		for (Key key : booleanSettings.keySet()) {
+			settingsList[i] = key.toString() + ": " + booleanSettings.get(key).toString();
 			i++;
 		}
 		
@@ -127,5 +148,21 @@ public class MCSSettings {
 
 	public File getSettingsFile() {
 		return settingsFile;
+	}
+	
+	public int getIntegerSetting(Key key){
+		if (integerSettings.containsKey(key)) {
+			return integerSettings.get(key);
+		} else {
+			return 0;
+		}
+	}
+	
+	public boolean getBooleanSetting(Key key){
+		if (booleanSettings.containsKey(key)) {
+			return booleanSettings.get(key);
+		} else {
+			return false;
+		}
 	}
 }

@@ -25,10 +25,12 @@ import org.bukkit.util.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
-import dunGen.Helper.Direc;
 import dunGen.Module.ModuleType;
 import dunGen.utils.ConfigChecker;
 import dunGen.utils.Util_BlockName;
+import javaHelpers.MathHelpers;
+import mcPluginHelpers.MCHelpers;
+import mcPluginHelpers.Direc;
 import net.md_5.bungee.api.ChatColor;
 
 
@@ -496,9 +498,9 @@ public final class DunGen extends JavaPlugin implements Listener{
 		// also check if ground is solid. if not then paste over the gras etc.
 		int initDist = 10; // distance to player
 		Vector start = new Vector(p.getLocation().getBlockX(),p.getLocation().getBlockY(),p.getLocation().getBlockZ());
-		Direc playerDirec = Helper.getPlayerDirec(p);
-		int deltaX = (int)Math.round(-Helper.sind(playerDirec.degree())*initDist);
-		int deltaZ = (int)Math.round(+Helper.cosd(playerDirec.degree())*initDist);
+		Direc playerDirec = Direc.getPlayerDirec(p);
+		int deltaX = (int)Math.round(-MathHelpers.sind(playerDirec.degree())*initDist);
+		int deltaZ = (int)Math.round(+MathHelpers.cosd(playerDirec.degree())*initDist);
 		start.add(new Vector(deltaX,0,deltaZ));
 		int solidOffset = 0;
 		if (world.getHighestBlockAt(start.getBlockX(), start.getBlockZ()).getType().isSolid()) {

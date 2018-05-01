@@ -21,4 +21,8 @@ public enum MsgLevel{
 	public ChatColor getChatColor() {
 		return chatColor;
 	}
+	
+	public String getPrefix() {
+		return "[" + toString() + "] ";
+	}
 }

@@ -10,8 +10,8 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.regions.RegionOperationException;
 
-import dunGen.Helper;
 import dunGen.Room;
+import mcPluginHelpers.MCHelpers;
 
 /**A special Task that spawns blocks in the targetRegion. This may be shifted with each iteration. */
 public class BlockSpawnTask extends RoomTask {
@@ -41,7 +41,7 @@ public class BlockSpawnTask extends RoomTask {
 	public void run() {
 		World world = parent.getPlugin().world;
 
-		Helper.fillVolume(world, parent.toGlobal(targetRegion.getPos1()),
+		MCHelpers.fillVolume(world, parent.toGlobal(targetRegion.getPos1()),
 				                 parent.toGlobal(targetRegion.getPos2()), blockMaterial);
 		try {
 			targetRegion.shift(incrementVec);

@@ -9,8 +9,8 @@ import org.bukkit.entity.EntityType;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.regions.CuboidRegion;
 
-import dunGen.Helper;
 import dunGen.Room;
+import mcPluginHelpers.MCHelpers;
 
 /**A task to spawn arbitrary entities in a room. It is solved if all spawned entities are killed.
  */
@@ -72,7 +72,7 @@ public class EntitySpawnTask extends RoomTask {
 			int tryNr = 1;
 			Location spawnL = new Location(world, 0, 0, 0);
 			while (tryNr < MAXSPAWNPOSITIONTRIES) {
-				spawnL = BukkitUtil.toLocation(world, Helper.getRandVector(targetRegion));
+				spawnL = BukkitUtil.toLocation(world, MCHelpers.getRandVector(targetRegion));
 				if (world.getBlockAt(spawnL).isEmpty()) break;
 				tryNr++;
 			}

@@ -9,9 +9,9 @@ import org.bukkit.entity.Entity;
 import com.sk89q.worldedit.Vector;
 
 import dunGen.DunGen.State;
-import dunGen.Helper.Direc;
 import dunGen.tasks.TaskWithCallback;
 import dunGen.tasks.RoomTask.TaskType;
+import mcPluginHelpers.Direc;
 import dunGen.tasks.BlockSpawnTask;
 import dunGen.tasks.EntitySpawnTask;
 import dunGen.tasks.MazeTask;

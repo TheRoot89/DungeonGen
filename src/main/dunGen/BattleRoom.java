@@ -6,7 +6,7 @@ import org.bukkit.entity.Entity;
 
 import com.sk89q.worldedit.Vector;
 
-import dunGen.Helper.Direc;
+import mcPluginHelpers.Direc;
 
 /**A Room with victory condition that all target entities are dead.*/
 public class BattleRoom extends Room {

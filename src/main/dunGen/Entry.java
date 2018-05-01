@@ -2,7 +2,7 @@ package dunGen;
 
 import com.sk89q.worldedit.Vector;
 
-import dunGen.Helper.Direc;
+import mcPluginHelpers.Direc;
 
 public class Entry extends Passageway{
 	

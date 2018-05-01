@@ -1,12 +1,6 @@
 package mineCSweeper;
 
 import java.util.function.BiConsumer;
-import java.util.function.Function;
-
-
-
-
-
 
 public class MCSGameStateHandler {
 	
@@ -39,7 +33,7 @@ public class MCSGameStateHandler {
 	
 	public void publish() {
 		if (messageCallbackIsSet) {
-			messageCallback.accept(lastMsgLevel,lastMessage);
+			messageCallback.accept(lastMsgLevel,lastMsgLevel.getPrefix() + lastMessage);
 		}
 	}
 	
@@ -61,18 +55,20 @@ public class MCSGameStateHandler {
 	
 	public void setToError(String message) {
 		this.state = GameState.ERROR;
-		setMessage(message,MsgLevel.ERROR);
+		setMessage(message, MsgLevel.ERROR);
 	}
 	
 	public void logErrorKeepState(String message) {
-		setMessage(message,MsgLevel.ERROR);
+		setMessage(message, MsgLevel.ERROR);
 	}
 	
-	public void logWarningKeepState(String message) {
-		setMessage(message,MsgLevel.WARNING);
+	public void logWarning(String message) {
+		setMessage(message, MsgLevel.WARNING);
 	}
 	
-
+	public void logInfo(String message) {
+		setMessage(message, MsgLevel.INFO);
+	}
 	
 	public MsgLevel getMessageLevel() {
 		return lastMsgLevel;
@@ -85,4 +81,9 @@ public class MCSGameStateHandler {
 	public String getMessage() {
 		return lastMessage;
 	}
+	
+	public boolean isError() {
+		return state == GameState.ERROR;
+	}
+	
 }

@@ -14,7 +14,7 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 
 import dunGen.DunGen.State;
-import dunGen.Helper.Direc;
+import mcPluginHelpers.Direc;
 
 /**Represents a Module connecting two actual rooms. Intermediate things may take place here.
  * Doors are a part of Passageways, not rooms. Entry and exit may be set separately and may have different mechanisms.

@@ -6,7 +6,7 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.regions.CuboidRegion;
 
-import dunGen.Helper.Direc;
+import mcPluginHelpers.Direc;
 
 public class PlatformRoom extends Room {
 	

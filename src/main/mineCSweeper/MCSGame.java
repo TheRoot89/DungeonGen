@@ -1,9 +1,7 @@
 package mineCSweeper;
 
-import java.io.File;
-import java.util.logging.Logger;
-
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -12,8 +10,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
+import mcPluginHelpers.Direc;
 import mineCSweeper.MCSGameStateHandler;
-import dunGen.Helper.Direc;
 
 /**Represents a game of MineCraftSweeper. It accesses its own configuration in the hosting plugins folder
  * and is handed its own commands. It consists of a state machine and game board if spawned.
@@ -23,12 +21,12 @@ public class MCSGame implements Listener {
 	final static int SPAWNDISTANCE = 2; //TODO make a setting of this
 	
 	// ########################## Member variables ############################
+	private World world;
 	private MCSGameStateHandler gameState;
-	
 	private JavaPlugin plugin;
 	private MCSBoard board;
-	private Direc boardDirec;
 	private MCSSettings settings;
+	private MCSGameMechanic gameMechanic;
 	private Player player;
 	
 	// ############################ Member functions ############################
@@ -47,37 +45,40 @@ public class MCSGame implements Listener {
 	
 
 	public void start(Player player) {
+		Location boardPose = calcBoardSpawn(player);
+		//TODO start with gameMechanic!
 		switch (gameState.getState()) {
-		case ERROR:
-			//TODO, see diagrams
-			break;
-		case NOT_STARTED:
-			//start normally: get pose of player, add him, and create the board
-			Location playerPose = player.getLocation();
-			Direc playerDirec = Direc.fromDeg(playerPose.getYaw());
-			Location boardPose = playerPose.add(playerDirec.toBukkitVec(SPAWNDISTANCE));
-			board = new MCSBoard(boardPose);
-			board.placeEmpty();
-			break;
 		case STARTUP:
-			//TODO: generate new board at new position
-			gameState.setMessage("Generating new board at new position", MsgLevel.INFO);
+			gameState.logInfo("Deleting old board and starting at new position.");
+			if (board != null) {
+				board.delete();
+			}
+			//TODO: stop old GameMechanic here?
+			// no "break" so this continues with the placement in NOT_STARTED:	
+		case NOT_STARTED:
+			if (this.player == null) {
+				this.player = player;
+			}
+			world = player.getWorld();
+			board = new MCSBoard(world, boardPose, settings);
+			gameMechanic = new MCSGameMechanic(board, settings);
+			board.placeCleanBoard();
+			gameState.setState(GameState.STARTUP);
 			break;
 		case RUNNING:
-			gameState.setMessage("The game is already running! Type 'restart' to start over.", MsgLevel.WARNING);
+			gameState.logWarning("The game is already running! Type 'restart' to start over.");
+			break;
+		default:
+			gameState.setToError("TILT: This line should not be reachable!");
 		}
 		
-		
 	}
 	
-	
-	
-	private void placeBoard(Vector targetCorner, Direc dir) {
-		// TODO stub
-	}
-	
-	private void deleteBoard() {
-		// TODO stub
+	private Location calcBoardSpawn(Player player) {
+		Location playerPose = player.getLocation();
+		Direc playerDirec = Direc.fromDeg(playerPose.getYaw());
+		int boardSpawnDist = settings.getIntegerSetting(MCSSettings.Key.BOARDSPAWNDIST);
+		return playerPose.add(playerDirec.toBukkitVec(boardSpawnDist).add(new Vector(0,-1,0)));
 	}
 	
 	private void resetGame() {
@@ -126,14 +127,6 @@ public class MCSGame implements Listener {
 
 	public void restart() {
 		// TODO Auto-generated method stub
-		
-	}
-
-	public boolean setOptionIfKeyExists(String key, String value) {
-		if (!settings.hasOptionKey(key))
-			return false;
-		settings.setOption(key, value);
-		return true;
 	}
 	
 	public MCSSettings getSettings() {
@@ -142,7 +135,7 @@ public class MCSGame implements Listener {
 
 
 	public boolean isInErrorState() {
-		return (gameState == MCSGameStateHandler.ERROR);
+		return gameState.isError();
 	}
 
 
@@ -150,4 +143,7 @@ public class MCSGame implements Listener {
 		return gameState;
 	}
 	
+	public Player getPlayer() {
+		return player;
+	}
 }

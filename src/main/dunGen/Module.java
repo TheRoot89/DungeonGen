@@ -20,7 +20,9 @@ import com.sk89q.worldedit.schematic.SchematicFormat;
 import com.sk89q.worldedit.world.DataException;
 
 import dunGen.DunGen.State;
-import dunGen.Helper.Direc;
+import javaHelpers.MathHelpers;
+import mcPluginHelpers.MCHelpers;
+import mcPluginHelpers.Direc;
 
 /**A base class representing a physical model in minecraft. It is loaded from a schematic file and placed according to
  * the information given there. 
@@ -142,7 +144,7 @@ public abstract class Module implements Listener {
 	 * To be implemented: actual restoring of the destroyed landscape. This would need one clipboard per module.
 	 */
 	public void delete() {
-		Helper.fillVolume(parent.world, modVolume.getPos1(), modVolume.getPos2(), Material.AIR);
+		MCHelpers.fillVolume(parent.world, modVolume.getPos1(), modVolume.getPos2(), Material.AIR);
 	}
 	
 	
@@ -307,7 +309,7 @@ public abstract class Module implements Listener {
 	 * @param height	How high the plan should be duplicated. (stacked up)
 	 */
 	public void placeBuildPlan2D(Vector origin, boolean[][] plan, Material m, int height, boolean overwriteAir) {
-		plan = Helper.rotateBoolMatrixClockw(plan, turnedBy); //clockwise turning as is defined in mc for sky directions
+		plan = MathHelpers.rotateBoolMatrixClockw(plan, turnedBy); //clockwise turning as is defined in mc for sky directions
 		// The origin has to be at another corner of the matrix now:
 		origin = toGlobal(origin);
 		switch (turnedBy) {

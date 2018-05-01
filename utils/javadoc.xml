@@ -14,7 +14,7 @@
         	notree="false" 
         	packagenames="dunGen.tasks,dunGen" 
         	source="1.8" 
-        	sourcepath="../src" 
+        	sourcepath="../src/main" 
         	splitindex="true" 
         	use="true" 
         	version="true"/>
@@ -22,7 +22,7 @@
 	
 	
 	<target name="javadocWithUML" description="generates javadoc and also UML Diagram">
-		<javadoc doctitle="DunGen documentation" access="private" docletpath="../lib/UmlGraph.jar"  sourcepath="../src" packagenames="dunGen.tasks,dunGen,org.umlgraph.doclet" destdir="../docs" classpath="../Server_files/spigot-1.12.2.jar;../Server_files/plugins/WorldEdit.jar;../lib/UmlGraph.jar" >
+		<javadoc doctitle="DunGen documentation" access="private" docletpath="../lib/UmlGraph.jar"  sourcepath="../src/main" packagenames="dunGen.tasks,dunGen,org.umlgraph.doclet" destdir="../docs" classpath="../Server_files/spigot-1.12.2.jar;../Server_files/plugins/WorldEdit.jar;../lib/UmlGraph.jar" >
 			<doclet name="org.umlgraph.doclet.UmlGraphDoc" path="../lib/UmlGraph.jar">
 				<param name="-all"/>
 				<param name="-hide" value="java.*" />

@@ -2,8 +2,9 @@ package dunGen.utils;
 
 import java.util.Random;
 
-import dunGen.Helper;
-import dunGen.Helper.Direc;
+import javaHelpers.MathHelpers;
+import mcPluginHelpers.MCHelpers;
+import mcPluginHelpers.Direc;
 
 
 public class Maze_RecursBacktr {
@@ -79,8 +80,8 @@ public class Maze_RecursBacktr {
 		int newX;
 		int newZ;
 		for (Direc d : direcs) { 	// short syntax to interate over array without counter
-			newX = x - (int)Helper.cosd(d.degree()); // The associations of MC Direcs to degrees does not fit to mathematical degrees!
-			newZ = z - (int)Helper.sind(d.degree()); // A picture helps most with this, see Direc definition (F3 on Direc)
+			newX = x - (int)MathHelpers.cosd(d.degree()); // The associations of MC Direcs to degrees does not fit to mathematical degrees!
+			newZ = z - (int)MathHelpers.sind(d.degree()); // A picture helps most with this, see Direc definition (F3 on Direc)
 			// also add if not added yet and in scope:
 			if (newX >= 0 && newX < h &&  newZ >= 0 && newZ < w && !connected[newX][newZ]) {
 				// carve a passage: grid always saves north and east walls:

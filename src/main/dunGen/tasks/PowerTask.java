@@ -5,8 +5,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 import com.sk89q.worldedit.regions.CuboidRegion;
 
-import dunGen.Helper;
 import dunGen.Room;
+import mcPluginHelpers.MCHelpers;
 
 /**A task to toggle power at a specific location by providing a redstone block there.
  * The on-time where the block is there may be given, where the rest of the period will have an air block at the given position.
@@ -38,14 +38,14 @@ public class PowerTask extends RoomTask {
 	 * @return Void object to make this usable as method reference.
 	 */
 	private Void depower(Void v) {
-		Helper.fillVolume(parent.getPlugin().world, targetRegion.getPos1(), targetRegion.getPos2(), Material.AIR);
+		MCHelpers.fillVolume(parent.getPlugin().world, targetRegion.getPos1(), targetRegion.getPos2(), Material.AIR);
 		return null;
 	}
 
 	
 	/** Basically creates redstone blocks in the targetRegion. */
 	private void empower() {
-		Helper.fillVolume(parent.getPlugin().world, targetRegion.getPos1(), targetRegion.getPos2(), Material.REDSTONE_BLOCK);
+		MCHelpers.fillVolume(parent.getPlugin().world, targetRegion.getPos1(), targetRegion.getPos2(), Material.REDSTONE_BLOCK);
 	}
 	
 	
