@@ -1,5 +1,6 @@
 package dunGen.utils;
 
+import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -19,6 +20,7 @@ public class Util_BlockName implements CommandExecutor {
 	}
 	
 	
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if (cmd.getName().equalsIgnoreCase("BlockName")) {
@@ -26,7 +28,10 @@ public class Util_BlockName implements CommandExecutor {
 				sender.sendMessage(plugin.getName() + ": Utility BlockName may only be used from ingame!");
 			} else {
 				Player player = (Player) sender;
-				player.sendMessage(player.getTargetBlock(null, 10).getType().name());
+				Block b = player.getTargetBlock(null, 10);
+				player.sendMessage(b.getType().name());
+				player.sendMessage("Block data: " + b.getData());
+				
 			}
 			return true;
 		}

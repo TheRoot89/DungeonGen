@@ -5,13 +5,10 @@ author: TheRoot89
 
 commands:
    MCS_start:
-      description: Starts a new board
+      description: Starts a new board or restarts the currently set board.
       usage: /<command>
    MCS_stop:
       description: Stops the current game and deletes the board. Resets the plugin during Error states.
-      usage: /<command>
-   MCS_restart: 
-      description: Resets the current game
       usage: /<command>
    MCS_set:
       description: Sets a game setting. Possible keys are width, height and nrBombs. Shows current settings if no arguments are given.

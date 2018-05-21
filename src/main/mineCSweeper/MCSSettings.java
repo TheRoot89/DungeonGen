@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Hashtable;
 
+import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -14,6 +15,7 @@ public class MCSSettings {
 	private File settingsFile;
 	private Hashtable<Key, Integer> integerSettings;
 	private Hashtable<Key, Boolean> booleanSettings;
+	private Hashtable<Key, String>  stringSettings;
 	
 	// All possible settings, add new setting here:
 	public enum Key{
@@ -21,7 +23,11 @@ public class MCSSettings {
 		BOARDWIDTH,
 		BOARDHEIGHT,
 		BOARDSPAWNDIST,
-		SAFEBOMBFLAGS
+		SAFEBOMBFLAGS,
+		BASEMATERIAL,
+		PRESSUREPLATEMATERIAL,
+		BOMBFLAGMATERIAL,
+		BOMBCLUEMATERIALS
 	}
 	
 	
@@ -29,6 +35,7 @@ public class MCSSettings {
 		MCSSettings settings = new MCSSettings();
 		settings.integerSettings = new Hashtable<>();
 		settings.booleanSettings = new Hashtable<>();
+		settings.stringSettings  = new Hashtable<>();
 		
 		// ######### Default settings, init new settings here #########
 		settings.integerSettings.put(Key.BOMBCOUNT, 10);
@@ -36,7 +43,20 @@ public class MCSSettings {
 		settings.integerSettings.put(Key.BOARDHEIGHT, 10);
 		settings.integerSettings.put(Key.BOARDSPAWNDIST, 2);
 		settings.booleanSettings.put(Key.SAFEBOMBFLAGS, false);
+		settings.stringSettings.put(Key.BASEMATERIAL, "STONE");
+		settings.stringSettings.put(Key.PRESSUREPLATEMATERIAL, "STONE_PLATE");
+		settings.stringSettings.put(Key.BOMBFLAGMATERIAL, "GOLD_PLATE");
+		settings.stringSettings.put(Key.BOMBCLUEMATERIALS, "CONCRETE/0,"//white
+														 + "CONCRETE/3,"//lightBlue
+														 + "CONCRETE/5,"//green
+														 + "CONCRETE/4,"//yellow
+														 + "CONCRETE/1,"//orange
+														 + "CONCRETE/14,"//red
+														 + "CONCRETE/12,"//brown
+														 + "CONCRETE/15,"//black
+														 + "MAGMA");
 		
+		// #############################################################
 		try {
 	        settings.settingsFile = new File(pluginDirectory, configFile);
 	        if (!settings.settingsFile.exists()) {
@@ -60,6 +80,10 @@ public class MCSSettings {
 		for (Key key : booleanSettings.keySet()) {
 			newConfig.set(key.toString(), booleanSettings.get(key));
 		}
+		for (Key key : stringSettings.keySet()) {
+			newConfig.set(key.toString(), stringSettings.get(key));
+		}
+		
 		newConfig.save(settingsFile);
 	}
 
@@ -74,10 +98,14 @@ public class MCSSettings {
 			if (config.contains(key.toString()))
 				booleanSettings.put(key, config.getBoolean(key.toString()));
 		}
+		for (Key key : stringSettings.keySet()) {
+			if (config.contains(key.toString()))
+				stringSettings.put(key, config.getString(key.toString()));
+		}
 	}
 	
 	
-	boolean saveConfig() { //visib. is "package" by declaring none in java
+	boolean saveConfig() { // visibility is "package" by declaring none in java
 		try {
 			createConfig();
 			return true;
@@ -90,7 +118,7 @@ public class MCSSettings {
 	
 	
 	public boolean hasOptionKey(Key key) {
-		return (integerSettings.containsKey(key) || booleanSettings.containsKey(key));
+		return (integerSettings.containsKey(key) || booleanSettings.containsKey(key) || stringSettings.containsKey(key));
 	}
 	
 	public void setOption(String keyAsString, String value) throws MCSException{
@@ -128,6 +156,12 @@ public class MCSSettings {
 			return;
 		}
 		
+		// Handle string type options:
+		if(stringSettings.containsKey(key)) {
+			stringSettings.put(key, value);
+			return;
+		}
+		
 		throw new MCSException("TILT: Unknown Options should have been handled above!");
 	}
 
@@ -142,6 +176,10 @@ public class MCSSettings {
 			settingsList[i] = key.toString() + ": " + booleanSettings.get(key).toString();
 			i++;
 		}
+		for (Key key : stringSettings.keySet()) {
+			settingsList[i] = key.toString() + ": " + stringSettings.get(key).toString();
+			i++;
+		}
 		
 		return settingsList;
 	}
@@ -151,18 +189,33 @@ public class MCSSettings {
 	}
 	
 	public int getIntegerSetting(Key key){
-		if (integerSettings.containsKey(key)) {
-			return integerSettings.get(key);
-		} else {
-			return 0;
-		}
+		assert(integerSettings.containsKey(key));
+		return integerSettings.get(key);
 	}
 	
 	public boolean getBooleanSetting(Key key){
-		if (booleanSettings.containsKey(key)) {
-			return booleanSettings.get(key);
-		} else {
-			return false;
-		}
+		assert(booleanSettings.containsKey(key));
+		return booleanSettings.get(key);
 	}
+	
+	public String getStringSetting(Key key){
+		assert(stringSettings.containsKey(key));
+		return stringSettings.get(key);
+	}
+	public Material getMaterialSetting(Key key) throws MCSException{
+		assert(stringSettings.containsKey(key));
+		String name = stringSettings.get(key).toUpperCase();
+		Material m = Material.getMaterial(name);
+		if (m == null)
+			throw new MCSException("Material setting invalid: " + name);
+		return m;
+	}
+	
+	public String[] getMaterialListSettingString(Key key) throws MCSException{
+		assert(stringSettings.containsKey(key));
+		String matNames = stringSettings.get(key).toUpperCase();
+		String[] namesWithDataArray = matNames.split(",");
+		return namesWithDataArray;
+	}
+	
 }

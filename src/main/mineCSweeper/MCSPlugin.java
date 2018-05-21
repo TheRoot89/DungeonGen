@@ -49,10 +49,6 @@ public class MCSPlugin extends JavaPlugin {
 			game.stop();
 			player.sendMessage("MineCraftSweeper stopped.");
 			return true;
-		}else if (command.equalsIgnoreCase("MCS_restart")) {
-			game.restart();
-			player.sendMessage("MineCraftSweeper restarted.");
-			return true;
 		}else if (command.equalsIgnoreCase("MCS_save")) {
 			player.sendMessage("Saving settings to " + game.getSettings().getSettingsFile().toString() + "...");
 			boolean result = game.getSettings().saveConfig();
@@ -73,13 +69,7 @@ public class MCSPlugin extends JavaPlugin {
 				return false;
 			}
 			// Now we know we have enough arguments:
-			try {
-				game.getSettings().setOption(args[0], args[1]);
-				player.sendMessage("Set " + args[0] + "to " + args[1] + ".");
-			} catch (MCSException e) {
-				player.sendMessage("Error: " + e.getMessage());
-				player.sendMessage("Type 'MCS_set' for a list of options.");
-			}
+			game.setOptionAndRestart(args[0], args[1]);
 			return true;
 		}
 		

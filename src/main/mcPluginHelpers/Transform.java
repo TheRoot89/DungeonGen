@@ -4,6 +4,7 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.regions.CuboidRegion;
 
 import dunGen.DunGen.State;
+import javafx.scene.chart.StackedAreaChart;
 
 public class Transform {
 	
@@ -11,7 +12,8 @@ public class Transform {
 	private int rotatedBy;
 	
 	public Transform(Vector origin, Direc globalDirec) {
-		this.origin = origin;
+		this.origin = new Vector(origin.getBlockX(), origin.getBlockY(),origin.getBlockZ());
+		System.out.println("DEBUG, pos reached");
 		rotatedBy = globalDirec.rotationFromEast();
 	}
 	
