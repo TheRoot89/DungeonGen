@@ -16,3 +16,6 @@ commands:
    MCS_save:
       description: Saves the current settings to the plugins config file, loaded during startup.
       usage: /<command>
+   MCS_add:
+      description: Adds more player(s) to the game.
+      usage: /<command> <player_name> [player_name] [...]

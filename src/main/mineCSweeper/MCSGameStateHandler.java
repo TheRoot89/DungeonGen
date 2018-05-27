@@ -2,6 +2,8 @@ package mineCSweeper;
 
 import java.util.function.BiConsumer;
 
+import mcPluginHelpers.MsgLevel;
+
 public class MCSGameStateHandler {
 	
 	private BiConsumer<MsgLevel,String> messageCallback = null;
@@ -84,6 +86,10 @@ public class MCSGameStateHandler {
 	
 	public boolean isError() {
 		return state == GameState.ERROR;
+	}
+
+	public void logDebug(String message) {
+		setMessage(message, MsgLevel.DEBUG);
 	}
 	
 }

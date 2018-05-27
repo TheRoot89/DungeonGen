@@ -3,9 +3,6 @@ package mcPluginHelpers;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.regions.CuboidRegion;
 
-import dunGen.DunGen.State;
-import javafx.scene.chart.StackedAreaChart;
-
 public class Transform {
 	
 	private Vector origin;
@@ -13,7 +10,6 @@ public class Transform {
 	
 	public Transform(Vector origin, Direc globalDirec) {
 		this.origin = new Vector(origin.getBlockX(), origin.getBlockY(),origin.getBlockZ());
-		System.out.println("DEBUG, pos reached");
 		rotatedBy = globalDirec.rotationFromEast();
 	}
 	

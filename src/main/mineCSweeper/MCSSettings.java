@@ -151,8 +151,8 @@ public class MCSSettings {
 				boolValue = false;
 			}else {
 				boolValue = Boolean.parseBoolean(value);
-				booleanSettings.put(key, boolValue);
 			}
+			booleanSettings.put(key, boolValue);
 			return;
 		}
 		
@@ -166,7 +166,9 @@ public class MCSSettings {
 	}
 
 	public String[] getCurrentSettingsAsStringList() {
-		String[] settingsList = new String[integerSettings.size() + booleanSettings.size()];
+		String[] settingsList = new String[ integerSettings.size()
+		                                   + booleanSettings.size()
+		                                   + stringSettings.size() ];
 		int i = 0;
 		for (Key key : integerSettings.keySet()) {
 			settingsList[i] = key.toString() + ": " + integerSettings.get(key).toString();

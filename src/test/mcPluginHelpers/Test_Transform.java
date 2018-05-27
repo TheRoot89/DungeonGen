@@ -1,13 +1,13 @@
 package mcPluginHelpers;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.regions.CuboidRegion;
 
+import junit.framework.TestCase;
+
 import org.junit.jupiter.api.Test;
 
-class Test_Transform {
+class Test_Transform extends TestCase{
 
 	@Test
 	void testToGlobalVector() {

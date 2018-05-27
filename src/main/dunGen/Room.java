@@ -50,7 +50,7 @@ public abstract class Room extends Module {
 	 */
 	@Override
 	public void prePlacementActions() {
-		// TODO Auto-generated method stub
+		// currently empty
 		
 	}
 

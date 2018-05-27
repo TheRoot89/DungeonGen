@@ -7,9 +7,9 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.blocks.BlockData;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 
 import mcPluginHelpers.Direc;
@@ -32,27 +32,31 @@ public class MCSBoard {
 	private int			correctlyFlaggedCount;
 	private int			falselyFlaggedCount;
 	private boolean 	bombWasTriggered = false;
-	private boolean		safeBombFlags;
-	private Location    boardPose;
+	private Vector    	boardOrigin;
+	private Location 	boardCenter;
 	
 	
 	// ############################ Member functions ############################
-	public MCSBoard(World world, Location boardPose, MCSSettings settings) throws MCSException{
+	public MCSBoard(World world, Location boardCenterPose, MCSSettings settings) throws MCSException{
 		this.world = world;
-		this.boardPose = boardPose;
+		this.boardCenter = boardCenterPose;
 		correctlyFlaggedCount = 0;
 		falselyFlaggedCount = 0;
 		// load n copy the settings now, these will thus not change until a new board is generated:
 		loadSettings(settings);
-		Field.updateMaterialsfromSettings(settings);
+		Field.loadStaticConfigForAllFields(settings, world);
+		// get correct Vector for the real board origin. An own transform is needed to substract the shift in z:
 		relZOffsetForBoardCentering = width/2;
-		Vector origin = BukkitUtil.toVector(boardPose.toVector()); // conversion from bukkit to worldEdit vector class
-		transform = new Transform(origin, Direc.fromDeg(boardPose.getYaw()));
+		Vector boardCenterGlob = BukkitUtil.toVector(boardCenterPose.toVector()); // conversion from bukkit to worldEdit vector class
+		Direc boardDirec = Direc.fromDeg(boardCenterPose.getYaw());
+		Transform boardCenterBasedTransf = new Transform(boardCenterGlob,boardDirec);
+		boardOrigin = boardCenterBasedTransf.toGlobal(0, 0, -relZOffsetForBoardCentering);
 		
+		transform = new Transform(boardOrigin, boardDirec);
 		curFields = new Field[height][width];
 		for (int x=0; x<height; x++) {
 			for (int z=0; z<width; z++) {
-				Vector global = transform.toGlobal(x,0,z-relZOffsetForBoardCentering);
+				Vector global = transform.toGlobal(x,0,z);
 				curFields[x][z] = Field.newCleanField(global);
 			}
 		}
@@ -62,35 +66,12 @@ public class MCSBoard {
 		width 	  = settings.getIntegerSetting(Key.BOARDWIDTH);
 		height 	  = settings.getIntegerSetting(Key.BOARDHEIGHT);
 		bombCount = settings.getIntegerSetting(Key.BOMBCOUNT);
-		safeBombFlags = settings.getBooleanSetting(Key.SAFEBOMBFLAGS);
 	}
 	
-	private void updateField(int x, int z) {
-		Field f = curFields[x][z];
-		Block baseBlock = world.getBlockAt(f.globX, f.globY, f.globZ);
-		baseBlock.setType(f.getCurrentBaseMat());
-		Block topBlock = world.getBlockAt(f.globX, f.globY+1, f.globZ);
-		topBlock.setType(f.getCurrentTopMat());
-		Block mineBlock = world.getBlockAt(f.globX, f.globY-1, f.globZ);
-		if (f.isMined() &&!(f.isFlagged() && safeBombFlags))
-			mineBlock.setType(Material.TNT);
-		else
-			mineBlock.setType(f.getCurrentBaseMat());
-	}
-	
-	private void updateAllFields() {
-		for (int x=0; x<height; x++) {
-			for (int z=0; z<width; z++) {
-				updateField(x, z);
-			}
-		}
-	}
-
 	public void placeCleanBoard() {
 		cleanBoard();
 		updateAllFields();
 	}
-	
 	
 	private void cleanBoard() {
 		for (int x=0; x<height; x++) {
@@ -100,14 +81,27 @@ public class MCSBoard {
 		}
 	}
 	
+	private void updateAllFields() {
+		for (int x=0; x<height; x++) {
+			for (int z=0; z<width; z++) {
+				updateField(x, z);
+			}
+		}
+	}
+	
+	public void updateField(int x, int z) {
+		curFields[x][z].update();;
+	}
+
+	public void updateFieldGlobal(Vector globPos) {
+		Vector rel = transform.toRelative(globPos);
+		updateField(rel.getBlockX(), rel.getBlockZ());
+	}
+	
 	public void delete() {
 		for (int x=0; x<height; x++) {
 			for (int z=0; z<width; z++) {
-				Field f = getField(x,z);
-				Block topBlock = world.getBlockAt(f.globX, f.globY+1, f.globZ);
-				topBlock.setType(Material.AIR);
-				Block baseBlock = world.getBlockAt(f.globX, f.globY, f.globZ);
-				baseBlock.setType(Material.AIR);
+				getField(x,z).delete();
 			}
 		}
 	}
@@ -125,11 +119,15 @@ public class MCSBoard {
 		if (fieldIsInvalid(x, z)) return;
 		
 		Field field = getField(x, z);
+		if (!field.isUnknown()) return;
+		
 		if (field.isMined())
 			correctlyFlaggedCount++;
 		else
 			falselyFlaggedCount++;
 		field.flagIfPossible();
+		
+		// somehow, the field is not updated correctly
 		updateField(x, z);
 	}
 	
@@ -149,9 +147,9 @@ public class MCSBoard {
 		return (bombCount == correctlyFlaggedCount) && (falselyFlaggedCount == 0);
 	}
 
-	public void initializeBoard(Vector globCoord) {
-		Vector relCoord = transform.toRelative(globCoord);
-		shuffleWithNoBombHere(relCoord);
+	public void initializeBoard(Vector globCoordPlayer) throws MCSException {
+		Vector relCoord = transform.toRelative(globCoordPlayer);
+		shuffleWithNoBombAdjacentTo(relCoord);
 		calcAndSafeBombHints();
 	}
 	
@@ -179,30 +177,47 @@ public class MCSBoard {
 		return curFields[x][z].isMined();
 	}
 
-	public void shuffleWithNoBombHere(Vector relCoord) {
+	public void shuffleWithNoBombAdjacentTo(Vector relCoord) throws MCSException {
 		int bombfreeX = relCoord.getBlockX();
 		int bombfreeZ = relCoord.getBlockZ();
-		
 		cleanBoard();
+		
+		// Setting up the start area:
+		if (!fieldIsInvalid(bombfreeX-1, bombfreeZ-1)) 	getField(bombfreeX-1, bombfreeZ-1).setStartRegion(true);
+		if (!fieldIsInvalid(bombfreeX-1, bombfreeZ)) 	getField(bombfreeX-1, bombfreeZ).setStartRegion(true);
+		if (!fieldIsInvalid(bombfreeX-1, bombfreeZ+1)) 	getField(bombfreeX-1, bombfreeZ+1).setStartRegion(true);
+		if (!fieldIsInvalid(bombfreeX, bombfreeZ-1)) 	getField(bombfreeX, bombfreeZ-1).setStartRegion(true);
+		if (!fieldIsInvalid(bombfreeX, bombfreeZ))		getField(bombfreeX, bombfreeZ).setStartRegion(true);
+		if (!fieldIsInvalid(bombfreeX, bombfreeZ+1)) 	getField(bombfreeX, bombfreeZ+1).setStartRegion(true);
+		if (!fieldIsInvalid(bombfreeX+1, bombfreeZ-1)) 	getField(bombfreeX+1, bombfreeZ-1).setStartRegion(true);
+		if (!fieldIsInvalid(bombfreeX+1, bombfreeZ)) 	getField(bombfreeX+1, bombfreeZ).setStartRegion(true);
+		if (!fieldIsInvalid(bombfreeX+1, bombfreeZ+1)) 	getField(bombfreeX+1, bombfreeZ+1).setStartRegion(true);
 		
 		Random randGen = new Random();
 		int x, z;
 		int placedBombs = 0;
-		while (placedBombs < bombCount) {
+		int maxTries = 1000;
+		int tries = 0;
+		while ((placedBombs < bombCount) && (tries < maxTries)) {
 			x = randGen.nextInt(width);
 			z = randGen.nextInt(height);
-			if (!curFields[x][z].isMined() && !(x == bombfreeX && z == bombfreeZ)) {
+			if (!getField(x, z).isMined() && getField(x, z).bombIsAllowed()) {
 				setMineAndUpdate(x, z, true);
 				placedBombs++;
+			}else {
+				tries++;
 			}
 		}
-		//TODO too many bombs warning if more bombs than fields-1?? -> move sanity check to settings
+		
+		if (tries == maxTries)
+			throw new MCSException("Bombs cannot be placed! Maybe too many?");
 	}
 
 	public void activatePressurePlate(Vector globCoord) {
 		Vector relCoord = transform.toRelative(globCoord);
 		int x = relCoord.getBlockX();
 		int z = relCoord.getBlockZ();
+		if (fieldIsInvalid(x, z)) return;
 		// if a pressure plate is activated if will either:
 		// - trigger a bomb, then the game is lost, no update needed:
 		if (curFields[x][z].isMined()) {
@@ -210,7 +225,26 @@ public class MCSBoard {
 			return;
 		}
 		// - or a field is now "known" (FieldState) and the board hints need to be updated
-		revealUpdateAndPropagate(x,z);
+		if (curFields[x][z].isUnknown())
+			revealUpdateAndPropagate(x,z);
+		// somehow the fiels is not updated correctly while it is pressed: -> we need to update after release
+		
+	}
+	
+	public void updateFieldLater(JavaPlugin plugin, long delay, Vector globCoord) {
+		Vector relCoord = transform.toRelative(globCoord);
+		int x = relCoord.getBlockX();
+		int z = relCoord.getBlockZ();
+		MCSBoard board = this;	// for anonymous inner class access
+		if (fieldIsInvalid(x, z)) return;
+		
+		BukkitRunnable updateFieldSingleShot = new BukkitRunnable() {
+			@Override
+			public void run() {
+				board.updateField(x, z);
+			}
+		};
+		updateFieldSingleShot.runTaskLater(plugin, delay);
 	}
 
 	private void revealUpdateAndPropagate(int x, int z) {
@@ -250,7 +284,11 @@ public class MCSBoard {
 		return bombWasTriggered;
 	}
 	
-	public Location getBoardPose() {
-		return boardPose;
+	public Vector getBoardOrigin() {
+		return boardOrigin;
+	}
+	
+	public Location getBoardCenter() {
+		return boardCenter;
 	}
 }

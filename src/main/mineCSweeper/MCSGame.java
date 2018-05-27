@@ -1,7 +1,10 @@
 package mineCSweeper;
 
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -15,10 +18,9 @@ import org.bukkit.util.Vector;
 
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 
-import dunGen.DunGen.State;
 import mcPluginHelpers.Direc;
+import mcPluginHelpers.MsgLevel;
 import mineCSweeper.MCSGameStateHandler;
-import mineCSweeper.MCSSettings.Key;
 
 /**Represents a game of MineCraftSweeper. It accesses its own configuration in the hosting plugins folder
  * and is handed its own commands. It consists of a state machine and game board if spawned.
@@ -31,13 +33,14 @@ public class MCSGame implements Listener{
 	private World world;
 	private MCSGameStateHandler gameState;
 	private JavaPlugin plugin;
-	private MCSBoard board;
+	private MCSBoard board = null;
 	private MCSSettings settings;
-	private Player player; //TODO add multiple players
+	private Set<Player> players;
 	
 	// ############################ Member functions ############################
 	public MCSGame(JavaPlugin plugin) {
 		this.plugin = plugin;
+		players = new LinkedHashSet<Player>();
 		gameState = MCSGameStateHandler.getNewlyInitializedGameState();
 		try {
 			settings = MCSSettings.getSettingsHandler(plugin.getDataFolder());
@@ -47,31 +50,46 @@ public class MCSGame implements Listener{
 		}
 		
 	}
-	
 
-	public void start(Player player) {
-		Location boardPose = calcBoardSpawn(player);
-		start(player, boardPose);
+	public void startInFrontOfPlayer(Player player) {
+		Location boardCenterPose = calcBoardCenterSpawn(player);
+		start(player, boardCenterPose);
 	}
 	
-	public void start(Player player, Location boardPose) {
+	public void addPlayer(Player player) {
+		players.add(player);
+		if (players.size() == 1)
+			world = player.getWorld();
+	}
+	
+	public void clearPlayers() {
+		players.clear();
+	}
+	
+	public void start(Player firstPlayer, Location boardCenterPose) {
+		addPlayer(firstPlayer);
+		world = firstPlayer.getWorld();
+		start(boardCenterPose);
+	}
+	
+	public void start(Location boardCenterPose) {
+		assert(players.size() > 0);
+		unregister();
+		deleteBoardIfExistent();
+		
 		switch (gameState.getState()) {
 		case STARTUP:
 		case RUNNING:
-			unregister();
-			deleteGameObjectsIfExistent();
-			// no "break" so this continues with the placement in NOT_STARTED:	
 		case NOT_STARTED:
-			this.player = player;
-			world = player.getWorld();
+			
 			try {
-				board = new MCSBoard(world, boardPose, settings);
+				board = new MCSBoard(world, boardCenterPose, settings);
 				board.placeCleanBoard();
 				gameState.setState(GameState.STARTUP);
 				register();
 			} catch (MCSException e) {
 				gameState.setToError("Exception while loading and placing game board:\n" + e.getMessage());
-				deleteGameObjectsIfExistent();
+				deleteBoardIfExistent();
 			}
 			
 			break;
@@ -80,18 +98,16 @@ public class MCSGame implements Listener{
 		}
 	}
 	
-	private void deleteGameObjectsIfExistent() {
-		gameState.logInfo("Deleting old board and starting at new position.");
+	private void deleteBoardIfExistent() {
 		if (board != null) {
+			gameState.logDebug("Deleting board.");
 			board.delete();
 			board = null;
 		}
-		world = null;
-		player = null;
 	}
 
 
-	private Location calcBoardSpawn(Player player) {
+	private Location calcBoardCenterSpawn(Player player) {
 		Location playerPose = player.getLocation();
 		Direc playerDirec = Direc.fromDeg(playerPose.getYaw());
 		int boardSpawnDist = settings.getIntegerSetting(MCSSettings.Key.BOARDSPAWNDIST);
@@ -107,28 +123,36 @@ public class MCSGame implements Listener{
 	}
 	
 	private void gameOver(boolean success) {
-		// TODO stub
+		unregister();
+		if (success) {
+			gameState.setState(GameState.NOT_STARTED, "All the bombs were found! Congratulations!", MsgLevel.INFO);
+			gameState.logInfo("You may delete the board via start or stop command.");
+		}else {
+			gameState.setState(GameState.NOT_STARTED, "You hit a bomb!", MsgLevel.INFO);
+			gameState.logInfo("Try again via the start command :) ");
+		}
 	}
 	
 
 	public void setOptionAndRestart(String key, String value) {
 		try {
 			settings.setOption(key, value);
-			restart();
+			restartIfBoardExists();
 		} catch (MCSException e) {
 			gameState.logErrorKeepState("Option could not be set: " + key + " = " + value);
 			gameState.logErrorKeepState(e.getMessage());
 		}
 	}
 	
-	private void restart() {
-		start(player, board.getBoardPose());
+	private void restartIfBoardExists() {
+		if (board != null)
+			start(board.getBoardCenter());
 	}
 
 
 	public void onDisable() {
 		settings.saveConfig();
-		deleteGameObjectsIfExistent();
+		deleteBoardIfExistent();
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)
@@ -138,54 +162,50 @@ public class MCSGame implements Listener{
 			return;
 		}
 		
-	    if (event.getAction() == Action.PHYSICAL) {	// Handle activation of fields
-	        Block clicked = event.getClickedBlock();
-	        if (clicked.getType() == Field.pressurePlateMat) {
-	        	Vector plateGlobCoord = clicked.getLocation().toVector();
-	        	if (gameState.getState() == GameState.STARTUP) {
-	        		board.initializeBoard(BukkitUtil.toVector(plateGlobCoord));
-	        		gameState.setState(GameState.RUNNING);
-	        	}
-	        	board.activatePressurePlate(BukkitUtil.toVector(plateGlobCoord));
-	        	if (board.isExploded())
-	        		gameOver(false);
-	        }
-	    }else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {	// Handle flagging
-	    	Block clicked = event.getClickedBlock();
-	    	Vector globCoord = clicked.getLocation().toVector();
-	    	if (clicked.getType() == Field.pressurePlateMat) {
-	    		board.placeFlag(BukkitUtil.toVector(globCoord));
-	    		
-	    	}else if (clicked.getType() == Field.bombFlagMat) {
-	    		board.removeFlag(BukkitUtil.toVector(globCoord));
-	    	}
-	    	if (board.allMinesCorrectlyFlagged()) {
-	    		gameOver(true);
-    			//TODO replace by toggleFlag method, 
-    			
-    		}
-	    }
+		try {
+			if (event.getAction() == Action.PHYSICAL) {	// Handle activation of fields
+		        Block clicked = event.getClickedBlock();
+		        if (clicked.getType() == Field.pressurePlateMat) {
+		        	Vector plateGlobCoord = clicked.getLocation().toVector();
+		        	if (gameState.getState() == GameState.STARTUP) {
+		        		board.initializeBoard(BukkitUtil.toVector(plateGlobCoord));
+		        		gameState.setState(GameState.RUNNING);
+		        	}
+		        	board.activatePressurePlate(BukkitUtil.toVector(plateGlobCoord));
+		        	board.updateFieldLater(plugin, 5, BukkitUtil.toVector(plateGlobCoord));
+		        	if (board.isExploded())
+		        		gameOver(false);
+		        }
+		    }else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {	// Handle flagging
+		    	Block clicked = event.getClickedBlock();
+		    	Vector globCoord = clicked.getLocation().toVector();
+		    	if (clicked.getType() == Field.pressurePlateMat) {
+		    		board.placeFlag(BukkitUtil.toVector(globCoord));
+		    		
+		    	}else if (clicked.getType() == Field.bombFlagMat) {
+		    		board.removeFlag(BukkitUtil.toVector(globCoord));
+		    	}
+		    	if (board.allMinesCorrectlyFlagged()) {
+		    		gameOver(true);
+	    		}
+		    }
+		} catch (Exception e) {
+			stop();
+			gameState.setToError(e.getMessage());
+		}
+	    
 	}
 	
-	private boolean isPlaying(Player p) {
-		return p.equals(player);
+	private boolean isPlaying(Player player) {
+		return players.contains(player);
 	}
 
 
 	public void stop() {
-		switch (gameState.getState()) {
-		case NOT_STARTED:
-			gameState.logWarning("No game running that could be stopped.");
-			break;
-		case STARTUP:
-		case RUNNING:
-			unregister();
-			deleteGameObjectsIfExistent();
-			gameState.setState(GameState.NOT_STARTED);
-			break;
-		default:
-			gameState.setToError("TILT: This line should not be reachable!");
-		}
+		unregister();
+		deleteBoardIfExistent();
+		gameState.setState(GameState.NOT_STARTED);
+		clearPlayers();
 	}
 	
 	public MCSSettings getSettings() {
@@ -202,7 +222,7 @@ public class MCSGame implements Listener{
 		return gameState;
 	}
 	
-	public Player getPlayer() {
-		return player;
+	public Set<Player> getPlayers() {
+		return players;
 	}
 }

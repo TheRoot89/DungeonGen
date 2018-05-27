@@ -1,13 +1,14 @@
 package mcPluginHelpers;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.junit.jupiter.api.Test;
 
-import io.netty.util.concurrent.SucceededFuture;
+import junit.framework.TestCase;
 
-class Test_Direc {
+class Test_Direc extends TestCase{
 
+	public Test_Direc() {
+	}
+	
 	@Test
 	void testRotationFromEast() {
 		Direc d = Direc.NORTH;

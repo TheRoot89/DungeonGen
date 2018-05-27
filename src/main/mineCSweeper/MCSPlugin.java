@@ -1,16 +1,20 @@
 package mineCSweeper;
 
 import java.io.File;
+import java.util.Set;
+
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import mcPluginHelpers.MsgLevel;
 
 /**Minecraft Plugin to host game of MineCSweeper. This enables testing and playing outside of DunGen.
  * The full game code shall be included in its own class, so the game can be added to any plugin.*/
 public class MCSPlugin extends JavaPlugin {
 
 	// ######################### Settings #####################################
-	final static MsgLevel playerMessageLevel = MsgLevel.ERROR;
+	final static MsgLevel playerMessageLevel = MsgLevel.INFO;
 	final static MsgLevel consoleMessageLevel = MsgLevel.DEBUG;
 	
 	// ########################## Member variables ############################
@@ -19,7 +23,6 @@ public class MCSPlugin extends JavaPlugin {
 	private File	pluginDir;			// Directory of this plugin
 	
 	// ############################ Member functions ############################
-	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		// Input check:
@@ -43,11 +46,26 @@ public class MCSPlugin extends JavaPlugin {
 
 	private boolean interpretCommand(String command, Player player, String[] args) {
 		if (command.equalsIgnoreCase("MCS_start")) {
-			game.start(player);
+			game.startInFrontOfPlayer(player);
+			return true;
+		}else if (command.equalsIgnoreCase("MCS_add")) {
+			if (args.length < 1) {
+				player.sendMessage("No player name given to add!");
+				player.sendMessage("Usage:"); 
+				return false;
+			}
+			// Now we know we have enough arguments:
+			for (String playerName : args) {
+				Player p = getServer().getPlayer(playerName);
+				if (p == null) {
+					player.sendMessage("No such player: " + playerName);
+				}else {
+					game.addPlayer(player);
+				}
+			}
 			return true;
 		}else if (command.equalsIgnoreCase("MCS_stop")) {
 			game.stop();
-			player.sendMessage("MineCraftSweeper stopped.");
 			return true;
 		}else if (command.equalsIgnoreCase("MCS_save")) {
 			player.sendMessage("Saving settings to " + game.getSettings().getSettingsFile().toString() + "...");
@@ -121,7 +139,10 @@ public class MCSPlugin extends JavaPlugin {
 		}
 		
 		if (level.isAtLeastAsSeriousAs(playerMessageLevel)) {
-			game.getPlayer().sendMessage(formatedMessage);
+			Set<Player> players = game.getPlayers();
+			for (Player p : players) {
+				p.sendMessage(formatedMessage);
+			}
 		}
 		return null; // to comply with the java Function handlers, objects need to be returned
 	}

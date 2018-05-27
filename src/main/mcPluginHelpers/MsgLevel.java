@@ -1,4 +1,4 @@
-package mineCSweeper;
+package mcPluginHelpers;
 
 import org.bukkit.ChatColor;
 
@@ -15,7 +15,7 @@ public enum MsgLevel{
 	}
 	
 	public boolean isAtLeastAsSeriousAs(MsgLevel otherMsgLvl) {
-		return (this.compareTo(otherMsgLvl) >= 0); //TODO: verify
+		return (this.compareTo(otherMsgLvl) >= 0);
 	}
 	
 	public ChatColor getChatColor() {
