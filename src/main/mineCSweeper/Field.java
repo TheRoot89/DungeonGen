@@ -100,7 +100,7 @@ public class Field {
 	@SuppressWarnings("deprecation")
 	public void update() {
 		baseBlock.setType(getCurrentBaseMat());
-		baseBlock.setData(getCurrentBaseMatData());
+		//TODO this is not working any more: baseBlock.setBlockData(getCurrentBaseMatData());
 		topBlock.setType(getCurrentTopMat());
 		if (hasMine && !(isFlagged() && safeBombFlags))
 			mineBlock.setType(Material.TNT);

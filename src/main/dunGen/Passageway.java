@@ -170,7 +170,7 @@ public class Passageway extends Module {
 			Vector v_below = entry.doorLoc.add(0,-entry.height,0); // the door location but height deeper
 			if (open) {
 				genWall(v_below,entry.height,entry.width,Material.AIR);
-				genWall(v_above,entry.height,entry.width,Material.SMOOTH_BRICK);
+				genWall(v_above,entry.height,entry.width,Material.LEGACY_SMOOTH_BRICK);
 			}else{//close
 				genWall(v_above,entry.height,entry.width,entry.doorMaterial);
 			}
@@ -202,7 +202,7 @@ public class Passageway extends Module {
 			Vector v_below = exit.doorLoc.add(0,-exit.height,0); // the door location but height deeper
 			if (open) {
 				genWall(v_below,exit.height,exit.width,Material.AIR);
-				genWall(v_above,exit.height,exit.width,Material.SMOOTH_BRICK);
+				genWall(v_above,exit.height,exit.width,Material.LEGACY_SMOOTH_BRICK);
 			}else{//close
 				genWall(v_above,exit.height,exit.width,exit.doorMaterial);
 			}

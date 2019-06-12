@@ -199,7 +199,7 @@ public final class DunGen extends JavaPlugin implements Listener{
 		i.addItem( new ItemStack(Material.STONE_SWORD, 	 1));
 		i.addItem( new ItemStack(Material.BOW, 			 1));
 		i.addItem( new ItemStack(Material.ARROW, 		 1));
-		i.addItem( new ItemStack(Material.MUSHROOM_SOUP, 1));
+		i.addItem( new ItemStack(Material.MUSHROOM_STEW, 1));
 
 		i.setBoots(new ItemStack(Material.LEATHER_BOOTS, 1));
   }

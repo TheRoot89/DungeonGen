@@ -39,6 +39,18 @@
 	</target>
 	
 	
+	<target name="buildHardcoreReviverJar" description="Create a jar for the independent Hardcore Reviver plugin, debug level.">
+			<mkdir dir="${projectHome}/.classes"/>
+			<javac srcdir="${projectHome}/src/main/hardcoreReviver" destdir="${projectHome}/.classes" includeantruntime="false" debug="true" debuglevel="lines,vars,source">
+				<classpath refid="build-classpath"/>
+			</javac>
+			<jar destfile="${projectHome}/Server_files/plugins/HardcoreReviver.jar" basedir="${projectHome}/.classes">
+			    <zipfileset dir="${projectHome}/src/main/HardcoreReviver" includes="HCRconfig.yml"/>
+				<zipfileset dir="${projectHome}/src/main/HardcoreReviver" includes="plugin.yml"/>
+			</jar>
+	</target>
+	
+	
 	<target name="deployJarAndFiles" description="Copy jar and Server_files to the local MC server." depends="buildJar">
 		<copy file="${projectHome}/Server_files/plugins/DunGen-${Version}.jar" tofile="C:/Users/Toni/Desktop/Minecraft_Modding/plugins/DunGen-${Version}.jar" overwrite="true"/>
 		<copy todir="C:/Users/Toni/Desktop/Minecraft_Modding/plugins/DunGen" overwrite="true">
