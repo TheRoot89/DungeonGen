@@ -1,0 +1,9 @@
+name: HardcoreRevive
+main: hardcoreRevive.HCRPlugin
+version: 0.1
+author: TheRoot89
+
+commands:
+   revive:
+      description: Resets players in Observer mode to Survival and scatters them.
+      usage: /<command>

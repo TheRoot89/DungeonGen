@@ -1,9 +1,0 @@
-name: HardcoreReviver
-main: HardcoreReviver.HCRPlugin
-version: 0.1
-author: TheRoot89
-
-commands:
-   HCR_execute:
-      description: Revives players who died in Hardcore mode.
-      usage: /<command>

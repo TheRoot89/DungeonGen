@@ -1,2 +1,2 @@
-java -Xmx1024M -jar spigot-1.12.2.jar
+java -Xmx1024M -jar spigot-1.14.2.jar
 PAUSE
