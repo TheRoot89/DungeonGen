@@ -57,7 +57,7 @@ public class HCRsaves
 	{
 		if (instance != null)
 		{
-			HCRPlugin.get().onStateMessage(MsgLevel.WARNING,"HCRsaves::init(): instance already set and init called!");
+			HCRPlugin.get().sendMessage(MsgLevel.WARNING,"HCRsaves::init(): instance already set and init called!");
 			return;
 		}
 		HCRsaves newInstance = new HCRsaves();
@@ -75,10 +75,10 @@ public class HCRsaves
 			newInstance.file = new File(HCRPlugin.get().getPluginDir(), fileName);
 	        if (!newInstance.file.exists()) {
 	        	newInstance.saveToFile();
-	        	HCRPlugin.get().onStateMessage(MsgLevel.DEBUG, "HCRsaves::init(): created new file " + fileName);
+	        	HCRPlugin.get().sendMessage(MsgLevel.DEBUG, "HCRsaves::init(): created new file " + fileName);
 	        }else {
 	        	newInstance.loadFile();
-	        	HCRPlugin.get().onStateMessage(MsgLevel.DEBUG, "HCRsaves::init(): loaded existing file " + fileName);
+	        	HCRPlugin.get().sendMessage(MsgLevel.DEBUG, "HCRsaves::init(): loaded existing file " + fileName);
 	        }
 	        instance = newInstance;
 		} catch (Exception e) {
@@ -92,7 +92,7 @@ public class HCRsaves
 	public static HCRsaves get()
 	{
 		if (instance == null) {
-			HCRPlugin.get().onStateMessage(MsgLevel.ERROR,"HCRsaves::get(): instance not yet set up!");
+			HCRPlugin.get().sendMessage(MsgLevel.ERROR,"HCRsaves::get(): instance not yet set up!");
 		}
 		return instance;
 	}
@@ -101,7 +101,7 @@ public class HCRsaves
 	/// Adds new content to the local representation, to be saved to the save file during quit.
 	public void addOrUpdatePlayerEntry(Player p, SaveReason reason)
 	{
-		HCRPlugin.get().onStateMessage(MsgLevel.DEBUG, "Updating location of " + p.getName() + ". Reason: " + reason.toString());
+		HCRPlugin.get().sendMessage(MsgLevel.DEBUG, "Updating location of " + p.getName() + ". Reason: " + reason.toString());
 		PlayerData save = new PlayerData();
 		save.UUID = p.getUniqueId().toString();
 		save.name = p.getName();
@@ -175,7 +175,7 @@ public class HCRsaves
 		for (PlayerData pd : playerData) {
 			message = message.concat(pd.name + " for reason: " + pd.saveReason.toString() + "\n");
 		}
-		HCRPlugin.get().onStateMessage(MsgLevel.DEBUG, message);
+		HCRPlugin.get().sendMessage(MsgLevel.DEBUG, message);
 	}
 	
 	
@@ -190,10 +190,10 @@ public class HCRsaves
 			for (PlayerData pd : playerData) {
 				message = message.concat(pd.name + " for reason: " + pd.saveReason.toString() + "\n");
 			}
-			HCRPlugin.get().onStateMessage(MsgLevel.DEBUG, message);
+			HCRPlugin.get().sendMessage(MsgLevel.DEBUG, message);
 		}catch (IOException e) {
 			e.printStackTrace();
-			HCRPlugin.get().onStateMessage(MsgLevel.WARNING, "HCRsaves::save(): Failed!");
+			HCRPlugin.get().sendMessage(MsgLevel.WARNING, "HCRsaves::save(): Failed!");
 		}
 	}
 

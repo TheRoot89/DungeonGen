@@ -38,7 +38,7 @@ public class HCRsettings {
 	{
 		if (instance != null)
 		{
-			HCRPlugin.get().onStateMessage(MsgLevel.WARNING,"HCRsettings::init(): instance already set and init called!");
+			HCRPlugin.get().sendMessage(MsgLevel.WARNING,"HCRsettings::init(): instance already set and init called!");
 			return;
 		}
 		HCRsettings newInstance = new HCRsettings();
@@ -60,10 +60,10 @@ public class HCRsettings {
 			newInstance.file = new File(HCRPlugin.get().getPluginDir(), fileName);
 	        if (!newInstance.file.exists()) {
 	        	newInstance.createFile();
-	        	HCRPlugin.get().onStateMessage(MsgLevel.DEBUG, "HCRsettings:init(): created new file " + fileName);
+	        	HCRPlugin.get().sendMessage(MsgLevel.DEBUG, "HCRsettings:init(): created new file " + fileName);
 	        }else {
 	        	newInstance.loadFile();
-	        	HCRPlugin.get().onStateMessage(MsgLevel.DEBUG, "HCRsettings::init(): loaded existing file " + fileName);
+	        	HCRPlugin.get().sendMessage(MsgLevel.DEBUG, "HCRsettings::init(): loaded existing file " + fileName);
 	        }
 	        instance = newInstance;
 		} catch (Exception e) {
@@ -77,7 +77,7 @@ public class HCRsettings {
 	public static HCRsettings get()
 	{
 		if (instance == null) {
-			HCRPlugin.get().onStateMessage(MsgLevel.ERROR,"HCRsettings::get(): instance not yet set up!");
+			HCRPlugin.get().sendMessage(MsgLevel.ERROR,"HCRsettings::get(): instance not yet set up!");
 		}
 		return instance;
 	}

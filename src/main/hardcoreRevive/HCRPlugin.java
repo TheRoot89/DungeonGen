@@ -9,13 +9,16 @@ import java.util.Random;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
@@ -100,13 +103,14 @@ public class HCRPlugin extends JavaPlugin implements Listener {
 	{
 		// TODO what happens when still on the death screen? Can we detect this?
 		if (p.getGameMode() != GameMode.SPECTATOR) {
-			onStateMessage(MsgLevel.WARNING, "Tried to revive " + p.getName() + ", but the player is not in observer mode! Aborting.");
+			sendMessage(MsgLevel.WARNING, "Tried to revive " + p.getName() + ", but the player is not in observer mode! Aborting.");
 			return;
 		}
 		
 		p.sendMessage("You are being revived...OMMMMMM");
 		getServer().getConsoleSender().sendMessage("Reviving: " + p.getName());
-		p.teleport(getRespawnLoc());
+		Location spawnLoc = getRespawnLoc(); 
+		p.teleport(spawnLoc);
 		p.setGameMode(GameMode.SURVIVAL);
 		
 		updateOnlinePlayerSaves(SaveReason.RESPAWN);
@@ -126,7 +130,7 @@ public class HCRPlugin extends JavaPlugin implements Listener {
 		int respawnRandOffsetMax = HCRsettings.get().getIntegerSetting(Key.RESPAWN_RAND_OFFSET_MAX);
 		
 		
-		onStateMessage(MsgLevel.DEBUG, "Calculating respawn location: Getting constraints.");
+		sendMessage(MsgLevel.DEBUG, "Calculating respawn location: Getting constraints.");
 		// 1: constraints, all reasons valid apart from 'DEBUG'
 		// Online Players are snapshoted as well. This is ok I think.
 		// Also sort out different worlds than the one the player died in.
@@ -139,15 +143,15 @@ public class HCRPlugin extends JavaPlugin implements Listener {
 			   )
 			{
 				constraints.add(pd);
-				onStateMessage(MsgLevel.DEBUG, "Found constraint: " + pd.lastAlivePos.toString() );
+				sendMessage(MsgLevel.DEBUG, "Found constraint: " + pd.lastAlivePos.toString() );
 			}
 		}
-		onStateMessage(MsgLevel.DEBUG, "Found " + constraints.size() +" constraints.");
+		sendMessage(MsgLevel.DEBUG, "Found " + constraints.size() +" constraints.");
 		// Handle no constraints found:
 		if (constraints.size() == 0) {
 			Location spawnLoc = new Location(serverWorld,0,0,0);
 			spawnLoc.setY(serverWorld.getHighestBlockYAt(spawnLoc));
-			onStateMessage(MsgLevel.DEBUG, "Found no constraints! Starting at 0,y,0!");
+			sendMessage(MsgLevel.DEBUG, "Found no constraints! Starting at 0,y,0!");
 			return spawnLoc;
 		}
 		
@@ -173,7 +177,7 @@ public class HCRPlugin extends JavaPlugin implements Listener {
 				bboxMin.setZ(constrZ - spawnDist);
 			}
 		}
-		onStateMessage(MsgLevel.DEBUG, "BoundingBox: " + bboxMin.toString() + " , " + bboxMax.toString());
+		sendMessage(MsgLevel.DEBUG, "BoundingBox: " + bboxMin.toString() + " , " + bboxMax.toString());
 		
 		// 3. Find a suitable spawn by trying:
 		Vector candidate = new Vector();
@@ -207,11 +211,11 @@ public class HCRPlugin extends JavaPlugin implements Listener {
 			}
 		}
 		Location spawnLoc = new Location(serverWorld, candidate.getBlockX(), 0, candidate.getBlockZ());
-		onStateMessage(MsgLevel.DEBUG, "Found spawn with " + j + " tries.");
+		sendMessage(MsgLevel.DEBUG, "Found spawn with " + j + " tries.");
 		
 		/// 4. Add height and deliver
 		spawnLoc.setY(serverWorld.getHighestBlockYAt(spawnLoc));
-		onStateMessage(MsgLevel.DEBUG, "Final spawn at: " + spawnLoc.toString() );
+		sendMessage(MsgLevel.DEBUG, "Final spawn at: " + spawnLoc.toString() );
 		return spawnLoc;
 	}
 	
@@ -235,7 +239,7 @@ public class HCRPlugin extends JavaPlugin implements Listener {
 	/// Supervised access to the pluginDir member.
 	public File getPluginDir() {
 		if (pluginDir == null) {
-			onStateMessage(MsgLevel.ERROR, "HCRPlugin::getPluginDir(): dir not set up but requested!");
+			sendMessage(MsgLevel.ERROR, "HCRPlugin::getPluginDir(): dir not set up but requested!");
 		}
 		return pluginDir;
 	}
@@ -276,6 +280,16 @@ public class HCRPlugin extends JavaPlugin implements Listener {
 	}
 	
 	
+	/// To prevent use of compasses too quickly, they are deactivated from crafting here.
+	@EventHandler
+    public void onPlayerCraft(CraftItemEvent e) {
+        if(e.getRecipe().getResult().getType() == Material.COMPASS){      // where "test" is random itemstack
+            e.getInventory().setResult(new ItemStack(Material.AIR));
+            sendMessage(MsgLevel.DEBUG, "Prevented crafting of a compass.");
+        }
+    }
+	
+	
 	/// Called when the plugin is closed or disabled or the server shuts down.
 	@Override
 	public void onDisable() {
@@ -303,7 +317,7 @@ public class HCRPlugin extends JavaPlugin implements Listener {
 			HCRsaves.init();
 		} catch (Exception e) {
 			e.printStackTrace();
-			onStateMessage(MsgLevel.ERROR, "HCRsaves initialization failed. Aborting further init.");
+			sendMessage(MsgLevel.ERROR, "HCRsaves initialization failed. Aborting further init.");
 			return;
 		}
 		
@@ -311,7 +325,7 @@ public class HCRPlugin extends JavaPlugin implements Listener {
 			HCRsettings.init();
 		} catch (Exception e) {
 			e.printStackTrace();
-			onStateMessage(MsgLevel.ERROR, "HCRsettings initialization failed. Aborting further init.");
+			sendMessage(MsgLevel.ERROR, "HCRsettings initialization failed. Aborting further init.");
 			return;
 		}
 		
@@ -325,7 +339,7 @@ public class HCRPlugin extends JavaPlugin implements Listener {
 
 	/// This callback can be used as-is, or registered as a callback for a messaging
 	/// system.
-	public Void onStateMessage(MsgLevel level, String message) {
+	public Void sendMessage(MsgLevel level, String message) {
 		String formatedMessage = level.getChatColor() + "[HCR] " + message;
 		if (level.isAtLeastAsSeriousAs(consoleMessageLevel)) {
 			getServer().getConsoleSender().sendMessage(formatedMessage);
