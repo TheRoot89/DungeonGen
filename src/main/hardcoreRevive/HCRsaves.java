@@ -21,6 +21,7 @@ public class HCRsaves
 	public class PlayerData
 	{
 		public String UUID;
+		public String name;
 		public World  lastAliveWorld;
 		public Vector lastAlivePos;
 		public SaveReason saveReason;
@@ -44,6 +45,7 @@ public class HCRsaves
 	private static String   worldNameTag = "lastAliveWorldName";
 	private static String   posTag   = "lastAlivePos";
 	private static String 	reasonTag= "saveReason";
+	private static String   nameTag  = "name";
 	
 	private File file;
 	private List<PlayerData> playerData = new ArrayList<PlayerData>(); ///< Here the players' positions are saved on SW side
@@ -63,6 +65,7 @@ public class HCRsaves
 		// Here we add some test dummy data
 		PlayerData dummyData = newInstance.new PlayerData();
 		dummyData.UUID = "THIS_IS_DUMMY_DATA_FOR_DEBUG";
+		dummyData.name = "DummyPlayer";
 		dummyData.lastAliveWorld = Bukkit.getWorlds().get(0);
 		dummyData.lastAlivePos = new Vector(11, 22, 33);
 		dummyData.saveReason = SaveReason.DEBUG;
@@ -71,7 +74,7 @@ public class HCRsaves
 		try {
 			newInstance.file = new File(HCRPlugin.get().getPluginDir(), fileName);
 	        if (!newInstance.file.exists()) {
-	        	newInstance.createFile();
+	        	newInstance.saveToFile();
 	        	HCRPlugin.get().onStateMessage(MsgLevel.DEBUG, "HCRsaves::init(): created new file " + fileName);
 	        }else {
 	        	newInstance.loadFile();
@@ -101,6 +104,7 @@ public class HCRsaves
 		HCRPlugin.get().onStateMessage(MsgLevel.DEBUG, "Updating locataion of " + p.getName() + ". Reason: " + reason.toString());
 		PlayerData save = new PlayerData();
 		save.UUID = p.getUniqueId().toString();
+		save.name = p.getName();
 		save.lastAliveWorld = p.getWorld();
 		save.lastAlivePos = p.getLocation().toVector();
 		save.saveReason = reason;
@@ -119,7 +123,7 @@ public class HCRsaves
 	
 	
 	/// Initial creation of the save file or actual save by overwriting
-	private void createFile() throws IOException
+	private void saveToFile() throws IOException
 	{
 		FileConfiguration newConfig = new YamlConfiguration();
 		
@@ -129,6 +133,7 @@ public class HCRsaves
 		{
 			section = newConfig.createSection("Player"+i);
 			section.set(uuidTag, p.UUID);
+			section.set(nameTag, p.name);
 			section.set(worldNameTag, p.lastAliveWorld.getName());
 			section.set(posTag, p.lastAlivePos);
 			section.set(reasonTag, p.saveReason.toString());
@@ -153,6 +158,7 @@ public class HCRsaves
 			PlayerData p = new PlayerData();
 			section = config.getConfigurationSection("Player"+i);
 			p.UUID = section.getString(uuidTag);
+			p.name = section.getString(nameTag,"Empty");
 			p.lastAliveWorld = Bukkit.getWorld(section.getString(worldNameTag));
 			p.lastAlivePos = section.getVector(posTag);
 			p.saveReason = SaveReason.valueOf(section.getString(reasonTag,"Debug").toUpperCase());
@@ -164,14 +170,20 @@ public class HCRsaves
 	
 	
 	/// visibility is "package" by declaring no scope in java
-	boolean save()
+	/// Tries to save the data represented in playerData to the save file.
+	/// Displays Debug/Warning info on success/fail.
+	void save()
 	{ 
 		try {
-			createFile();
-			return true;
+			saveToFile();
+			String message = "Current entries:\n";
+			for (PlayerData pd : playerData) {
+				message.concat(pd.name + " for reason: " + pd.saveReason.toString() + "\n");
+			}
+			HCRPlugin.get().onStateMessage(MsgLevel.DEBUG, message);
 		}catch (IOException e) {
 			e.printStackTrace();
-			return false;
+			HCRPlugin.get().onStateMessage(MsgLevel.WARNING, "HCRsaves::save(): Failed!");
 		}
 	}
 
