@@ -101,7 +101,7 @@ public class HCRsaves
 	/// Adds new content to the local representation, to be saved to the save file during quit.
 	public void addOrUpdatePlayerEntry(Player p, SaveReason reason)
 	{
-		HCRPlugin.get().onStateMessage(MsgLevel.DEBUG, "Updating locataion of " + p.getName() + ". Reason: " + reason.toString());
+		HCRPlugin.get().onStateMessage(MsgLevel.DEBUG, "Updating location of " + p.getName() + ". Reason: " + reason.toString());
 		PlayerData save = new PlayerData();
 		save.UUID = p.getUniqueId().toString();
 		save.name = p.getName();
@@ -149,6 +149,7 @@ public class HCRsaves
 	{
 		FileConfiguration config = new YamlConfiguration();
 		config.load(file);
+		List<PlayerData> tempPlayerData = new ArrayList<PlayerData>();
 		
 		int i = 0;
 		ConfigurationSection section;
@@ -163,9 +164,18 @@ public class HCRsaves
 			p.lastAlivePos = section.getVector(posTag);
 			p.saveReason = SaveReason.valueOf(section.getString(reasonTag,"Debug").toUpperCase());
 			
+			tempPlayerData.add(p);
+			
 			i++;
 			dataPresent = config.contains("Player"+i);
 		}
+		playerData = tempPlayerData;  // copy the finished result over.
+		
+		String message = "Loaded the following entries:\n";
+		for (PlayerData pd : playerData) {
+			message = message.concat(pd.name + " for reason: " + pd.saveReason.toString() + "\n");
+		}
+		HCRPlugin.get().onStateMessage(MsgLevel.DEBUG, message);
 	}
 	
 	
@@ -176,9 +186,9 @@ public class HCRsaves
 	{ 
 		try {
 			saveToFile();
-			String message = "Current entries:\n";
+			String message = "Saved to file. Current entries:\n";
 			for (PlayerData pd : playerData) {
-				message.concat(pd.name + " for reason: " + pd.saveReason.toString() + "\n");
+				message = message.concat(pd.name + " for reason: " + pd.saveReason.toString() + "\n");
 			}
 			HCRPlugin.get().onStateMessage(MsgLevel.DEBUG, message);
 		}catch (IOException e) {
