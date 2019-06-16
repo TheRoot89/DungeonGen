@@ -111,6 +111,7 @@ public class HCRPlugin extends JavaPlugin implements Listener {
 		getServer().getConsoleSender().sendMessage("Reviving: " + p.getName());
 		Location spawnLoc = getRespawnLoc(); 
 		p.teleport(spawnLoc);
+		p.setCompassTarget(spawnLoc);
 		p.setGameMode(GameMode.SURVIVAL);
 		
 		updateOnlinePlayerSaves(SaveReason.RESPAWN);
@@ -281,13 +282,13 @@ public class HCRPlugin extends JavaPlugin implements Listener {
 	
 	
 	/// To prevent use of compasses too quickly, they are deactivated from crafting here.
-	@EventHandler
-    public void onPlayerCraft(CraftItemEvent e) {
-        if(e.getRecipe().getResult().getType() == Material.COMPASS){      // where "test" is random itemstack
-            e.getInventory().setResult(new ItemStack(Material.AIR));
-            sendMessage(MsgLevel.DEBUG, "Prevented crafting of a compass.");
-        }
-    }
+//	@EventHandler
+//    public void onPlayerCraft(CraftItemEvent e) {
+//        if(e.getRecipe().getResult().getType() == Material.COMPASS){      // where "test" is random itemstack
+//            e.getInventory().setResult(new ItemStack(Material.AIR));
+//            sendMessage(MsgLevel.DEBUG, "Prevented crafting of a compass.");
+//        }
+//    }
 	
 	
 	/// Called when the plugin is closed or disabled or the server shuts down.
