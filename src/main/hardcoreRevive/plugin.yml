@@ -1,7 +1,10 @@
 name: HardcoreRevive
-main: hardcoreRevive.HCRPlugin
-version: 0.1
+version: 0.2
+description: This plugin handles death and respawn for Hardcore servers, by relocating respawned players far far away.
 author: TheRoot89
+website: https://github.com/TheRoot89/DungeonGen
+main: hardcoreRevive.HCRPlugin
+api-version: 1.14.2
 
 commands:
    revive:
