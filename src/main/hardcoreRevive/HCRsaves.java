@@ -5,7 +5,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -13,6 +16,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+
 import mcPluginHelpers.MsgLevel;
 
 public class HCRsaves
@@ -119,6 +123,24 @@ public class HCRsaves
 		
 		// add new entry. This is an update if the old one was removed above.
 		playerData.add(save);
+	}
+	
+	
+	/// For setting of the player's compass
+	/// If the name cannot be found, return all zero.
+	public Location getLastSavedLocation(Player p)
+	{
+		for (PlayerData pd : playerData) {
+			if ( p.getUniqueId().compareTo(UUID.fromString(pd.UUID)) == 0 )
+			{
+				Vector pos = pd.lastAlivePos;
+				return new Location(p.getWorld(),
+						            pos.getBlockX(),
+						            pos.getBlockY(),
+						            pos.getBlockZ());
+			}
+		}
+		return new Location(p.getWorld(),0,0,0);
 	}
 	
 	

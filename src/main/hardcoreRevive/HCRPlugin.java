@@ -17,6 +17,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
@@ -281,14 +282,13 @@ public class HCRPlugin extends JavaPlugin implements Listener {
 	}
 	
 	
-	/// To prevent use of compasses too quickly, they are deactivated from crafting here.
-//	@EventHandler
-//    public void onPlayerCraft(CraftItemEvent e) {
-//        if(e.getRecipe().getResult().getType() == Material.COMPASS){      // where "test" is random itemstack
-//            e.getInventory().setResult(new ItemStack(Material.AIR));
-//            sendMessage(MsgLevel.DEBUG, "Prevented crafting of a compass.");
-//        }
-//    }
+	/// Used to set a player's compass to his last saved position.
+	@EventHandler
+	public void onPlayerJoin(PlayerJoinEvent event)
+	{
+		Player p = event.getPlayer();
+		p.setCompassTarget(p.getLocation());
+	}
 	
 	
 	/// Called when the plugin is closed or disabled or the server shuts down.
