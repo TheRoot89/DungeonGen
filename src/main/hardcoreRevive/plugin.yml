@@ -4,7 +4,7 @@ description: This plugin handles death and respawn for Hardcore servers, by relo
 author: TheRoot89
 website: https://github.com/TheRoot89/DungeonGen
 main: hardcoreRevive.HCRPlugin
-api-version: 1.14.2
+api-version: 1.14
 
 commands:
    revive:
